@@ -1,0 +1,27 @@
+{
+  "name": "tests",
+  "version": "1.0.0",
+  "description": "",
+  "main": "/src/main.ts",
+  "scripts": {
+    "start": "nest start --exec ts-node"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@nestjs/common": "^9.3.12",
+    "@nestjs/core": "^9.3.12",
+    "@nestjs/platform-express": "^9.3.12",
+    "@trpc/server": "^10.18.0",
+    "nestjs-trpc": "workspace:*",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.8.0",
+    "zod": "^3.21.4"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^9.3.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.3"
+  }
+}

@@ -1,11 +1,11 @@
 {
-  "name": "nestjs-trpc",
+  "name": "nestjs-trpc-workspace",
   "version": "0.0.0",
   "description": "",
   "scripts": {
     "format": "prettier packages/**/*.ts --ignore-path ./.prettierignore --write",
     "build": "tsc -b -v packages",
-    "clean": "tsc -b --clean packages",
+    "clean": "tsc -b",
     "lint": "eslint 'packages/**/*.ts' --fix",
     "prepare": "husky install"
   },
@@ -24,7 +24,8 @@
     "jest": "^29.5.0",
     "lint-staged": "^13.2.0",
     "release-it": "^15.10.0",
-    "rimraf": "^4.4.1"
+    "rimraf": "^4.4.1",
+    "tslib": "^2.5.0"
   },
   "lint-staged": {
     "*.ts": [
@@ -35,5 +36,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/KevinEdry/nestjs-trpc"
-  }
+  },
+  "workspaces": [
+    "packages/*",
+    "test/*"
+  ]
 }

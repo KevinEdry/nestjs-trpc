@@ -19,7 +19,6 @@ test-schema.graphql
 
 # dist
 dist
-test/**/dist
 **/*.tsbuildinfo
 
 .yarn/

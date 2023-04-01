@@ -1,14 +1,15 @@
-import { Router, Procedure, Input } from 'nestjs-trpc';
+import { Router, Query, Mutation } from 'nestjs-trpc';
+import { z } from 'zod';
 
-// @Router()
+@Router()
 export class UserRouter {
-  // @Procedure()
+  @Query({ response: z.string() })
   authors() {
     return 'bla';
   }
 
-  // @Procedure()
-  async createAuthor(input: string) {
+  @Mutation({ input: z.string(), response: z.string() })
+  createAuthor(input: string) {
     return 'bla';
   }
 }

@@ -1,5 +1,22 @@
 import { applyDecorators, SetMetadata } from '@nestjs/common';
+import { ZodSchema } from 'zod';
+import { PROCEDURE_METADATA_KEY, PROCEDURE_TYPE_KEY } from '../trpc.constants';
+import { Procedure } from '../trpc.enum';
 
-export const Procedure = () => {
-  applyDecorators(...[SetMetadata('query', 'query')]);
-};
+export function Query(args?: { input?: ZodSchema; response?: ZodSchema }) {
+  return applyDecorators(
+    ...[
+      SetMetadata(PROCEDURE_TYPE_KEY, Procedure.Query),
+      SetMetadata(PROCEDURE_METADATA_KEY, args),
+    ],
+  );
+}
+
+export function Mutation(args?: { input?: ZodSchema; response?: ZodSchema }) {
+  return applyDecorators(
+    ...[
+      SetMetadata(PROCEDURE_TYPE_KEY, Procedure.Mutation),
+      SetMetadata(PROCEDURE_METADATA_KEY, args),
+    ],
+  );
+}

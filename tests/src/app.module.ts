@@ -3,7 +3,7 @@ import { UserRouter } from './user.router';
 import { TrpcModule } from 'nestjs-trpc';
 
 @Module({
-  imports: [TrpcModule.forRoot({})],
+  imports: [TrpcModule.forRoot({ autoRouterFile: './output' })],
   controllers: [],
   providers: [UserRouter],
 })

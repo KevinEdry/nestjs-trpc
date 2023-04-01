@@ -2,17 +2,18 @@
   "name": "tests",
   "version": "1.0.0",
   "description": "",
-  "main": "/src/main.ts",
+  "main": "./src/main.ts",
   "scripts": {
-    "start": "nest start --exec ts-node"
+    "start": "nodemon",
+    "debug": "nodemon --watch src/**/* -e ts,json --exec node --inspect-brk -r ts-node/register src/main.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@nestjs/common": "^9.3.12",
-    "@nestjs/core": "^9.3.12",
-    "@nestjs/platform-express": "^9.3.12",
+    "@nestjs/common": "^8.2.4",
+    "@nestjs/core": "^8.2.4",
+    "@nestjs/platform-express": "^8.2.4",
     "@trpc/server": "^10.18.0",
     "nestjs-trpc": "workspace:*",
     "reflect-metadata": "^0.1.13",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "@nestjs/cli": "^9.3.0",
+    "nodemon": "^2.0.22",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.3"
   }

@@ -5,14 +5,18 @@ import {
   OnModuleInit,
   Provider,
 } from '@nestjs/common/interfaces';
-import { HttpAdapterHost } from '@nestjs/core';
+import { HttpAdapterHost, MetadataScanner } from '@nestjs/core';
+import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
+import { ModulesContainer } from '@nestjs/core/injector/modules-container';
 import { TrpcModuleOptions } from './interfaces/trpc-module-options.interface';
-import { TRPC_MODULE_OPTIONS } from './trpc.constants';
+import { ROUTER_METADATA_KEY, TRPC_MODULE_OPTIONS } from './trpc.constants';
 import { TrpcDriver } from './trpc.driver';
+import { isObject } from '@nestjs/common/utils/shared.utils';
+import { TrpcFactory } from './trpc.factory';
 
 @Module({
   imports: [],
-  providers: [],
+  providers: [TrpcDriver, TrpcFactory, MetadataScanner],
   exports: [],
 })
 export class TrpcModule implements OnModuleInit {
@@ -38,5 +42,6 @@ export class TrpcModule implements OnModuleInit {
     }
 
     this.trpcDriver.start(this.options);
+    console.log('TRPC Started');
   }
 }

@@ -40,6 +40,9 @@ export class TrpcDriver<
       publicProcedure,
     ) as any;
 
+    type AppRouter = typeof appRouter;
+    
+
     const app = httpAdapter.getInstance<ExpressApplication>();
     app.use(
       options.basePath ?? '/trpc',

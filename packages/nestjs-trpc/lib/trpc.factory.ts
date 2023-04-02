@@ -47,8 +47,8 @@ export class TrpcFactory {
     return routers;
   }
 
-  getProducers(instance, prototype): Array<ProcedureMetadata> {
-    const producers = this.metadataScanner.scanFromPrototype(
+  getProcedures(instance, prototype): Array<ProcedureMetadata> {
+    const procedures = this.metadataScanner.scanFromPrototype(
       instance,
       prototype,
       (name) => {
@@ -69,7 +69,7 @@ export class TrpcFactory {
       },
     );
 
-    return producers;
+    return procedures;
   }
 
   generateSchema(router, mergeRoutes, publicProcedure): Record<string, any> {
@@ -78,11 +78,12 @@ export class TrpcFactory {
     const routerSchema = routers.map((route) => {
       const { instance } = route;
       const prototype = Object.getPrototypeOf(instance);
-      const procedures = this.getProducers(instance, prototype);
+      const procedures = this.getProcedures(instance, prototype);
 
       const producersSchema = procedures.reduce((obj, producer) => {
         obj[producer.name] = publicProcedure.query(({ input }) =>
-          producer.implementation(input),
+          // Call the method on the instance with proper dependency injection handling
+          instance[producer.name](input),
         );
         return obj;
       }, {});
@@ -90,16 +91,6 @@ export class TrpcFactory {
       return router(producersSchema);
     });
 
-    console.log({ routerSchema });
-
-    console.log({ generated: mergeRoutes(...routerSchema) });
-    // console.log({
-    //   crafted: mergeRoutes({
-    //     author: publicProcedure.query(() => {
-    //       return 'bla';
-    //     }),
-    //   }),
-    // });
     return mergeRoutes(...routerSchema);
   }
 }

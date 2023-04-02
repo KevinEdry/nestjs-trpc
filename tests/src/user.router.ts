@@ -3,12 +3,12 @@ import { z } from 'zod';
 
 @Router()
 export class UserRouter {
-  @Query({ response: z.string() })
+  @Query({ output: z.string() })
   authors() {
     return 'bla';
   }
 
-  @Mutation({ input: z.string(), response: z.string() })
+  @Mutation({ input: z.string(), output: z.string() })
   createAuthor(input: string) {
     return 'bla';
   }

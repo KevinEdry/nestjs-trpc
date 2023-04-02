@@ -28,15 +28,17 @@ export class TrpcDriver<
     }
 
     const t = initTRPC.create();
-    const router = t.router;
+    const mergeRoutes = t.mergeRouters;
     const publicProcedure = t.procedure;
-
-    const a = router({ user: publicProcedure.use()})
+    const router = t.router;
 
     //TODO: Generate routers from controllers.
     //TODO: Merge routers to the app router.
-    const routes = this.trpcFactory.generateSchema(router, publicProcedure);
-    const appRouter = t.router(routes);
+    const appRouter = this.trpcFactory.generateSchema(
+      router,
+      mergeRoutes,
+      publicProcedure,
+    ) as any;
 
     const app = httpAdapter.getInstance<ExpressApplication>();
     app.use(

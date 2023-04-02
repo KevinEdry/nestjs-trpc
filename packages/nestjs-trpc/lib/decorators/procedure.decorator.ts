@@ -3,7 +3,7 @@ import { ZodSchema } from 'zod';
 import { PROCEDURE_METADATA_KEY, PROCEDURE_TYPE_KEY } from '../trpc.constants';
 import { Procedure } from '../trpc.enum';
 
-export function Query(args?: { input?: ZodSchema; response?: ZodSchema }) {
+export function Query(args?: { input?: ZodSchema; output?: ZodSchema }) {
   return applyDecorators(
     ...[
       SetMetadata(PROCEDURE_TYPE_KEY, Procedure.Query),
@@ -12,7 +12,7 @@ export function Query(args?: { input?: ZodSchema; response?: ZodSchema }) {
   );
 }
 
-export function Mutation(args?: { input?: ZodSchema; response?: ZodSchema }) {
+export function Mutation(args?: { input?: ZodSchema; output?: ZodSchema }) {
   return applyDecorators(
     ...[
       SetMetadata(PROCEDURE_TYPE_KEY, Procedure.Mutation),

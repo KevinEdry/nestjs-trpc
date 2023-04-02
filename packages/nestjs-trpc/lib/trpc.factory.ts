@@ -12,7 +12,7 @@ import { Procedure } from './trpc.enum';
 interface ProcedureMetadata {
   type: Procedure;
   input: ZodSchema | undefined;
-  response: ZodSchema | undefined;
+  output: ZodSchema | undefined;
   name: string;
   implementation: ({ input }) => any;
 }
@@ -54,7 +54,7 @@ export class TrpcFactory {
       (name) => {
         const callback = prototype[name];
         const type = Reflect.getMetadata(PROCEDURE_TYPE_KEY, callback);
-        const { input, response } = Reflect.getMetadata(
+        const { input, output } = Reflect.getMetadata(
           PROCEDURE_METADATA_KEY,
           callback,
         );
@@ -63,7 +63,7 @@ export class TrpcFactory {
           type,
           input,
           name: callback.name,
-          response,
+          output,
           implementation: callback,
         };
       },
@@ -72,32 +72,34 @@ export class TrpcFactory {
     return producers;
   }
 
-  generateSchema(router, publicProcedure): Record<string, any> {
+  generateSchema(router, mergeRoutes, publicProcedure): Record<string, any> {
     const routers = this.getRouters();
-    const routerSchema = routers.reduce((objA, router) => {
-      const { instance } = router;
+    console.log(routers);
+    const routerSchema = routers.map((route) => {
+      const { instance } = route;
       const prototype = Object.getPrototypeOf(instance);
-      const producers = this.getProducers(instance, prototype);
+      const procedures = this.getProducers(instance, prototype);
 
-      const producersSchema = producers.reduce((obj, producer) => {
-        obj[producer.name] = publicProcedure
-          .query()
-          .fn(producer.implementation);
+      const producersSchema = procedures.reduce((obj, producer) => {
+        obj[producer.name] = publicProcedure.query(({ input }) =>
+          producer.implementation(input),
+        );
         return obj;
       }, {});
 
-      objA[router.name] = producersSchema;
-      return objA;
-    }, {});
+      return router(producersSchema);
+    });
 
     console.log({ routerSchema });
-    console.log({
-      crafted: router({
-        author: publicProcedure.query(() => {
-          return 'bla';
-        }),
-      }),
-    });
-    return router(routerSchema);
+
+    console.log({ generated: mergeRoutes(...routerSchema) });
+    // console.log({
+    //   crafted: mergeRoutes({
+    //     author: publicProcedure.query(() => {
+    //       return 'bla';
+    //     }),
+    //   }),
+    // });
+    return mergeRoutes(...routerSchema);
   }
 }

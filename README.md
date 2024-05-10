@@ -28,6 +28,30 @@ Make sure you are in your project directory before executing these commands.
 - Native decorators for streamlined usage
 - Opinionated implementation following NestJS standards
 
+
+## How to use
+Here's a brief example demonstrating how to use the decorators available in **trpc-nestjs**:
+
+### Decorators Example
+
+```typescript
+import { TRPCController, Query } from 'trpc-nestjs';
+
+@TRPCController()
+class ExampleController {
+  @Query()
+  hello() {
+    return 'Hello, world!';
+  }
+}
+```
+
+In this code snippet:
+- `@TRPCController()` is used to mark the class as a TRPC controller.
+- `@Query()` declares a simple query endpoint.
+
+Explore more details on [GitHub](https://github.com/KevinEdry/nestjs-trpc/tree/main/packages/nestjs-trpc/lib/decorators).
+
 ## License
 This project is released under the MIT License.
 

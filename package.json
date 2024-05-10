@@ -1,11 +1,44 @@
 {
-  "name": "nestjs-trpc",
-  "version": "1.0.0",
+  "name": "nestjs-trpc-workspace",
+  "version": "0.0.0",
   "description": "",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "format": "prettier packages/**/*.ts --ignore-path ./.prettierignore --write",
+    "build": "tsc -b -v packages",
+    "clean": "tsc -b",
+    "lint": "eslint 'packages/**/*.ts' --fix",
+    "prepare": "husky install"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "author": "Kevin Orel Edry",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.14.2",
+    "pnpm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^17.5.1",
+    "@commitlint/config-angular": "^17.4.4",
+    "eslint": "^8.37.0",
+    "husky": "^8.0.3",
+    "jest": "^29.5.0",
+    "lint-staged": "^13.2.0",
+    "release-it": "^15.10.0",
+    "rimraf": "^4.4.1",
+    "tslib": "^2.5.0"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "prettier --write",
+      "eslint --fix"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KevinEdry/nestjs-trpc"
+  },
+  "workspaces": [
+    "packages/*",
+    "test/*"
+  ]
 }

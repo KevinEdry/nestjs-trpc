@@ -1,0 +1,40 @@
+{
+  "name": "nestjs-trpc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./lib/index.ts",
+  "types": "./lib/index.ts",
+  "scripts": {
+    "format": "prettier packages/**/*.ts --ignore-path ./.prettierignore --write",
+    "build": "nest build",
+    "clean": "tsc -b"
+  },
+  "keywords": [],
+  "author": "Kevin Orel Edry",
+  "license": "MIT",
+  "peerDependencies": {
+    "@nestjs/common": ">= 8.0.0",
+    "@nestjs/core": ">= 8.0.0",
+    "@trpc/server": "^10.18.0",
+    "reflect-metadata": "^0.1.13",
+    "ts-morph": "^15.0.0 || ^16.0.0 || ^17.0.0",
+    "zod": ">= 3.14.3"
+  },
+  "peerDependenciesMeta": {
+    "ts-morph": {
+      "optional": true
+    },
+    "zod": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^9.3.0",
+    "@types/express": "^4.17.17",
+    "rimraf": "^4.4.1",
+    "typescript": "^5.0.3"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21"
+  }
+}

@@ -1,4 +1,4 @@
-# trpc-nestjs
+# nestjs-trpc
 
 ## Introduction
 **trpc-nestjs** is a library designed to integrate the capabilities of tRPC into the NestJS framework. It aims to provide native support for decorators and implement an opinionated approach that aligns with NestJS conventions.

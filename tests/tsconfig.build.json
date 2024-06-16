@@ -12,11 +12,18 @@
     "noLib": false,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "esModuleInterop": true,
     "target": "es2018",
     "sourceMap": false,
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "strict": false
   },
-  "exclude": ["node_modules", "dist", "tests/**/*", "*.spec.ts"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "tests/**/*",
+    "*.spec.ts",
+    "src/@generated/*.ts"
+  ]
 }

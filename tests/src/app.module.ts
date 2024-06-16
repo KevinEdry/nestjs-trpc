@@ -4,7 +4,7 @@ import { TrpcModule } from 'nestjs-trpc';
 import { UserService } from './user.service';
 
 @Module({
-  imports: [TrpcModule.forRoot({ autoRouterFile: './output' })],
+  imports: [TrpcModule.forRoot({ autoRouterFile: './src/@generated' })],
   controllers: [],
   providers: [UserRouter, UserService],
 })

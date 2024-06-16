@@ -10,7 +10,7 @@
     "prepare": "husky install"
   },
   "keywords": [],
-  "author": "Kevin Orel Edry",
+  "author": "Kevin Edry",
   "license": "MIT",
   "engines": {
     "node": ">=16.14.2",

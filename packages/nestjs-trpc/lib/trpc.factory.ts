@@ -1,21 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { ModulesContainer, MetadataScanner } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
-import { ZodSchema } from 'zod';
 import {
   PROCEDURE_METADATA_KEY,
   PROCEDURE_TYPE_KEY,
   ROUTER_METADATA_KEY,
 } from './trpc.constants';
-import { Procedure } from './trpc.enum';
 
-interface ProcedureMetadata {
-  type: Procedure;
-  input: ZodSchema | undefined;
-  output: ZodSchema | undefined;
-  name: string;
-  implementation: ({ input }) => any;
-}
+import { generateTRPCRoutes } from './generator';
+import { AnyRouter } from '@trpc/server';
+import { MergeRouters } from '@trpc/server/dist/core/internals/mergeRouters';
+import { AnyRouterDef } from '@trpc/server/dist/core/router';
+import {
+  RoutersMetadata,
+  ProcedureInstance,
+  TRPCRouter,
+  TRPCMergeRoutes,
+  TRPCPublicProcedure,
+  RouterInstance,
+} from './interfaces/factory.interface';
 
 @Injectable()
 export class TrpcFactory {
@@ -24,7 +27,7 @@ export class TrpcFactory {
     private readonly metadataScanner: MetadataScanner,
   ) {}
 
-  getRouters() {
+  private getRouters(): Array<RouterInstance> {
     const routers = [];
     this.modulesContainer.forEach((moduleRef) => {
       moduleRef.providers.forEach((wrapper: InstanceWrapper) => {
@@ -47,7 +50,7 @@ export class TrpcFactory {
     return routers;
   }
 
-  getProcedures(instance, prototype): Array<ProcedureMetadata> {
+  private getProcedures(instance, prototype): Array<ProcedureInstance> {
     const procedures = this.metadataScanner.scanFromPrototype(
       instance,
       prototype,
@@ -72,25 +75,51 @@ export class TrpcFactory {
     return procedures;
   }
 
-  generateSchema(router, mergeRoutes, publicProcedure): Record<string, any> {
+  generateRoutes(
+    router: TRPCRouter,
+    mergeRoutes: TRPCMergeRoutes,
+    publicProcedure: TRPCPublicProcedure,
+  ): MergeRouters<Array<AnyRouter>, AnyRouterDef> {
     const routers = this.getRouters();
-    console.log(routers);
     const routerSchema = routers.map((route) => {
-      const { instance } = route;
+      const { instance, name } = route;
       const prototype = Object.getPrototypeOf(instance);
       const procedures = this.getProcedures(instance, prototype);
 
-      const producersSchema = procedures.reduce((obj, producer) => {
-        obj[producer.name] = publicProcedure.query(({ input }) =>
-          // Call the method on the instance with proper dependency injection handling
-          instance[producer.name](input),
-        );
-        return obj;
-      }, {});
+      const producersSchema = procedures.reduce(
+        (obj, producer) => {
+          //TODO: distinguish between queries and mutations.
+          //TODO: add input and outputs check
+          //TODO: distinguish between public, shielded and protected procedures.
+          obj[name.toLowerCase()][producer.name] = publicProcedure.query(
+            ({ input }) =>
+              // Call the method on the instance with proper dependency injection handling
+              instance[producer.name](input),
+          );
+          return obj;
+        },
+        {
+          [name.toLowerCase()]: {},
+        },
+      );
 
       return router(producersSchema);
     });
 
+    console.log(routerSchema);
     return mergeRoutes(...routerSchema);
+  }
+
+  async generateAppRouter(outputFilePath: string): Promise<void> {
+    const routers = this.getRouters();
+    const mappedRoutesAndProcedures = routers.map((route) => {
+      const { instance, name } = route;
+      const prototype = Object.getPrototypeOf(instance);
+      const procedures = this.getProcedures(instance, prototype);
+
+      return { name, instance: { ...route }, procedures };
+    });
+
+    await generateTRPCRoutes(mappedRoutesAndProcedures, outputFilePath);
   }
 }

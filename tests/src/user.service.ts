@@ -8,6 +8,6 @@ import {
 @Injectable()
 export class UserService {
   test(): string {
-    return 'mana hama';
+    return 'test';
   }
 }

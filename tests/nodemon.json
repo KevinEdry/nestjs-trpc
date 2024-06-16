@@ -1,6 +1,6 @@
 {
   "watch": ["src"],
   "ext": "ts,json",
-  "ignore": ["src/**/*.spec.ts"],
+  "ignore": ["src/**/*.spec.ts", "src/@generated/*.ts"],
   "exec": "nest start --exec ts-node"
 }

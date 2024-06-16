@@ -12,7 +12,12 @@ export class UserRouter {
     return this.userService.test();
   }
 
-  @Mutation({ input: z.string(), output: z.string() })
+  @Mutation({
+    input: z.string(),
+    output: z.object({
+      name: z.string(),
+    }),
+  })
   createAuthor(input: string) {
     return 'bla';
   }

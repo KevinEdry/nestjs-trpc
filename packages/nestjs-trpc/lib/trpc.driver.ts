@@ -5,6 +5,7 @@ import { TrpcModuleOptions } from './interfaces/trpc-module-options.interface';
 import { initTRPC } from '@trpc/server';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { TrpcFactory } from './trpc.factory';
+import { generateTRPCRoutes } from './generator';
 
 @Injectable()
 export class TrpcDriver<
@@ -19,29 +20,26 @@ export class TrpcDriver<
   @Inject()
   protected readonly trpcFactory: TrpcFactory;
 
-  public start(options: TrpcModuleOptions) {
+  public async start(options: TrpcModuleOptions) {
     const httpAdapter = this.httpAdapterHost.httpAdapter;
     const platformName = httpAdapter.getType();
 
     if (platformName !== 'express') {
+      //TODO: Add support for Fastify
       throw new Error(`No support for current HttpAdapter: ${platformName}`);
     }
 
-    const t = initTRPC.create();
-    const mergeRoutes = t.mergeRouters;
-    const publicProcedure = t.procedure;
-    const router = t.router;
+    const { procedure, mergeRouters, router } = initTRPC.create();
 
     //TODO: Generate routers from controllers.
     //TODO: Merge routers to the app router.
-    const appRouter = this.trpcFactory.generateSchema(
+    const appRouter = await this.trpcFactory.generateRoutes(
       router,
-      mergeRoutes,
-      publicProcedure,
-    ) as any;
+      mergeRouters,
+      procedure,
+    );
 
-    type AppRouter = typeof appRouter;
-    
+    await this.trpcFactory.generateAppRouter(options.autoRouterFile);
 
     const app = httpAdapter.getInstance<ExpressApplication>();
     app.use(

@@ -10,7 +10,7 @@
     "clean": "tsc -b"
   },
   "keywords": [],
-  "author": "Kevin Orel Edry",
+  "author": "Kevin Edry",
   "license": "MIT",
   "peerDependencies": {
     "@nestjs/common": ">= 8.0.0",

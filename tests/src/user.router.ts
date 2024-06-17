@@ -2,6 +2,15 @@ import { Inject } from '@nestjs/common';
 import { Router, Query, Mutation } from 'nestjs-trpc';
 import { z } from 'zod';
 import { UserService } from './user.service';
+import util
+
+
+const outputSchema = z.object({
+  name: z.string(),
+  password: z.number(),
+});
+
+
 
 @Router()
 export class UserRouter {
@@ -14,9 +23,7 @@ export class UserRouter {
 
   @Mutation({
     input: z.string(),
-    output: z.object({
-      name: z.string(),
-    }),
+    output: outputSchema,
   })
   createAuthor(input: string) {
     return 'bla';

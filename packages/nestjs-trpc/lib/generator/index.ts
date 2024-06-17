@@ -2,6 +2,7 @@ import { Project, StructureKind, VariableDeclarationKind } from 'ts-morph';
 import path from 'path';
 import { project } from './project';
 import { RoutersMetadata } from '../interfaces/factory.interface';
+import util from 'util';
 
 export async function generateTRPCRoutes(
   routersDef: Array<RoutersMetadata>,
@@ -39,6 +40,7 @@ export async function generateTRPCRoutes(
     .map((route) => {
       const proceduresDef = route.procedures
         .map((procedure) => {
+          console.log({ output: util.inspect(procedure.output) });
           return `${procedure.name}: publicProcedure
         .input(${procedure.input})
         .output(${procedure.output})

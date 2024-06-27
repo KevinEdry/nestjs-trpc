@@ -4,7 +4,12 @@ import {
   RoutersFactoryMetadata,
 } from './interfaces/factory.interface';
 import { locate } from 'func-loc';
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  ConsoleLogger,
+  Inject,
+  Injectable,
+  OnModuleInit,
+} from '@nestjs/common';
 import { camelCase } from 'lodash';
 
 import {
@@ -28,6 +33,10 @@ import {
 export class TRPCGenerator implements OnModuleInit {
   private project: Project;
   private readonly OUTPUT_FILE_NAME = 'trpc.ts';
+
+  constructor(
+    @Inject(ConsoleLogger) private readonly consoleLogger: ConsoleLogger,
+  ) {}
 
   onModuleInit() {
     const defaultCompilerOptions: CompilerOptions = {
@@ -69,11 +78,11 @@ export class TRPCGenerator implements OnModuleInit {
 
       this.saveOrOverrideFile(trpcSourceFile);
 
-      console.info(
+      this.consoleLogger.log(
         `TRPC AppRouter has been updated successfully at "${outputDirPath}/${this.OUTPUT_FILE_NAME}".`,
       );
     } catch (e: unknown) {
-      console.warn('TRPC Generator encountered an error.', e);
+      this.consoleLogger.warn('TRPC Generator encountered an error.', e);
     }
   }
 
@@ -187,7 +196,9 @@ export class TRPCGenerator implements OnModuleInit {
               },
             });
           } else {
-            console.warn(`Decorator ${decoratorName}, not supported.`);
+            this.consoleLogger.warn(
+              `Decorator ${decoratorName}, not supported.`,
+            );
           }
           return array;
         },

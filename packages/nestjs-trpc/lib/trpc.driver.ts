@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ApplicationConfig, HttpAdapterHost } from '@nestjs/core';
 import type { Application as ExpressApplication } from 'express';
 import { TRPCModuleOptions } from './interfaces/trpc-module-options.interface';
-import { initTRPC } from '@trpc/server';
+import { AnyRouter, initTRPC } from '@trpc/server';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { TRPCFactory } from './trpc.factory';
 
@@ -28,28 +28,29 @@ export class TRPCDriver<
       throw new Error(`No support for current HttpAdapter: ${platformName}`);
     }
 
-    const { procedure, mergeRouters, router } = initTRPC.create();
+    const app = httpAdapter.getInstance<ExpressApplication>();
 
-    //TODO: Generate routers from controllers.
-    //TODO: Merge routers to the app router.
-    const appRouter = await this.trpcFactory.generateRoutes(
+    const createContext = ({
+      req,
+      res,
+    }: trpcExpress.CreateExpressContextOptions) => ({}); // no context
+    type Context = Awaited<ReturnType<typeof createContext>>;
+
+    const { procedure, router } = initTRPC.context<Context>().create();
+
+    const appRouter: AnyRouter = await this.trpcFactory.generateRoutes(
       router,
-      mergeRouters,
       procedure,
     );
 
     await this.trpcFactory.generateAppRouter(options.outputAppRouterFile);
 
-    const app = httpAdapter.getInstance<ExpressApplication>();
     app.use(
-      options.basePath ?? '/trpc',
+      '/trpc',
       trpcExpress.createExpressMiddleware({
         router: appRouter,
+        createContext,
       }),
     );
   }
-
-  //   public generateSchema(options: TOptions): Promise<GraphQLSchema> | null {
-  //     return this.graphQlFactory.generateSchema(options);
-  //   }
 }

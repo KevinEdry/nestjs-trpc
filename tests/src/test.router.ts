@@ -1,5 +1,5 @@
 import { Inject } from '@nestjs/common';
-import { Router, Query, Mutation, Output } from 'nestjs-trpc';
+import { Router, Query, Mutation } from 'nestjs-trpc';
 import { z } from 'zod';
 import { UserService } from './user.service';
 

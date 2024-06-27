@@ -25,11 +25,3 @@ export function Mutation(args?: { input?: ZodSchema; output?: ZodSchema }) {
     ],
   );
 }
-
-export const Output = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext) => {
-    console.log('it is work?');
-    console.log({ ctx, data });
-    return 'bla';
-  },
-);

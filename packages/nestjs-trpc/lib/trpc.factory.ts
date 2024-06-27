@@ -11,7 +11,6 @@ import { AnyRouter } from '@trpc/server';
 import { MergeRouters } from '@trpc/server/dist/core/internals/mergeRouters';
 import { AnyRouterDef } from '@trpc/server/dist/core/router';
 import {
-  RoutersFactoryMetadata,
   ProcedureFactoryMetadata,
   TRPCRouter,
   TRPCMergeRoutes,
@@ -19,7 +18,7 @@ import {
   RouterInstance,
 } from './interfaces/factory.interface';
 import { TRPCGenerator } from './trpc.generator';
-import { camelCase } from 'lodash';
+import { camelCase, merge } from 'lodash';
 
 @Injectable()
 export class TRPCFactory {
@@ -79,38 +78,45 @@ export class TRPCFactory {
 
   generateRoutes(
     router: TRPCRouter,
-    mergeRoutes: TRPCMergeRoutes,
+
     publicProcedure: TRPCPublicProcedure,
   ): MergeRouters<Array<AnyRouter>, AnyRouterDef> {
     const routers = this.getRouters();
-    const routerSchema = routers.map((route) => {
+    const routerSchema = routers.reduce((appRouterObj, route) => {
       const { instance, name } = route;
       const camelCasedRouterName = camelCase(name);
       const prototype = Object.getPrototypeOf(instance);
       const procedures = this.getProcedures(instance, prototype);
 
-      const producersSchema = procedures.reduce(
-        (appRouterObj, producer) => {
-          //TODO: distinguish between queries and mutations.
-          //TODO: add input and outputs check
-          //TODO: distinguish between public, shielded and protected procedures.
-          //TODO: add support for other decorators (guards, middlewares etc...)
-          appRouterObj[camelCasedRouterName][producer.name] =
-            publicProcedure.query(({ input }) =>
-              // Call the method on the instance with proper dependency injection handling
-              instance[producer.name](input),
-            );
-          return appRouterObj;
-        },
-        {
-          [camelCasedRouterName]: {},
-        },
-      );
+      for (const producer of procedures) {
+        const { input, output, type } = producer;
+        const procedureInvocation = ({ input }) =>
+          // Call the method on the instance with proper dependency injection handling.
+          instance[producer.name](input);
 
-      return router(producersSchema);
-    });
+        const baseProcedure = publicProcedure;
+        const procedureWithInput = input
+          ? baseProcedure.input(input)
+          : baseProcedure;
+        const procedureWithOutput = output
+          ? baseProcedure.output(output)
+          : procedureWithInput;
+        const finalProcedure =
+          type === 'mutation'
+            ? procedureWithOutput.mutation(procedureInvocation.bind(this))
+            : procedureWithOutput.query(procedureInvocation);
 
-    return mergeRoutes(...routerSchema);
+        if (appRouterObj[camelCasedRouterName] == null) {
+          appRouterObj[camelCasedRouterName] = {};
+        }
+
+        appRouterObj[camelCasedRouterName][producer.name] = finalProcedure;
+      }
+
+      return appRouterObj;
+    }, {});
+
+    return router(routerSchema);
   }
 
   async generateAppRouter(outputFilePath: string): Promise<void> {

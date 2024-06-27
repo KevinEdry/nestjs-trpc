@@ -67,14 +67,14 @@ export class TRPCGenerator implements OnModuleInit {
 
       this.generateStaticDeclaration(trpcSourceFile);
 
-      const routersMetadata = await this.serializeRouters(routers);
-      const routersStringDeclarations =
-        this.generateRoutersStringFromMetadata(routersMetadata);
+      // const routersMetadata = await this.serializeRouters(routers);
+      // const routersStringDeclarations =
+      //   this.generateRoutersStringFromMetadata(routersMetadata);
 
-      trpcSourceFile.addStatements(/* ts */ `
-          const appRouter = t.router({${routersStringDeclarations}});
-          export type AppRouter = typeof appRouter;
-          `);
+      // trpcSourceFile.addStatements(/* ts */ `
+      //     const appRouter = t.router({${routersStringDeclarations}});
+      //     export type AppRouter = typeof appRouter;
+      //     `);
 
       this.saveOrOverrideFile(trpcSourceFile);
 

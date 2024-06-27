@@ -1,14 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ApplicationConfig, HttpAdapterHost } from '@nestjs/core';
 import type { Application as ExpressApplication } from 'express';
-import { TrpcModuleOptions } from './interfaces/trpc-module-options.interface';
+import { TRPCModuleOptions } from './interfaces/trpc-module-options.interface';
 import { initTRPC } from '@trpc/server';
 import * as trpcExpress from '@trpc/server/adapters/express';
-import { TrpcFactory } from './trpc.factory';
+import { TRPCFactory } from './trpc.factory';
 
 @Injectable()
-export class TrpcDriver<
-  TOptions extends Record<string, any> = TrpcModuleOptions,
+export class TRPCDriver<
+  TOptions extends Record<string, any> = TRPCModuleOptions,
 > {
   @Inject()
   protected readonly httpAdapterHost!: HttpAdapterHost;
@@ -17,9 +17,9 @@ export class TrpcDriver<
   protected readonly applicationConfig?: ApplicationConfig;
 
   @Inject()
-  protected readonly trpcFactory: TrpcFactory;
+  protected readonly trpcFactory: TRPCFactory;
 
-  public async start(options: TrpcModuleOptions) {
+  public async start(options: TRPCModuleOptions) {
     const httpAdapter = this.httpAdapterHost.httpAdapter;
     const platformName = httpAdapter.getType();
 

@@ -14,7 +14,7 @@
     "experimentalDecorators": true,
     "esModuleInterop": true,
     "target": "es2018",
-    "sourceMap": false,
+    "sourceMap": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "strict": false

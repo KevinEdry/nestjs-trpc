@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ModulesContainer, MetadataScanner } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import {
@@ -7,22 +7,24 @@ import {
   ROUTER_METADATA_KEY,
 } from './trpc.constants';
 
-import { generateTRPCRoutes } from './generator';
 import { AnyRouter } from '@trpc/server';
 import { MergeRouters } from '@trpc/server/dist/core/internals/mergeRouters';
 import { AnyRouterDef } from '@trpc/server/dist/core/router';
 import {
-  RoutersMetadata,
-  ProcedureInstance,
+  RoutersFactoryMetadata,
+  ProcedureFactoryMetadata,
   TRPCRouter,
   TRPCMergeRoutes,
   TRPCPublicProcedure,
   RouterInstance,
 } from './interfaces/factory.interface';
+import { TRPCGenerator } from './trpc.generator';
+import { camelCase } from 'lodash';
 
 @Injectable()
-export class TrpcFactory {
+export class TRPCFactory {
   constructor(
+    @Inject(TRPCGenerator) private readonly trpcGenerator: TRPCGenerator,
     private readonly modulesContainer: ModulesContainer,
     private readonly metadataScanner: MetadataScanner,
   ) {}
@@ -50,7 +52,7 @@ export class TrpcFactory {
     return routers;
   }
 
-  private getProcedures(instance, prototype): Array<ProcedureInstance> {
+  private getProcedures(instance, prototype): Array<ProcedureFactoryMetadata> {
     const procedures = this.metadataScanner.scanFromPrototype(
       instance,
       prototype,
@@ -83,23 +85,25 @@ export class TrpcFactory {
     const routers = this.getRouters();
     const routerSchema = routers.map((route) => {
       const { instance, name } = route;
+      const camelCasedRouterName = camelCase(name);
       const prototype = Object.getPrototypeOf(instance);
       const procedures = this.getProcedures(instance, prototype);
 
       const producersSchema = procedures.reduce(
-        (obj, producer) => {
+        (appRouterObj, producer) => {
           //TODO: distinguish between queries and mutations.
           //TODO: add input and outputs check
           //TODO: distinguish between public, shielded and protected procedures.
-          obj[name.toLowerCase()][producer.name] = publicProcedure.query(
-            ({ input }) =>
+          //TODO: add support for other decorators (guards, middlewares etc...)
+          appRouterObj[camelCasedRouterName][producer.name] =
+            publicProcedure.query(({ input }) =>
               // Call the method on the instance with proper dependency injection handling
               instance[producer.name](input),
-          );
-          return obj;
+            );
+          return appRouterObj;
         },
         {
-          [name.toLowerCase()]: {},
+          [camelCasedRouterName]: {},
         },
       );
 
@@ -119,6 +123,9 @@ export class TrpcFactory {
       return { name, instance: { ...route }, procedures };
     });
 
-    await generateTRPCRoutes(mappedRoutesAndProcedures, outputFilePath);
+    await this.trpcGenerator.generate(
+      mappedRoutesAndProcedures,
+      outputFilePath,
+    );
   }
 }

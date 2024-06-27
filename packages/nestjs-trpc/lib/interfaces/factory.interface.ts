@@ -13,7 +13,7 @@ import {
 import { RouterDef } from '@trpc/server/dist/core/router';
 import { ZodSchema } from 'zod';
 
-export interface ProcedureInstance {
+export interface ProcedureFactoryMetadata {
   type: ProcedureType;
   input: ZodSchema | undefined;
   output: ZodSchema | undefined;
@@ -27,10 +27,10 @@ export interface RouterInstance {
   options: unknown;
 }
 
-export interface RoutersMetadata {
+export interface RoutersFactoryMetadata {
   name: string;
   instance: RouterInstance;
-  procedures: Array<ProcedureInstance>;
+  procedures: Array<ProcedureFactoryMetadata>;
 }
 
 export type TRPCRouter = <TProcRouterRecord extends ProcedureRouterRecord>(

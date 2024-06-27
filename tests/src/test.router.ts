@@ -11,7 +11,7 @@ const outputSchema = z.object({
 });
 
 @Router()
-export class UserRouter {
+export class TestRouter {
   constructor(@Inject(UserService) private readonly userService: UserService) {}
 
   @Query({ output: z.object({ bla: z.string() }) })

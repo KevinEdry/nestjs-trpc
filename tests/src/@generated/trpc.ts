@@ -5,11 +5,22 @@ const t = initTRPC.create();
 const publicProcedure = t.procedure;
 
 const appRouter = t.router({
-  UserRouter: {
-    authors: publicProcedure.output(z.string()).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    createAuthor: publicProcedure.input(z.string()).output(z.object({
+  userRouter: {
+    authors: publicProcedure.output(z.object({ bla: z.string() })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    createAuthor: publicProcedure.input(z.number()).output(z.object({
       linoy: z.string(),
-      kimhi: z.number(),
+      magniva: z.object({
+        placeholder: z.enum(['bla']),
+      }),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+  },
+  testRouter: {
+    authors: publicProcedure.output(z.object({ bla: z.string() })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    createAuthor: publicProcedure.input(z.number()).output(z.object({
+      linoy: z.string(),
+      magniva: z.object({
+        placeholder: z.enum(['bla']),
+      }),
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   }
 });

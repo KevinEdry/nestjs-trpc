@@ -3,7 +3,6 @@ node_modules
 
 # IDE
 /.idea
-/.awcache
 /.vscode
 
 # misc
@@ -22,3 +21,5 @@ dist
 **/*.tsbuildinfo
 
 .yarn/
+
+src/@generated

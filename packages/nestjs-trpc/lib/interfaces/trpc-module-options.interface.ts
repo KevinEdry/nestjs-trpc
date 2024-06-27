@@ -5,7 +5,7 @@ const t = initTRPC.meta().context().create();
 /**
  * "TRPCModule" options object.
  */
-export interface TrpcModuleOptions {
+export interface TRPCModuleOptions {
   /**
    * Path to trpc router type output.
    */

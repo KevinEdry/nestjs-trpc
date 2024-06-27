@@ -4,8 +4,12 @@
   "description": "",
   "main": "./src/main.ts",
   "scripts": {
-    "start": "nodemon",
-    "debug": "nodemon --watch src/**/* -e ts,json --exec node --inspect-brk -r ts-node/register src/main.ts"
+    "build": "nest build",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/main"
   },
   "keywords": [],
   "author": "",
@@ -14,6 +18,7 @@
     "@nestjs/common": "^8.2.4",
     "@nestjs/core": "^8.2.4",
     "@nestjs/platform-express": "^8.2.4",
+    "@trpc/client": "^10.45.2",
     "@trpc/server": "^10.18.0",
     "nestjs-trpc": "workspace:*",
     "reflect-metadata": "^0.1.13",

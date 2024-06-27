@@ -6,18 +6,11 @@ const publicProcedure = t.procedure;
 
 const appRouter = t.router({
   UserRouter: {
-    authors: publicProcedure
-      .input(undefined)
-      .output([object Object])
-      .query(authors() {
-        return this.userService.test();
-      }),
-    createAuthor: publicProcedure
-      .input([object Object])
-      .output([object Object])
-      .mutation(createAuthor(input) {
-        return 'bla';
-      })
+    authors: publicProcedure.output(z.string()).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    createAuthor: publicProcedure.input(z.string()).output(z.object({
+      linoy: z.string(),
+      kimhi: z.number(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   }
 });
 export type AppRouter = typeof appRouter;

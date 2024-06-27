@@ -106,7 +106,6 @@ export class TrpcFactory {
       return router(producersSchema);
     });
 
-    console.log(routerSchema);
     return mergeRoutes(...routerSchema);
   }
 

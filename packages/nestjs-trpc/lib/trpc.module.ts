@@ -1,17 +1,9 @@
-import { Inject, Module, RequestMethod } from '@nestjs/common';
-import {
-  DynamicModule,
-  OnModuleDestroy,
-  OnModuleInit,
-  Provider,
-} from '@nestjs/common/interfaces';
+import { Inject, Module } from '@nestjs/common';
+import { DynamicModule, OnModuleInit } from '@nestjs/common/interfaces';
 import { HttpAdapterHost, MetadataScanner } from '@nestjs/core';
-import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
-import { ModulesContainer } from '@nestjs/core/injector/modules-container';
-import { TrpcModuleOptions } from './interfaces/trpc-module-options.interface';
-import { ROUTER_METADATA_KEY, TRPC_MODULE_OPTIONS } from './trpc.constants';
+import { TrpcModuleOptions as TRPCModuleOptions } from './interfaces/trpc-module-options.interface';
+import { TRPC_MODULE_OPTIONS } from './trpc.constants';
 import { TrpcDriver } from './trpc.driver';
-import { isObject } from '@nestjs/common/utils/shared.utils';
 import { TrpcFactory } from './trpc.factory';
 
 @Module({
@@ -19,18 +11,18 @@ import { TrpcFactory } from './trpc.factory';
   providers: [TrpcDriver, TrpcFactory, MetadataScanner],
   exports: [],
 })
-export class TrpcModule implements OnModuleInit {
+export class TRPCModule implements OnModuleInit {
   constructor(
-    @Inject(TRPC_MODULE_OPTIONS) private readonly options: TrpcModuleOptions,
+    @Inject(TRPC_MODULE_OPTIONS) private readonly options: TRPCModuleOptions,
     private readonly httpAdapterHost: HttpAdapterHost,
     private readonly trpcDriver: TrpcDriver,
   ) {}
 
-  static forRoot<TOptions extends Record<string, any> = TrpcModuleOptions>(
+  static forRoot<TOptions extends Record<string, any> = TRPCModuleOptions>(
     options: TOptions = {} as TOptions,
   ): DynamicModule {
     return {
-      module: TrpcModule,
+      module: TRPCModule,
       providers: [{ provide: TRPC_MODULE_OPTIONS, useValue: options }],
     };
   }

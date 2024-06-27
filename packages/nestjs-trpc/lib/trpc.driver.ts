@@ -5,7 +5,6 @@ import { TrpcModuleOptions } from './interfaces/trpc-module-options.interface';
 import { initTRPC } from '@trpc/server';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { TrpcFactory } from './trpc.factory';
-import { generateTRPCRoutes } from './generator';
 
 @Injectable()
 export class TrpcDriver<
@@ -39,7 +38,7 @@ export class TrpcDriver<
       procedure,
     );
 
-    await this.trpcFactory.generateAppRouter(options.autoRouterFile);
+    await this.trpcFactory.generateAppRouter(options.outputAppRouterFile);
 
     const app = httpAdapter.getInstance<ExpressApplication>();
     app.use(

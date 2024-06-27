@@ -18,7 +18,7 @@ export interface ProcedureInstance {
   input: ZodSchema | undefined;
   output: ZodSchema | undefined;
   name: string;
-  implementation: ({ input }) => any;
+  implementation: ({ input, output }) => any;
 }
 
 export interface RouterInstance {

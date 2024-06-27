@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { UserRouter } from './user.router';
-import { TrpcModule } from 'nestjs-trpc';
+import { TRPCModule } from 'nestjs-trpc';
 import { UserService } from './user.service';
 
 @Module({
-  imports: [TrpcModule.forRoot({ autoRouterFile: './src/@generated' })],
+  imports: [TRPCModule.forRoot({ outputAppRouterFile: './src/@generated' })],
   controllers: [],
   providers: [UserRouter, UserService],
 })

@@ -2,16 +2,26 @@
   "name": "nestjs-trpc",
   "version": "1.0.0",
   "description": "",
-  "main": "./lib/index.ts",
+  "main": "dist/index.js",
   "types": "./lib/index.ts",
+  "files": [
+    "dist/**/*",
+    "*.md"
+  ],
   "scripts": {
-    "format": "prettier packages/**/*.ts --ignore-path ./.prettierignore --write",
-    "build": "nest build",
-    "clean": "tsc -b"
+    "format": "prettier --write \"src/**/*.ts\"",
+    "lint": "tslint -p tsconfig.json -c tslint.json",
+    "build": "tsc -b -v",
+    "clean": "tsc -b --clean",
+    "prepare": "npm run build",
+    "start:dev": "tsc -w"
   },
   "keywords": [],
   "author": "Kevin Edry",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "peerDependencies": {
     "@nestjs/common": ">= 8.0.0",
     "@nestjs/core": ">= 8.0.0",
@@ -35,6 +45,7 @@
     "typescript": "^5.0.3"
   },
   "dependencies": {
+    "func-loc": "^0.1.16",
     "lodash": "^4.17.21"
   }
 }

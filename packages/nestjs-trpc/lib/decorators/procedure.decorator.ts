@@ -1,4 +1,9 @@
-import { applyDecorators, SetMetadata } from '@nestjs/common';
+import {
+  applyDecorators,
+  createParamDecorator,
+  ExecutionContext,
+  SetMetadata,
+} from '@nestjs/common';
 import { ZodSchema } from 'zod';
 import { PROCEDURE_METADATA_KEY, PROCEDURE_TYPE_KEY } from '../trpc.constants';
 import { Procedure } from '../trpc.enum';
@@ -20,3 +25,11 @@ export function Mutation(args?: { input?: ZodSchema; output?: ZodSchema }) {
     ],
   );
 }
+
+export const Output = createParamDecorator(
+  (data: unknown, ctx: ExecutionContext) => {
+    console.log('it is work?');
+    console.log({ ctx, data });
+    return 'bla';
+  },
+);

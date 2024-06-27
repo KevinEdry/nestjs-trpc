@@ -9,7 +9,7 @@ export interface TrpcModuleOptions {
   /**
    * Path to trpc router type output.
    */
-  autoRouterFile: string;
+  outputAppRouterFile: string;
 
   /**
    * The base path for all trpc requests, default: "/trpc".

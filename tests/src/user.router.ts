@@ -1,22 +1,18 @@
 import { Inject } from '@nestjs/common';
-import { Router, Query, Mutation } from 'nestjs-trpc';
+import { Router, Query, Mutation, Output } from 'nestjs-trpc';
 import { z } from 'zod';
 import { UserService } from './user.service';
-import util
-
 
 const outputSchema = z.object({
-  name: z.string(),
-  password: z.number(),
+  linoy: z.string(),
+  kimhi: z.number(),
 });
-
-
 
 @Router()
 export class UserRouter {
   constructor(@Inject(UserService) private readonly userService: UserService) {}
 
-  @Query({ output: z.string() })
+  @Query({ output: z.object({ bla: z.string() }) })
   authors() {
     return this.userService.test();
   }
@@ -25,7 +21,7 @@ export class UserRouter {
     input: z.string(),
     output: outputSchema,
   })
-  createAuthor(input: string) {
+  createAuthor(input: string, @Output() output: string) {
     return 'bla';
   }
 }

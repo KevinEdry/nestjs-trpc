@@ -54,10 +54,9 @@ export class TRPCDriver<
       }),
     );
 
-    if (
-      options.generateAppRouter === true ||
-      options.generateAppRouter == null
-    ) {
+
+    const generateAppRouterTypes = options.generateTypes ?? true;
+    if (generateAppRouterTypes) {
       if (options.outputAppRouterFile != null) {
         await this.trpcFactory.generateAppRouter(options.outputAppRouterFile);
       } else {

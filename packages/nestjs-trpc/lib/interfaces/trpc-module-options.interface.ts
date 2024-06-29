@@ -18,8 +18,8 @@ export interface TRPCModuleOptions {
   basePath?: string;
 
   /**
-   * Controls if the adapter will generate an the app router types.
+   * Controls if the adapter will generate and the app router types.
    * @default true
    */
-  generateAppRouter?: boolean;
+  generateTypes?: boolean;
 }

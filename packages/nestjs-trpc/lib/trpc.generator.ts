@@ -15,12 +15,14 @@ import { camelCase } from 'lodash';
 import {
   CompilerOptions,
   Decorator,
+  Expression,
   ModuleKind,
   Project,
   ScriptTarget,
   SourceFile,
   StructureKind,
   SyntaxKind,
+  Node,
   VariableDeclarationKind,
 } from 'ts-morph';
 import {
@@ -28,6 +30,11 @@ import {
   ProcedureGeneratorMetadata,
   RouterGeneratorMetadata,
 } from './interfaces/generator.interface';
+
+interface SchemaMap {
+  initializer: Expression;
+  sourceFile: SourceFile;
+}
 
 @Injectable()
 export class TRPCGenerator implements OnModuleInit {
@@ -67,14 +74,14 @@ export class TRPCGenerator implements OnModuleInit {
 
       this.generateStaticDeclaration(trpcSourceFile);
 
-      // const routersMetadata = await this.serializeRouters(routers);
-      // const routersStringDeclarations =
-      //   this.generateRoutersStringFromMetadata(routersMetadata);
+      const routersMetadata = await this.serializeRouters(routers);
+      const routersStringDeclarations =
+        this.generateRoutersStringFromMetadata(routersMetadata);
 
-      // trpcSourceFile.addStatements(/* ts */ `
-      //     const appRouter = t.router({${routersStringDeclarations}});
-      //     export type AppRouter = typeof appRouter;
-      //     `);
+      trpcSourceFile.addStatements(/* ts */ `
+          const appRouter = t.router({${routersStringDeclarations}});
+          export type AppRouter = typeof appRouter;
+          `);
 
       this.saveOrOverrideFile(trpcSourceFile);
 
@@ -82,6 +89,7 @@ export class TRPCGenerator implements OnModuleInit {
         `TRPC AppRouter has been updated successfully at "${outputDirPath}/${this.OUTPUT_FILE_NAME}".`,
       );
     } catch (e: unknown) {
+      console.error(e);
       this.consoleLogger.warn('TRPC Generator encountered an error.', e);
     }
   }
@@ -106,10 +114,10 @@ export class TRPCGenerator implements OnModuleInit {
             }
 
             const decoratorArgumentsArray = Object.entries(decorator.arguments)
-              .map(([key, value]) => `${key}(${value})`)
-              .join('.');
+              .map(([key, value]) => `.${key}(${value})`)
+              .join('');
 
-            return `${name}: publicProcedure.${decoratorArgumentsArray}.${decorator.name.toLowerCase()}(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any )`;
+            return `${name}: publicProcedure${decoratorArgumentsArray}.${decorator.name.toLowerCase()}(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any )`;
           })
           .join(',\n')} }`;
       })
@@ -226,8 +234,16 @@ export class TRPCGenerator implements OnModuleInit {
           return null;
         }
 
-        const propertyValue = property.getInitializer().getText();
-        return this.flattenZodSchema(propertyValue, sourceFile);
+        const propertyInitializer: Expression = property.getInitializer();
+
+        const schemaMap = this.buildSchemaMap(sourceFile);
+        const test = this.flattenZodSchema(
+          propertyInitializer,
+          sourceFile,
+          schemaMap,
+          propertyInitializer.getText(),
+        );
+        return test;
       }
     }
     return null;
@@ -265,15 +281,118 @@ export class TRPCGenerator implements OnModuleInit {
     await sourceFile.save();
   }
 
-  private flattenZodSchema(schemaName: string, sourceFile: SourceFile): string {
-    const schemaVariable = sourceFile.getVariableDeclaration(schemaName);
-    if (schemaVariable != null) {
-      const initializer = schemaVariable.getInitializer();
+  private flattenZodSchema(
+    node: Node,
+    sourceFile: SourceFile,
+    schemaMap: Map<string, SchemaMap>,
+    schema: string,
+  ): string {
+    if (Node.isIdentifier(node)) {
+      const identifierName = node.getText();
 
-      if (initializer != null) {
-        return initializer.getText();
+      const identifierDeclaration =
+        sourceFile.getVariableDeclaration(identifierName);
+
+      if (identifierDeclaration != null) {
+        const identifierInitializer = identifierDeclaration.getInitializer();
+
+        const identifierSchema = this.flattenZodSchema(
+          identifierInitializer,
+          sourceFile,
+          schemaMap,
+          identifierInitializer.getText(),
+        );
+
+        schema = schema.replace(identifierName, identifierSchema);
+      } else if (schemaMap.has(identifierName)) {
+        const importedIdentifier = schemaMap.get(schema);
+        const { initializer } = importedIdentifier;
+        const identifierSchema = this.flattenZodSchema(
+          initializer,
+          importedIdentifier.sourceFile,
+          schemaMap,
+          initializer.getText(),
+        );
+
+        schema = schema.replace(identifierName, identifierSchema);
+      }
+    } else if (Node.isObjectLiteralExpression(node)) {
+      for (const property of node.getProperties()) {
+        if (Node.isPropertyAssignment(property)) {
+          const propertyText = property.getText();
+          schema = schema.replace(
+            propertyText,
+            this.flattenZodSchema(
+              property.getInitializer(),
+              sourceFile,
+              schemaMap,
+              propertyText,
+            ),
+          );
+        }
+      }
+    } else if (Node.isArrayLiteralExpression(node)) {
+      for (const element of node.getElements()) {
+        const elementText = element.getText();
+        schema = schema.replace(
+          elementText,
+          this.flattenZodSchema(element, sourceFile, schemaMap, elementText),
+        );
+      }
+    } else if (Node.isCallExpression(node)) {
+      for (const arg of node.getArguments()) {
+        const argText = arg.getText();
+        schema = schema.replace(
+          argText,
+          this.flattenZodSchema(arg, sourceFile, schemaMap, argText),
+        );
+      }
+    } else if (Node.isPropertyAccessExpression(node)) {
+      schema = this.flattenZodSchema(
+        node.getExpression(),
+        sourceFile,
+        schemaMap,
+        schema,
+      );
+    }
+
+    return schema;
+  }
+
+  private buildSchemaMap(sourceFile: SourceFile): Map<string, SchemaMap> {
+    const schemaMap = new Map<string, SchemaMap>();
+    const project = sourceFile.getProject();
+
+    // Process all the import declarations
+    const importDeclarations = sourceFile.getImportDeclarations();
+    for (const importDeclaration of importDeclarations) {
+      const namedImports = importDeclaration.getNamedImports();
+      for (const namedImport of namedImports) {
+        const name = namedImport.getName();
+        const moduleSpecifier = importDeclaration.getModuleSpecifierValue();
+        const resolvedPath = path.resolve(
+          path.dirname(sourceFile.getFilePath()),
+          moduleSpecifier + '.ts',
+        );
+
+        const importedSourceFile =
+          project.addSourceFileAtPathIfExists(resolvedPath);
+        if (!importedSourceFile) continue;
+
+        const schemaVariable = importedSourceFile.getVariableDeclaration(name);
+
+        if (schemaVariable != null) {
+          const initializer = schemaVariable.getInitializer();
+          if (initializer != null) {
+            schemaMap.set(name, {
+              initializer,
+              sourceFile: importedSourceFile,
+            });
+          }
+        }
       }
     }
-    return schemaName;
+
+    return schemaMap;
   }
 }

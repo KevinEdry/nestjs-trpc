@@ -31,7 +31,7 @@ import {
   RouterGeneratorMetadata,
 } from './interfaces/generator.interface';
 
-interface SchemaMap {
+interface SourceFileImportsMap {
   initializer: Expression;
   sourceFile: SourceFile;
 }
@@ -180,6 +180,7 @@ export class TRPCGenerator implements OnModuleInit {
     decorators: Array<Decorator>,
     sourceFile: SourceFile,
   ): Array<DecoratorGeneratorMetadata> {
+    const sourceFileImportsMap = this.buildSourceFileImportsMap(sourceFile);
     const decoratorsMetadata: Array<DecoratorGeneratorMetadata> =
       decorators.reduce<Array<DecoratorGeneratorMetadata>>(
         (array, decorator) => {
@@ -190,11 +191,13 @@ export class TRPCGenerator implements OnModuleInit {
               decorator,
               'input',
               sourceFile,
+              sourceFileImportsMap,
             );
             const output = this.getDecoratorPropertyValue(
               decorator,
               'output',
               sourceFile,
+              sourceFileImportsMap,
             );
             array.push({
               name: decoratorName,
@@ -220,6 +223,7 @@ export class TRPCGenerator implements OnModuleInit {
     decorator: Decorator,
     propertyName: string,
     sourceFile: SourceFile,
+    importsMap: Map<string, SourceFileImportsMap>,
   ): string | null {
     const args = decorator.getArguments();
     for (const arg of args) {
@@ -236,11 +240,10 @@ export class TRPCGenerator implements OnModuleInit {
 
         const propertyInitializer: Expression = property.getInitializer();
 
-        const schemaMap = this.buildSchemaMap(sourceFile);
         const test = this.flattenZodSchema(
           propertyInitializer,
+          importsMap,
           sourceFile,
-          schemaMap,
           propertyInitializer.getText(),
         );
         return test;
@@ -283,8 +286,8 @@ export class TRPCGenerator implements OnModuleInit {
 
   private flattenZodSchema(
     node: Node,
+    importsMap: Map<string, SourceFileImportsMap>,
     sourceFile: SourceFile,
-    schemaMap: Map<string, SchemaMap>,
     schema: string,
   ): string {
     if (Node.isIdentifier(node)) {
@@ -298,19 +301,19 @@ export class TRPCGenerator implements OnModuleInit {
 
         const identifierSchema = this.flattenZodSchema(
           identifierInitializer,
+          importsMap,
           sourceFile,
-          schemaMap,
           identifierInitializer.getText(),
         );
 
         schema = schema.replace(identifierName, identifierSchema);
-      } else if (schemaMap.has(identifierName)) {
-        const importedIdentifier = schemaMap.get(schema);
+      } else if (importsMap.has(identifierName)) {
+        const importedIdentifier = importsMap.get(identifierName);
         const { initializer } = importedIdentifier;
         const identifierSchema = this.flattenZodSchema(
           initializer,
+          importsMap,
           importedIdentifier.sourceFile,
-          schemaMap,
           initializer.getText(),
         );
 
@@ -324,8 +327,8 @@ export class TRPCGenerator implements OnModuleInit {
             propertyText,
             this.flattenZodSchema(
               property.getInitializer(),
+              importsMap,
               sourceFile,
-              schemaMap,
               propertyText,
             ),
           );
@@ -336,7 +339,7 @@ export class TRPCGenerator implements OnModuleInit {
         const elementText = element.getText();
         schema = schema.replace(
           elementText,
-          this.flattenZodSchema(element, sourceFile, schemaMap, elementText),
+          this.flattenZodSchema(element, importsMap, sourceFile, elementText),
         );
       }
     } else if (Node.isCallExpression(node)) {
@@ -344,25 +347,25 @@ export class TRPCGenerator implements OnModuleInit {
         const argText = arg.getText();
         schema = schema.replace(
           argText,
-          this.flattenZodSchema(arg, sourceFile, schemaMap, argText),
+          this.flattenZodSchema(arg, importsMap, sourceFile, argText),
         );
       }
     } else if (Node.isPropertyAccessExpression(node)) {
       schema = this.flattenZodSchema(
         node.getExpression(),
+        importsMap,
         sourceFile,
-        schemaMap,
-        schema,
+        node.getExpression().getText(),
       );
     }
 
     return schema;
   }
 
-  private buildSchemaMap(sourceFile: SourceFile): Map<string, SchemaMap> {
-    const schemaMap = new Map<string, SchemaMap>();
-    const project = sourceFile.getProject();
-
+  private buildSourceFileImportsMap(
+    sourceFile: SourceFile,
+  ): Map<string, SourceFileImportsMap> {
+    const sourceFileImportsMap = new Map<string, SourceFileImportsMap>();
     // Process all the import declarations
     const importDeclarations = sourceFile.getImportDeclarations();
     for (const importDeclaration of importDeclarations) {
@@ -376,7 +379,7 @@ export class TRPCGenerator implements OnModuleInit {
         );
 
         const importedSourceFile =
-          project.addSourceFileAtPathIfExists(resolvedPath);
+          this.project.addSourceFileAtPathIfExists(resolvedPath);
         if (!importedSourceFile) continue;
 
         const schemaVariable = importedSourceFile.getVariableDeclaration(name);
@@ -384,7 +387,7 @@ export class TRPCGenerator implements OnModuleInit {
         if (schemaVariable != null) {
           const initializer = schemaVariable.getInitializer();
           if (initializer != null) {
-            schemaMap.set(name, {
+            sourceFileImportsMap.set(name, {
               initializer,
               sourceFile: importedSourceFile,
             });
@@ -393,6 +396,6 @@ export class TRPCGenerator implements OnModuleInit {
       }
     }
 
-    return schemaMap;
+    return sourceFileImportsMap;
   }
 }

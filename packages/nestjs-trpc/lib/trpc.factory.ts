@@ -19,6 +19,7 @@ import {
 } from './interfaces/factory.interface';
 import { TRPCGenerator } from './trpc.generator';
 import { camelCase, merge } from 'lodash';
+import { ZodAny } from 'zod';
 
 @Injectable()
 export class TRPCFactory {
@@ -58,16 +59,13 @@ export class TRPCFactory {
       (name) => {
         const callback = prototype[name];
         const type = Reflect.getMetadata(PROCEDURE_TYPE_KEY, callback);
-        const { input, output } = Reflect.getMetadata(
-          PROCEDURE_METADATA_KEY,
-          callback,
-        );
+        const metadata = Reflect.getMetadata(PROCEDURE_METADATA_KEY, callback);
 
         return {
+          input: metadata?.input,
+          output: metadata?.output,
           type,
-          input,
           name: callback.name,
-          output,
           implementation: callback,
         };
       },

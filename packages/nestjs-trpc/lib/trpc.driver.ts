@@ -1,7 +1,7 @@
 import { ConsoleLogger, Inject, Injectable } from '@nestjs/common';
 import { ApplicationConfig, HttpAdapterHost } from '@nestjs/core';
 import type { Application as ExpressApplication } from 'express';
-import { TRPCModuleOptions } from './interfaces/trpc-module-options.interface';
+import { TRPCModuleOptions } from './interfaces';
 import { AnyRouter, initTRPC } from '@trpc/server';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { TRPCFactory } from './trpc.factory';

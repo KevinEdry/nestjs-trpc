@@ -1,7 +1,7 @@
 import { ConsoleLogger, Inject, Module } from '@nestjs/common';
 import { DynamicModule, OnModuleInit } from '@nestjs/common/interfaces';
 import { HttpAdapterHost, MetadataScanner } from '@nestjs/core';
-import { TRPCModuleOptions } from './interfaces/trpc-module-options.interface';
+import { TRPCModuleOptions } from './interfaces';
 import { LOGGER_CONTEXT, TRPC_MODULE_OPTIONS } from './trpc.constants';
 import { TRPCDriver } from './trpc.driver';
 import { TRPCFactory } from './trpc.factory';

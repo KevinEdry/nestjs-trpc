@@ -1,25 +1,19 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { ModulesContainer, MetadataScanner } from '@nestjs/core';
+import { MetadataScanner, ModulesContainer } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
-import {
-  PROCEDURE_METADATA_KEY,
-  PROCEDURE_TYPE_KEY,
-  ROUTER_METADATA_KEY,
-} from './trpc.constants';
+import { PROCEDURE_METADATA_KEY, PROCEDURE_TYPE_KEY, ROUTER_METADATA_KEY } from './trpc.constants';
 
 import { AnyRouter } from '@trpc/server';
 import { MergeRouters } from '@trpc/server/dist/core/internals/mergeRouters';
 import { AnyRouterDef } from '@trpc/server/dist/core/router';
 import {
   ProcedureFactoryMetadata,
-  TRPCRouter,
-  TRPCMergeRoutes,
-  TRPCPublicProcedure,
   RouterInstance,
+  TRPCPublicProcedure,
+  TRPCRouter,
 } from './interfaces/factory.interface';
 import { TRPCGenerator } from './trpc.generator';
-import { camelCase, merge } from 'lodash';
-import { ZodAny } from 'zod';
+import { camelCase } from 'lodash';
 
 @Injectable()
 export class TRPCFactory {
@@ -52,8 +46,8 @@ export class TRPCFactory {
     return routers;
   }
 
-  private getProcedures(instance, prototype): Array<ProcedureFactoryMetadata> {
-    const procedures = this.metadataScanner.scanFromPrototype(
+  private getProcedures(instance: unknown, prototype: object): Array<ProcedureFactoryMetadata> {
+    return this.metadataScanner.scanFromPrototype(
       instance,
       prototype,
       (name) => {
@@ -70,8 +64,6 @@ export class TRPCFactory {
         };
       },
     );
-
-    return procedures;
   }
 
   generateRoutes(
@@ -88,9 +80,9 @@ export class TRPCFactory {
 
       for (const producer of procedures) {
         const { input, output, type } = producer;
-        const procedureInvocation = ({ input }) =>
+        const procedureInvocation = ({ input, ctx }) =>
           // Call the method on the instance with proper dependency injection handling.
-          instance[producer.name](input);
+          instance[producer.name]({ input, ctx });
 
         const baseProcedure = publicProcedure;
         const procedureWithInput = input
@@ -101,7 +93,7 @@ export class TRPCFactory {
           : procedureWithInput;
         const finalProcedure =
           type === 'mutation'
-            ? procedureWithOutput.mutation(procedureInvocation.bind(this))
+            ? procedureWithOutput.mutation(procedureInvocation)
             : procedureWithOutput.query(procedureInvocation);
 
         if (appRouterObj[camelCasedRouterName] == null) {

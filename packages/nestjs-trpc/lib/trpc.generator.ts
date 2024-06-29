@@ -1,15 +1,7 @@
 import * as path from 'node:path';
-import {
-  ProcedureFactoryMetadata,
-  RoutersFactoryMetadata,
-} from './interfaces/factory.interface';
+import { ProcedureFactoryMetadata, RoutersFactoryMetadata } from './interfaces/factory.interface';
 import { locate } from 'func-loc';
-import {
-  ConsoleLogger,
-  Inject,
-  Injectable,
-  OnModuleInit,
-} from '@nestjs/common';
+import { ConsoleLogger, Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { camelCase } from 'lodash';
 
 import {
@@ -17,12 +9,12 @@ import {
   Decorator,
   Expression,
   ModuleKind,
+  Node,
   Project,
   ScriptTarget,
   SourceFile,
   StructureKind,
   SyntaxKind,
-  Node,
   VariableDeclarationKind,
 } from 'ts-morph';
 import {
@@ -181,42 +173,39 @@ export class TRPCGenerator implements OnModuleInit {
     sourceFile: SourceFile,
   ): Array<DecoratorGeneratorMetadata> {
     const sourceFileImportsMap = this.buildSourceFileImportsMap(sourceFile);
-    const decoratorsMetadata: Array<DecoratorGeneratorMetadata> =
-      decorators.reduce<Array<DecoratorGeneratorMetadata>>(
-        (array, decorator) => {
-          const decoratorName = decorator.getName();
+    return decorators.reduce<Array<DecoratorGeneratorMetadata>>(
+      (array, decorator) => {
+        const decoratorName = decorator.getName();
 
-          if (decoratorName === 'Query' || decoratorName === 'Mutation') {
-            const input = this.getDecoratorPropertyValue(
-              decorator,
-              'input',
-              sourceFile,
-              sourceFileImportsMap,
-            );
-            const output = this.getDecoratorPropertyValue(
-              decorator,
-              'output',
-              sourceFile,
-              sourceFileImportsMap,
-            );
-            array.push({
-              name: decoratorName,
-              arguments: {
-                ...(input != null ? { input } : {}),
-                ...(output != null ? { output } : {}),
-              },
-            });
-          } else {
-            this.consoleLogger.warn(
-              `Decorator ${decoratorName}, not supported.`,
-            );
-          }
-          return array;
-        },
-        [],
-      );
-
-    return decoratorsMetadata;
+        if (decoratorName === 'Query' || decoratorName === 'Mutation') {
+          const input = this.getDecoratorPropertyValue(
+            decorator,
+            'input',
+            sourceFile,
+            sourceFileImportsMap,
+          );
+          const output = this.getDecoratorPropertyValue(
+            decorator,
+            'output',
+            sourceFile,
+            sourceFileImportsMap,
+          );
+          array.push({
+            name: decoratorName,
+            arguments: {
+              ...(input != null ? { input } : {}),
+              ...(output != null ? { output } : {}),
+            },
+          });
+        } else {
+          this.consoleLogger.warn(
+            `Decorator ${decoratorName}, not supported.`,
+          );
+        }
+        return array;
+      },
+      [],
+    );
   }
 
   private getDecoratorPropertyValue(
@@ -240,13 +229,12 @@ export class TRPCGenerator implements OnModuleInit {
 
         const propertyInitializer: Expression = property.getInitializer();
 
-        const test = this.flattenZodSchema(
+        return this.flattenZodSchema(
           propertyInitializer,
           importsMap,
           sourceFile,
           propertyInitializer.getText(),
         );
-        return test;
       }
     }
     return null;

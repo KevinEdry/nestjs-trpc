@@ -43,8 +43,6 @@ export class TRPCDriver<
       procedure,
     );
 
-    await this.trpcFactory.generateAppRouter(options.outputAppRouterFile);
-
     app.use(
       '/trpc',
       trpcExpress.createExpressMiddleware({
@@ -52,5 +50,7 @@ export class TRPCDriver<
         createContext,
       }),
     );
+    
+    await this.trpcFactory.generateAppRouter(options.outputAppRouterFile);
   }
 }

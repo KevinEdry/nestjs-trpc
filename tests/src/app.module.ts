@@ -4,7 +4,11 @@ import { TRPCModule } from 'nestjs-trpc';
 import { UserService } from './user.service';
 
 @Module({
-  imports: [TRPCModule.forRoot({ outputAppRouterFile: './src/@generated' })],
+  imports: [
+    TRPCModule.forRoot({
+      outputAppRouterFile: './src/@generated',
+    }),
+  ],
   controllers: [],
   providers: [UserRouter, UserService],
 })

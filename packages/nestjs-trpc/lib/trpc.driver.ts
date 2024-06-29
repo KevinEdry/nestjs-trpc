@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { ConsoleLogger, Inject, Injectable } from '@nestjs/common';
 import { ApplicationConfig, HttpAdapterHost } from '@nestjs/core';
 import type { Application as ExpressApplication } from 'express';
 import { TRPCModuleOptions } from './interfaces/trpc-module-options.interface';
@@ -18,6 +18,9 @@ export class TRPCDriver<
 
   @Inject()
   protected readonly trpcFactory: TRPCFactory;
+
+  @Inject()
+  protected readonly consoleLogger: ConsoleLogger;
 
   public async start(options: TRPCModuleOptions) {
     const httpAdapter = this.httpAdapterHost.httpAdapter;
@@ -50,7 +53,18 @@ export class TRPCDriver<
         createContext,
       }),
     );
-    
-    await this.trpcFactory.generateAppRouter(options.outputAppRouterFile);
+
+    if (
+      options.generateAppRouter === true ||
+      options.generateAppRouter == null
+    ) {
+      if (options.outputAppRouterFile != null) {
+        await this.trpcFactory.generateAppRouter(options.outputAppRouterFile);
+      } else {
+        this.consoleLogger.log(
+          'Skipping appRouter types generation - `outputAppRouterFile` was not provided.',
+        );
+      }
+    }
   }
 }

@@ -41,8 +41,8 @@ export class TRPCModule implements OnModuleInit {
       return;
     }
 
-    this.trpcDriver.start(this.options);
     this.consoleLogger.setContext(LOGGER_CONTEXT);
-    this.consoleLogger.log('TRPC server has been initialized successfully.');
+    this.trpcDriver.start(this.options);
+    this.consoleLogger.log('Server has been initialized successfully.', "TRPC Server");
   }
 }

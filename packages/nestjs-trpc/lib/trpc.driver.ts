@@ -55,15 +55,12 @@ export class TRPCDriver<
     );
 
 
-    const generateAppRouterTypes = options.generateTypes ?? true;
-    if (generateAppRouterTypes) {
-      if (options.outputAppRouterFile != null) {
-        await this.trpcFactory.generateAppRouter(options.outputAppRouterFile);
+      if (options.autoSchemaFile != null) {
+        await this.trpcFactory.generateAppRouter(options.autoSchemaFile);
       } else {
         this.consoleLogger.log(
-          'Skipping appRouter types generation - `outputAppRouterFile` was not provided.',
+          'Skipping appRouter types generation - `autoSchemaFile` was not provided.', "TRPC Driver"
         );
       }
-    }
   }
 }

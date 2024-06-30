@@ -29,7 +29,7 @@ export function Mutation(args?: { input?: ZodSchema; output?: ZodSchema }) {
 }
 
 export function Procedure(
-  procedure?: TRPCProcedure,
+  procedure?: TRPCProcedure | Function,
 ): MethodDecorator & ClassDecorator {
   return (
     target: any,

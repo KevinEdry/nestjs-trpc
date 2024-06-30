@@ -78,7 +78,7 @@ export class TRPCGenerator implements OnModuleInit {
       this.saveOrOverrideFile(trpcSourceFile);
 
       this.consoleLogger.log(
-        `TRPC AppRouter has been updated successfully at "${outputDirPath}/${this.OUTPUT_FILE_NAME}".`,
+        `AppRouter has been updated successfully at "${outputDirPath}/${this.OUTPUT_FILE_NAME}".`, "TRPC Generator"
       );
     } catch (e: unknown) {
       console.error(e);

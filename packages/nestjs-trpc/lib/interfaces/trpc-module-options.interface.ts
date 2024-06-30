@@ -9,17 +9,11 @@ export interface TRPCModuleOptions {
   /**
    * Path to trpc router type output.
    */
-  outputAppRouterFile?: string;
+  autoSchemaFile?: string;
 
   /**
    * The base path for all trpc requests.
    * @default "/trpc"
    */
   basePath?: string;
-
-  /**
-   * Controls if the adapter will generate and the app router types.
-   * @default true
-   */
-  generateTypes?: boolean;
 }

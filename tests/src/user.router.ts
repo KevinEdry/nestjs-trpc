@@ -1,8 +1,9 @@
 import { Inject } from '@nestjs/common';
-import { Router, Query, Mutation } from 'nestjs-trpc';
+import { Router, Query, Mutation, Procedure } from 'nestjs-trpc';
 import { z } from 'zod';
 import { UserService } from './user.service';
 import { userSchema } from './user.schema';
+import { ProtectedProcedure } from './protected.procedure';
 
 const innerSchema = z.object({
   bla: z.string(),
@@ -19,7 +20,8 @@ const outputSchema = z.object({
 export class UserRouter {
   constructor(@Inject(UserService) private readonly userService: UserService) {}
 
-  @Query({ input: z.union([outputSchema, userSchema]) })
+  @Procedure(ProtectedProcedure)
+  @Mutation({ input: z.union([outputSchema, userSchema]) })
   authors() {
     return this.userService.test();
   }

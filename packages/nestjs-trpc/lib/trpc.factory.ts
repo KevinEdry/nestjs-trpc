@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { ConsoleLogger, Inject, Injectable } from '@nestjs/common';
 import { MetadataScanner, ModulesContainer } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import { PROCEDURE_KEY, PROCEDURE_METADATA_KEY, PROCEDURE_TYPE_KEY, ROUTER_METADATA_KEY } from './trpc.constants';
@@ -13,12 +13,13 @@ import {
   TRPCRouter,
 } from './interfaces/factory.interface';
 import { TRPCGenerator } from './trpc.generator';
-import { camelCase } from 'lodash';
+import { camelCase, upperCase } from 'lodash';
 
 @Injectable()
 export class TRPCFactory {
   constructor(
     @Inject(TRPCGenerator) private readonly trpcGenerator: TRPCGenerator,
+    @Inject(ConsoleLogger) private readonly consoleLogger: ConsoleLogger,
     private readonly modulesContainer: ModulesContainer,
     private readonly metadataScanner: MetadataScanner,
   ) {}
@@ -56,6 +57,8 @@ export class TRPCFactory {
         const metadata = Reflect.getMetadata(PROCEDURE_METADATA_KEY, callback);
         const customProcedure = Reflect.getMetadata(PROCEDURE_KEY, callback)
 
+        console.log({customProcedure})
+
         return {
           input: metadata?.input,
           output: metadata?.output,
@@ -71,7 +74,6 @@ export class TRPCFactory {
 
   generateRoutes(
     router: TRPCRouter,
-
     publicProcedure: TRPCPublicProcedure,
   ): MergeRouters<Array<AnyRouter>, AnyRouterDef> {
     const routers = this.getRouters();
@@ -80,6 +82,8 @@ export class TRPCFactory {
       const camelCasedRouterName = camelCase(name);
       const prototype = Object.getPrototypeOf(instance);
       const procedures = this.getProcedures(instance, prototype);
+
+      this.consoleLogger.log(`Router ${name} as ${camelCasedRouterName}.`, "TRPC Factory");
 
       for (const producer of procedures) {
         const { input, output, type } = producer;
@@ -104,6 +108,8 @@ export class TRPCFactory {
         }
 
         appRouterObj[camelCasedRouterName][producer.name] = finalProcedure;
+
+        this.consoleLogger.log(`Mapped {${type}, ${camelCasedRouterName}.${producer.name}} route.`, "TRPC Factory");
       }
 
       return appRouterObj;

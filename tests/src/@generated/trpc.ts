@@ -16,7 +16,7 @@ const appRouter = t.router({
     }), z.object({
       name: z.string(),
       password: z.array(z.string()),
-    })])).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    })])).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   }
 });
 export type AppRouter = typeof appRouter;

@@ -17,6 +17,7 @@ export interface ProcedureFactoryMetadata {
   type: ProcedureType;
   input: ZodSchema | undefined;
   output: ZodSchema | undefined;
+
   name: string;
   implementation: ({ input, output }) => any;
 }

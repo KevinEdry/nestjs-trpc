@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { MetadataScanner, ModulesContainer } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
-import { PROCEDURE_METADATA_KEY, PROCEDURE_TYPE_KEY, ROUTER_METADATA_KEY } from './trpc.constants';
+import { PROCEDURE_KEY, PROCEDURE_METADATA_KEY, PROCEDURE_TYPE_KEY, ROUTER_METADATA_KEY } from './trpc.constants';
 
 import { AnyRouter } from '@trpc/server';
 import { MergeRouters } from '@trpc/server/dist/core/internals/mergeRouters';
@@ -54,6 +54,7 @@ export class TRPCFactory {
         const callback = prototype[name];
         const type = Reflect.getMetadata(PROCEDURE_TYPE_KEY, callback);
         const metadata = Reflect.getMetadata(PROCEDURE_METADATA_KEY, callback);
+        const customProcedure = Reflect.getMetadata(PROCEDURE_KEY, callback)
 
         return {
           input: metadata?.input,
@@ -65,6 +66,8 @@ export class TRPCFactory {
       },
     );
   }
+
+
 
   generateRoutes(
     router: TRPCRouter,

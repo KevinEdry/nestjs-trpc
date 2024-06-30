@@ -1,4 +1,4 @@
-export enum Procedure {
+export enum ProcedureType {
   Query = 'Query',
   Mutation = 'Mutation',
 }

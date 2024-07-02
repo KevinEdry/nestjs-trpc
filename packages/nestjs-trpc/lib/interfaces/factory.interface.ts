@@ -1,5 +1,4 @@
-import {
-  Procedure,
+import type {
   ProcedureRouterRecord,
   AnyRouter,
   AnyRootConfig,
@@ -10,14 +9,15 @@ import {
   ProcedureType,
   Router,
 } from '@trpc/server';
-import { RouterDef } from '@trpc/server/dist/core/router';
-import { ZodSchema } from 'zod';
+import type { RouterDef } from '@trpc/server/dist/core/router';
+import type { ZodSchema } from 'zod';
+import type { TRPCProcedure } from './trpc-procedure.interface';
 
 export interface ProcedureFactoryMetadata {
   type: ProcedureType;
   input: ZodSchema | undefined;
   output: ZodSchema | undefined;
-
+  procedureDef: TRPCProcedure;
   name: string;
   implementation: ({ input, output }) => any;
 }
@@ -26,6 +26,7 @@ export interface RouterInstance {
   name: string;
   instance: unknown;
   options: unknown;
+  routeProcedureDef: TRPCProcedure;
 }
 
 export interface RoutersFactoryMetadata {

@@ -14,6 +14,7 @@ import {
 } from './interfaces/factory.interface';
 import { TRPCGenerator } from './trpc.generator';
 import { camelCase, upperCase } from 'lodash';
+import { TRPCProcedure } from './interfaces';
 
 @Injectable()
 export class TRPCFactory {
@@ -37,9 +38,10 @@ export class TRPCFactory {
           ROUTER_METADATA_KEY,
           instance.constructor,
         );
+        const routeProcedureDef: TRPCProcedure = Reflect.getMetadata(PROCEDURE_KEY, instance.constructor)
 
         if (router != null) {
-          routers.push({ name, instance, options: router });
+          routers.push({ name, instance, options: router, routeProcedureDef });
         }
       });
     });
@@ -55,13 +57,12 @@ export class TRPCFactory {
         const callback = prototype[name];
         const type = Reflect.getMetadata(PROCEDURE_TYPE_KEY, callback);
         const metadata = Reflect.getMetadata(PROCEDURE_METADATA_KEY, callback);
-        const customProcedure = Reflect.getMetadata(PROCEDURE_KEY, callback)
-
-        console.log({customProcedure})
+        const procedureDef: TRPCProcedure = Reflect.getMetadata(PROCEDURE_KEY, callback)
 
         return {
           input: metadata?.input,
           output: metadata?.output,
+          procedureDef,
           type,
           name: callback.name,
           implementation: callback,
@@ -74,13 +75,16 @@ export class TRPCFactory {
 
   generateRoutes(
     router: TRPCRouter,
-    publicProcedure: TRPCPublicProcedure,
+    procedure: TRPCPublicProcedure,
   ): MergeRouters<Array<AnyRouter>, AnyRouterDef> {
     const routers = this.getRouters();
     const routerSchema = routers.reduce((appRouterObj, route) => {
-      const { instance, name } = route;
+      const { instance, name, routeProcedureDef } = route;
       const camelCasedRouterName = camelCase(name);
       const prototype = Object.getPrototypeOf(instance);
+
+      const customProcedure = routeProcedureDef != null ? procedure.use(opts => opts.next(routeProcedureDef.use(opts))) : procedure;
+
       const procedures = this.getProcedures(instance, prototype);
 
       this.consoleLogger.log(`Router ${name} as ${camelCasedRouterName}.`, "TRPC Factory");
@@ -91,7 +95,7 @@ export class TRPCFactory {
           // Call the method on the instance with proper dependency injection handling.
           instance[producer.name]({ input, ctx });
 
-        const baseProcedure = publicProcedure;
+        const baseProcedure = procedure;
         const procedureWithInput = input
           ? baseProcedure.input(input)
           : baseProcedure;

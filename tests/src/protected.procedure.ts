@@ -1,25 +1,26 @@
-import { TRPCProcedure, TRPCProcedureOptions } from 'nestjs-trpc';
-import { Request, Response } from 'express';
+import { TRPCProcedure } from 'nestjs-trpc';
 import { TRPCError } from '@trpc/server';
 
 interface Context {
-  user?: string;
+  auth : {
+    user?: string;
+  }
 }
 
-export class ProtectedProcedure implements TRPCProcedure {
-  use(opts: TRPCProcedureOptions<Context, Request, Response>) {
-    const { next, ctx } = opts;
+export class ProtectedProcedure implements TRPCProcedure<Context> {
+  use = ((opts) => {
+    const { ctx,next } = opts;
 
-    if (ctx.user == null) {
+    if (ctx.auth.user == null) {
       throw new TRPCError({ code: 'UNAUTHORIZED' });
     }
 
     return next({
       ctx: {
-        user: opts.ctx.user,
+        user: opts.ctx.auth.user,
       },
     });
-  }
+  }) satisfies TRPCProcedure<Context>["use"]
 }
 
 export type ProtectedProcedureContext = {

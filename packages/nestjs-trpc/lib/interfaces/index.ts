@@ -1,2 +1,2 @@
-export * from './trpc-module-options.interface';
-export * from './trpc-procedure.interface';
+export * from './module-options.interface';
+export * from './procedure.interface';

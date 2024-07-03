@@ -1,10 +1,10 @@
 import {
-  type DataTransformerOptions,
+  type DataTransformerOptions, ProcedureBuilder,
   type RootConfig,
   type unsetMarker,
 } from '@trpc/server';
 
-import { MiddlewareFunction } from '@trpc/server/src/core/middleware';
+import type { MiddlewareFunction } from '@trpc/server/src/core/middleware';
 
 type ProcedureParams<Context = any> = {
   _config: RootConfig<{
@@ -21,6 +21,6 @@ type ProcedureParams<Context = any> = {
   _meta: object;
 }
 
-export interface TRPCProcedure<Context = any> {
-  use: MiddlewareFunction<ProcedureParams<Context>, ProcedureParams<Context>>
+export interface TRPCProcedure<Context = object> {
+  use<Context>(opts: ProcedureBuilder<ProcedureParams<Context>>["use"]): ProcedureBuilder<ProcedureParams<Context>>;
 }

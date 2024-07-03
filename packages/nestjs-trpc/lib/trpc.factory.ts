@@ -13,7 +13,7 @@ import {
   TRPCRouter,
 } from './interfaces/factory.interface';
 import { TRPCGenerator } from './trpc.generator';
-import { camelCase, upperCase } from 'lodash';
+import { camelCase } from 'lodash';
 import { TRPCProcedure } from './interfaces';
 
 @Injectable()
@@ -83,19 +83,19 @@ export class TRPCFactory {
       const camelCasedRouterName = camelCase(name);
       const prototype = Object.getPrototypeOf(instance);
 
-      const customProcedure = routeProcedureDef != null ? procedure.use(opts => opts.next(routeProcedureDef.use(opts))) : procedure;
-
       const procedures = this.getProcedures(instance, prototype);
 
       this.consoleLogger.log(`Router ${name} as ${camelCasedRouterName}.`, "TRPC Factory");
 
       for (const producer of procedures) {
-        const { input, output, type } = producer;
+        const { input, output, type, procedureDef } = producer;
+        const customProcedure = procedureDef != null ? procedure.use(opts => procedureDef.use(opts)) : routeProcedureDef != null ? procedure.use(opts => routeProcedureDef.use(opts)) : procedure;
+
         const procedureInvocation = ({ input, ctx }) =>
           // Call the method on the instance with proper dependency injection handling.
           instance[producer.name]({ input, ctx });
 
-        const baseProcedure = procedure;
+        const baseProcedure = customProcedure;
         const procedureWithInput = input
           ? baseProcedure.input(input)
           : baseProcedure;

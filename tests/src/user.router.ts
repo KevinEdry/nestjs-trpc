@@ -20,7 +20,7 @@ const outputSchema = z.object({
 export class UserRouter {
   constructor(@Inject(UserService) private readonly userService: UserService) {}
 
-  @Procedure(ProtectedProcedure)
+  // @Procedure(ProtectedProcedure)
   @Mutation({ input: z.union([outputSchema, userSchema]) })
   authors() {
     return this.userService.test();

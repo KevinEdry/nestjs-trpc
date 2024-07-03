@@ -8,6 +8,9 @@ import { CatsController } from './user.controller';
   imports: [
     TRPCModule.forRoot({
       autoSchemaFile: './src/@generated',
+      createContext: (opts) => {
+
+      }
     }),
   ],
   controllers: [CatsController],

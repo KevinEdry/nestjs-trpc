@@ -9,7 +9,7 @@ interface Context {
 
 export class ProtectedProcedure implements TRPCProcedure<Context> {
   use = ((opts) => {
-    const { ctx,next } = opts;
+    const {  } = opts;
 
     if (ctx.auth.user == null) {
       throw new TRPCError({ code: 'UNAUTHORIZED' });

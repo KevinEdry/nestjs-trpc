@@ -11,7 +11,7 @@ import type {
 } from '@trpc/server';
 import type { RouterDef } from '@trpc/server/dist/core/router';
 import type { ZodSchema } from 'zod';
-import type { TRPCProcedure } from './trpc-procedure.interface';
+import type { TRPCProcedure } from './procedure.interface';
 
 export interface ProcedureFactoryMetadata {
   type: ProcedureType;

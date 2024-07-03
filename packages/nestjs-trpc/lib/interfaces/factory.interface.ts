@@ -17,7 +17,7 @@ export interface ProcedureFactoryMetadata {
   type: ProcedureType;
   input: ZodSchema | undefined;
   output: ZodSchema | undefined;
-  procedureDef: TRPCProcedure;
+  procedureDef?: TRPCProcedure;
   name: string;
   implementation: ({ input, output }) => any;
 }
@@ -26,7 +26,7 @@ export interface RouterInstance {
   name: string;
   instance: unknown;
   options: unknown;
-  routeProcedureDef: TRPCProcedure;
+  routeProcedureDef?: TRPCProcedure;
 }
 
 export interface RoutersFactoryMetadata {

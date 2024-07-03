@@ -4,8 +4,6 @@ import {
   type unsetMarker,
 } from '@trpc/server';
 
-import type { MiddlewareFunction } from '@trpc/server/src/core/middleware';
-
 type ProcedureParams<Context = any> = {
   _config: RootConfig<{
     ctx: object & Context;
@@ -22,5 +20,5 @@ type ProcedureParams<Context = any> = {
 }
 
 export interface TRPCProcedure<Context = object> {
-  use<Context>(opts: ProcedureBuilder<ProcedureParams<Context>>["use"]): ProcedureBuilder<ProcedureParams<Context>>;
+  use: Parameters<ProcedureBuilder<ProcedureParams<Context>>["use"]>[0]
 }

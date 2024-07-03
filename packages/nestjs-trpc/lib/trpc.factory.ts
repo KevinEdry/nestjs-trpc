@@ -1,7 +1,12 @@
 import { ConsoleLogger, Inject, Injectable } from '@nestjs/common';
 import { MetadataScanner, ModulesContainer } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
-import { PROCEDURE_KEY, PROCEDURE_METADATA_KEY, PROCEDURE_TYPE_KEY, ROUTER_METADATA_KEY } from './trpc.constants';
+import {
+  PROCEDURE_KEY,
+  PROCEDURE_METADATA_KEY,
+  PROCEDURE_TYPE_KEY,
+  ROUTER_METADATA_KEY,
+} from './trpc.constants';
 
 import { AnyRouter } from '@trpc/server';
 import { MergeRouters } from '@trpc/server/dist/core/internals/mergeRouters';
@@ -38,7 +43,10 @@ export class TRPCFactory {
           ROUTER_METADATA_KEY,
           instance.constructor,
         );
-        const routeProcedureDef: TRPCProcedure = Reflect.getMetadata(PROCEDURE_KEY, instance.constructor)
+        const routeProcedureDef: TRPCProcedure = Reflect.getMetadata(
+          PROCEDURE_KEY,
+          instance.constructor,
+        );
 
         if (router != null) {
           routers.push({ name, instance, options: router, routeProcedureDef });
@@ -49,7 +57,10 @@ export class TRPCFactory {
     return routers;
   }
 
-  private getProcedures(instance: unknown, prototype: object): Array<ProcedureFactoryMetadata> {
+  private getProcedures(
+    instance: unknown,
+    prototype: object,
+  ): Array<ProcedureFactoryMetadata> {
     return this.metadataScanner.scanFromPrototype(
       instance,
       prototype,
@@ -57,7 +68,10 @@ export class TRPCFactory {
         const callback = prototype[name];
         const type = Reflect.getMetadata(PROCEDURE_TYPE_KEY, callback);
         const metadata = Reflect.getMetadata(PROCEDURE_METADATA_KEY, callback);
-        const procedureDef: TRPCProcedure = Reflect.getMetadata(PROCEDURE_KEY, callback)
+        const procedureDef: TRPCProcedure = Reflect.getMetadata(
+          PROCEDURE_KEY,
+          callback,
+        );
 
         return {
           input: metadata?.input,
@@ -71,7 +85,7 @@ export class TRPCFactory {
     );
   }
 
-
+  private getProcedureInstance() {}
 
   generateRoutes(
     router: TRPCRouter,
@@ -85,15 +99,25 @@ export class TRPCFactory {
 
       const procedures = this.getProcedures(instance, prototype);
 
-      this.consoleLogger.log(`Router ${name} as ${camelCasedRouterName}.`, "TRPC Factory");
+      this.consoleLogger.log(
+        `Router ${name} as ${camelCasedRouterName}.`,
+        'TRPC Factory',
+      );
 
       for (const producer of procedures) {
         const { input, output, type, procedureDef } = producer;
-        const customProcedure = procedureDef != null ? procedure.use(opts => procedureDef.use(opts)) : routeProcedureDef != null ? procedure.use(opts => routeProcedureDef.use(opts)) : procedure;
 
-        const procedureInvocation = ({ input, ctx }) =>
+        //@ts-ignore
+        const customProcedure =
+          procedureDef != null
+            ? procedure.use((opts) =>  new procedureDef().use(opts))
+            : routeProcedureDef != null
+            ? procedure.use((opts) => new routeProcedureDef().use(opts))
+            : procedure;
+
+        const procedureInvocation = ({ input, ctx, meta }) =>
           // Call the method on the instance with proper dependency injection handling.
-          instance[producer.name]({ input, ctx });
+          instance[producer.name]({ input, ctx, meta });
 
         const baseProcedure = customProcedure;
         const procedureWithInput = input
@@ -113,7 +137,10 @@ export class TRPCFactory {
 
         appRouterObj[camelCasedRouterName][producer.name] = finalProcedure;
 
-        this.consoleLogger.log(`Mapped {${type}, ${camelCasedRouterName}.${producer.name}} route.`, "TRPC Factory");
+        this.consoleLogger.log(
+          `Mapped {${type}, ${camelCasedRouterName}.${producer.name}} route.`,
+          'TRPC Factory',
+        );
       }
 
       return appRouterObj;

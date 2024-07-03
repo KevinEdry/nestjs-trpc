@@ -13,7 +13,7 @@
   "author": "Kevin Edry",
   "license": "MIT",
   "engines": {
-    "node": ">=16.14.2",
+    "node": ">=16.15.0",
     "pnpm": ">=8.0.0"
   },
   "devDependencies": {
@@ -25,6 +25,8 @@
     "lint-staged": "^13.2.0",
     "release-it": "^15.10.0",
     "rimraf": "^4.4.1",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0",
     "tslib": "^2.5.0"
   },
   "lint-staged": {

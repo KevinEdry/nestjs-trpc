@@ -7,6 +7,8 @@ import { validateEach } from '../utils/validate-each.util';
 
 
 /**
+ * TODO: Generate Return Context Type.
+ *
  * Decorator that binds guards to the scope of the router or a procedure,
  * depending on its context.
  *

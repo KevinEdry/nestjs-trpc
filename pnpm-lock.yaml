@@ -56,6 +56,9 @@ importers:
       func-loc:
         specifier: ^0.1.16
         version: 0.1.16
+      iterate:
+        specifier: ^0.1.1
+        version: 0.1.1
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -4337,6 +4340,10 @@ packages:
       es-get-iterator: 1.1.3
       iterate-iterator: 1.0.2
     dev: true
+
+  /iterate@0.1.1:
+    resolution: {integrity: sha512-x37cWOmrLMlGeQMPyCascSpaazW922905iX9Q1YUI6uYoYJAqsjTgcqWnTv5Z69fqI7RoaJ4zzbQvAIATmRCpg==}
+    dev: false
 
   /jest-changed-files@29.5.0:
     resolution: {integrity: sha512-IFG34IUMUaNBIxjQXF/iu7g6EcdMrGRRxaUSw92I/2g2YC6vCdTltl4nHvt7Ci5nSJwXIkCu8Ka1DKF+X7Z1Ag==}

@@ -3,6 +3,7 @@ import { UserRouter } from './user.router';
 import { TRPCModule } from 'nestjs-trpc';
 import { UserService } from './user.service';
 import { CatsController } from './user.controller';
+import { ProtectedProcedure } from './protected.procedure';
 
 @Module({
   imports: [
@@ -14,6 +15,6 @@ import { CatsController } from './user.controller';
     }),
   ],
   controllers: [CatsController],
-  providers: [UserRouter, UserService],
+  providers: [UserRouter, UserService, ProtectedProcedure],
 })
 export class AppModule {}

@@ -49,6 +49,7 @@
   },
   "dependencies": {
     "func-loc": "^0.1.16",
+    "iterate": "^0.1.1",
     "lodash": "^4.17.21"
   }
 }

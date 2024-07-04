@@ -22,6 +22,11 @@ export interface ProcedureFactoryMetadata {
   implementation: ({ input, output }) => any;
 }
 
+export interface CustomProcedureFactoryMetadata {
+  name: string;
+  instance: unknown;
+}
+
 export interface RouterInstance {
   name: string;
   instance: unknown;

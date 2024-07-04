@@ -1,160 +1,35 @@
-import { ConsoleLogger, Inject, Injectable } from '@nestjs/common';
-import { MetadataScanner, ModulesContainer } from '@nestjs/core';
-import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
-import {
-  PROCEDURE_KEY,
-  PROCEDURE_METADATA_KEY,
-  PROCEDURE_TYPE_KEY,
-  ROUTER_METADATA_KEY,
-} from './trpc.constants';
-
-import { AnyRouter } from '@trpc/server';
+import { Inject, Injectable } from '@nestjs/common';
 import { MergeRouters } from '@trpc/server/dist/core/internals/mergeRouters';
 import { AnyRouterDef } from '@trpc/server/dist/core/router';
+import { TRPCGenerator } from './trpc.generator';
+import { RouterFactory } from './router.factory';
 import {
-  ProcedureFactoryMetadata,
-  RouterInstance,
   TRPCPublicProcedure,
   TRPCRouter,
 } from './interfaces/factory.interface';
-import { TRPCGenerator } from './trpc.generator';
-import { camelCase } from 'lodash';
-import { TRPCProcedure } from './interfaces';
+import { AnyRouter } from '@trpc/server';
 
 @Injectable()
 export class TRPCFactory {
   constructor(
-    @Inject(TRPCGenerator) private readonly trpcGenerator: TRPCGenerator,
-    @Inject(ConsoleLogger) private readonly consoleLogger: ConsoleLogger,
-    private readonly modulesContainer: ModulesContainer,
-    private readonly metadataScanner: MetadataScanner,
+    private readonly trpcGenerator: TRPCGenerator,
+    @Inject(RouterFactory) private readonly routerFactory: RouterFactory
   ) {}
 
-  private getRouters(): Array<RouterInstance> {
-    const routers = [];
-    this.modulesContainer.forEach((moduleRef) => {
-      moduleRef.providers.forEach((wrapper: InstanceWrapper) => {
-        const { instance, name } = wrapper;
-        if (!instance) {
-          return undefined;
-        }
-
-        const router = Reflect.getMetadata(
-          ROUTER_METADATA_KEY,
-          instance.constructor,
-        );
-        const routeProcedureDef: TRPCProcedure = Reflect.getMetadata(
-          PROCEDURE_KEY,
-          instance.constructor,
-        );
-
-        if (router != null) {
-          routers.push({ name, instance, options: router, routeProcedureDef });
-        }
-      });
-    });
-
-    return routers;
-  }
-
-  private getProcedures(
-    instance: unknown,
-    prototype: object,
-  ): Array<ProcedureFactoryMetadata> {
-    return this.metadataScanner.scanFromPrototype(
-      instance,
-      prototype,
-      (name) => {
-        const callback = prototype[name];
-        const type = Reflect.getMetadata(PROCEDURE_TYPE_KEY, callback);
-        const metadata = Reflect.getMetadata(PROCEDURE_METADATA_KEY, callback);
-        const procedureDef: TRPCProcedure = Reflect.getMetadata(
-          PROCEDURE_KEY,
-          callback,
-        );
-
-        return {
-          input: metadata?.input,
-          output: metadata?.output,
-          procedureDef,
-          type,
-          name: callback.name,
-          implementation: callback,
-        };
-      },
-    );
-  }
-
-  private getProcedureInstance() {}
-
-  generateRoutes(
+  serializeAppRoutes(
     router: TRPCRouter,
     procedure: TRPCPublicProcedure,
   ): MergeRouters<Array<AnyRouter>, AnyRouterDef> {
-    const routers = this.getRouters();
-    const routerSchema = routers.reduce((appRouterObj, route) => {
-      const { instance, name, routeProcedureDef } = route;
-      const camelCasedRouterName = camelCase(name);
-      const prototype = Object.getPrototypeOf(instance);
-
-      const procedures = this.getProcedures(instance, prototype);
-
-      this.consoleLogger.log(
-        `Router ${name} as ${camelCasedRouterName}.`,
-        'TRPC Factory',
-      );
-
-      for (const producer of procedures) {
-        const { input, output, type, procedureDef } = producer;
-
-        //@ts-ignore
-        const customProcedure =
-          procedureDef != null
-            ? procedure.use((opts) =>  new procedureDef().use(opts))
-            : routeProcedureDef != null
-            ? procedure.use((opts) => new routeProcedureDef().use(opts))
-            : procedure;
-
-        const procedureInvocation = ({ input, ctx, meta }) =>
-          // Call the method on the instance with proper dependency injection handling.
-          instance[producer.name]({ input, ctx, meta });
-
-        const baseProcedure = customProcedure;
-        const procedureWithInput = input
-          ? baseProcedure.input(input)
-          : baseProcedure;
-        const procedureWithOutput = output
-          ? baseProcedure.output(output)
-          : procedureWithInput;
-        const finalProcedure =
-          type === 'mutation'
-            ? procedureWithOutput.mutation(procedureInvocation)
-            : procedureWithOutput.query(procedureInvocation);
-
-        if (appRouterObj[camelCasedRouterName] == null) {
-          appRouterObj[camelCasedRouterName] = {};
-        }
-
-        appRouterObj[camelCasedRouterName][producer.name] = finalProcedure;
-
-        this.consoleLogger.log(
-          `Mapped {${type}, ${camelCasedRouterName}.${producer.name}} route.`,
-          'TRPC Factory',
-        );
-      }
-
-      return appRouterObj;
-    }, {});
-
+    const routerSchema = this.routerFactory.serializeRoutes(router, procedure);
     return router(routerSchema);
   }
 
-  async generateAppRouter(outputFilePath: string): Promise<void> {
-    const routers = this.getRouters();
+  async generateSchemaFiles(outputFilePath: string): Promise<void> {
+    const routers = this.routerFactory.getRouters();
     const mappedRoutesAndProcedures = routers.map((route) => {
       const { instance, name } = route;
       const prototype = Object.getPrototypeOf(instance);
-      const procedures = this.getProcedures(instance, prototype);
+      const procedures = this.routerFactory.getProcedures(instance, prototype);
 
       return { name, instance: { ...route }, procedures };
     });

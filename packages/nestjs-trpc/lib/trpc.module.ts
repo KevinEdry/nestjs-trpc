@@ -6,15 +6,17 @@ import { LOGGER_CONTEXT, TRPC_MODULE_OPTIONS } from './trpc.constants';
 import { TRPCDriver } from './trpc.driver';
 import { TRPCFactory } from './trpc.factory';
 import { TRPCGenerator } from './trpc.generator';
+import { RouterFactory } from './router.factory';
 
 @Module({
   imports: [],
   providers: [
+    ConsoleLogger,
     TRPCDriver,
     TRPCFactory,
     MetadataScanner,
+    RouterFactory,
     TRPCGenerator,
-    ConsoleLogger,
   ],
   exports: [],
 })
@@ -35,14 +37,14 @@ export class TRPCModule implements OnModuleInit {
     };
   }
 
-  onModuleInit() {
+  async onModuleInit() {
     const httpAdapter = this.httpAdapterHost?.httpAdapter;
     if (!httpAdapter) {
       return;
     }
 
     this.consoleLogger.setContext(LOGGER_CONTEXT);
-    this.trpcDriver.start(this.options);
+    await this.trpcDriver.start(this.options);
     this.consoleLogger.log('Server has been initialized successfully.', "TRPC Server");
   }
 }

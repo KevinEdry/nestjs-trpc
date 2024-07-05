@@ -4,7 +4,7 @@ import type { Application as ExpressApplication } from 'express';
 import { TRPCModuleOptions } from './interfaces';
 import { AnyRouter, initTRPC } from '@trpc/server';
 import * as trpcExpress from '@trpc/server/adapters/express';
-import { TRPCFactory } from './trpc.factory';
+import { TRPCFactory } from './factories/trpc.factory';
 
 @Injectable()
 export class TRPCDriver<

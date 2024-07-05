@@ -9,9 +9,6 @@ import { ProtectedProcedure } from './protected.procedure';
   imports: [
     TRPCModule.forRoot({
       autoSchemaFile: './src/@generated',
-      createContext: (opts) => {
-
-      }
     }),
   ],
   controllers: [CatsController],

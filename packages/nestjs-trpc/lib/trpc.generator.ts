@@ -198,9 +198,9 @@ export class TRPCGenerator implements OnModuleInit {
             },
           });
         } else {
-          this.consoleLogger.warn(
-            `Decorator ${decoratorName}, not supported.`,
-          );
+          // this.consoleLogger.warn(
+          //   `Decorator ${decoratorName}, not supported.`,
+          // );
         }
         return array;
       },

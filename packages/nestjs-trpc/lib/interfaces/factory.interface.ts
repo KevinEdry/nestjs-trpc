@@ -30,7 +30,7 @@ export interface CustomProcedureFactoryMetadata {
 export interface RouterInstance {
   name: string;
   instance: unknown;
-  options: unknown;
+  alias?: string;
   routeProcedureDef?: TRPCProcedure;
 }
 

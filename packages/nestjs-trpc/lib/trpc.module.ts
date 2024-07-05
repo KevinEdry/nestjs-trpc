@@ -4,9 +4,10 @@ import { HttpAdapterHost, MetadataScanner } from '@nestjs/core';
 import { TRPCModuleOptions } from './interfaces';
 import { LOGGER_CONTEXT, TRPC_MODULE_OPTIONS } from './trpc.constants';
 import { TRPCDriver } from './trpc.driver';
-import { TRPCFactory } from './trpc.factory';
+import { TRPCFactory } from './factories/trpc.factory';
 import { TRPCGenerator } from './trpc.generator';
-import { RouterFactory } from './router.factory';
+import { RouterFactory } from './factories/router.factory';
+import { ProcedureFactory } from './factories/procedure.factory';
 
 @Module({
   imports: [],
@@ -16,6 +17,7 @@ import { RouterFactory } from './router.factory';
     TRPCFactory,
     MetadataScanner,
     RouterFactory,
+    ProcedureFactory,
     TRPCGenerator,
   ],
   exports: [],

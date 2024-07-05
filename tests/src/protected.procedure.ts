@@ -17,6 +17,8 @@ export class ProtectedProcedure implements TRPCProcedure<Context> {
   use = ((opts) => {
     const { ctx, next } = opts;
 
+    console.log({opts, ctx})
+
     console.log(this.userService.test())
     if (ctx.auth?.user == null) {
       throw new TRPCError({ code: 'UNAUTHORIZED' });

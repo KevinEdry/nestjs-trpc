@@ -1,5 +1,5 @@
 export default {
-  logo: <span>My Nextra Documentation</span>,
+  logo: <img src={"/nestjs-trpc-logo.png"}  />,
   project: {
     link: 'https://github.com/shuding/nextra'
   }

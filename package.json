@@ -1,7 +1,7 @@
 {
   "name": "nestjs-trpc",
   "version": "1.0.0",
-  "description": "",
+  "homepage": "https://nestjs-trpc.io",
   "main": "./dist/index.js",
   "types": "./src/index.ts",
   "files": [
@@ -85,6 +85,7 @@
     "url": "https://github.com/KevinEdry/nestjs-trpc"
   },
   "workspaces": [
-    "examples/*"
+    "examples/*",
+    "docs"
   ]
 }

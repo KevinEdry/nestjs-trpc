@@ -1,22 +1,62 @@
 {
-  "name": "nestjs-trpc-workspace",
-  "version": "0.0.0",
+  "name": "nestjs-trpc",
+  "version": "1.0.0",
   "description": "",
+  "main": "./dist/index.js",
+  "types": "./src/index.ts",
+  "files": [
+    "dist",
+    "*.d.ts",
+    "*.cjs",
+    "*.js",
+    "*.mjs",
+    "!jest.config.js",
+    "README.md"
+  ],
   "scripts": {
-    "format": "prettier packages/**/*.ts --ignore-path ./.prettierignore --write",
-    "build": "tsc -b -v packages",
-    "clean": "tsc -b",
-    "lint": "eslint 'packages/**/*.ts' --fix",
-    "prepare": "husky install"
+    "lint": "tslint -p tsconfig.json -c tslint.json --fix",
+    "build": "tsc -b -v",
+    "start:dev": "tsc -w",
+    "debug:dev": "ts-node --inspect-brk lib/index.ts",
+    "format": "prettier \"src/**/*.ts\" --ignore-path ./.prettierignore --write",
+    "clean": "tsc -b --clean",
+    "prepare": "husky install & npm run build"
   },
   "keywords": [],
-  "author": "Kevin Edry",
+  "author": {
+    "name": "Kevin Edry",
+    "email": "kevin.edry@gmail.com",
+    "url": "https://kevin-edry.com"
+  },
   "license": "MIT",
   "engines": {
     "node": ">=16.15.0",
     "pnpm": ">=8.0.0"
   },
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "@nestjs/common": ">= 8.0.0",
+    "@nestjs/core": ">= 8.0.0",
+    "@trpc/server": "^10.18.0",
+    "reflect-metadata": "^0.1.13",
+    "ts-morph": "^15.0.0 || ^16.0.0 || ^17.0.0",
+    "zod": ">= 3.14.3"
+  },
+  "peerDependenciesMeta": {
+    "ts-morph": {
+      "optional": true
+    },
+    "zod": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "@nestjs/cli": "^9.3.0",
+    "@types/express": "^4.17.17",
+    "@types/lodash": "^4.17.5",
+    "typescript": "^5.0.3",
     "@commitlint/cli": "^17.5.1",
     "@commitlint/config-angular": "^17.4.4",
     "eslint": "^8.37.0",
@@ -35,12 +75,16 @@
       "eslint --fix"
     ]
   },
+  "dependencies": {
+    "func-loc": "^0.1.16",
+    "iterate": "^0.1.1",
+    "lodash": "^4.17.21"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/KevinEdry/nestjs-trpc"
   },
   "workspaces": [
-    "packages/*",
-    "test/*"
+    "examples/*"
   ]
 }

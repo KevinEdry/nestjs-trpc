@@ -6,13 +6,12 @@ import { DecoratorHandler } from './decorator.handler';
 import { generateProcedureString } from '../utils/type.util';
 import { Inject, Injectable } from '@nestjs/common';
 import { camelCase } from 'lodash';
-import { project } from '../../dist/generator/project';
 
 @Injectable()
 export class SerializerHandler {
   constructor(@Inject(DecoratorHandler) private readonly decoratorHandler: DecoratorHandler) {}
 
-  public async serializeRouters(routers: RoutersFactoryMetadata[]): Promise<RouterGeneratorMetadata[]> {
+  public async serializeRouters(routers: RoutersFactoryMetadata[], project: Project): Promise<RouterGeneratorMetadata[]> {
     return Promise.all(
       routers.map(async router => {
         const proceduresMetadata = await Promise.all(

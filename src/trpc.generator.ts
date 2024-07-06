@@ -1,5 +1,4 @@
 import * as path from 'node:path';
-import { locate } from 'func-loc';
 import { ConsoleLogger, Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { Project, CompilerOptions, ScriptTarget, ModuleKind, SourceFile } from 'ts-morph';
 import { RoutersFactoryMetadata } from './interfaces/factory.interface';
@@ -50,7 +49,7 @@ export class TRPCGenerator implements OnModuleInit {
 
       generateStaticDeclaration(appRouterSourceFile);
 
-      const routersMetadata = await this.serializerHandler.serializeRouters(routers);
+      const routersMetadata = await this.serializerHandler.serializeRouters(routers, this.project);
       const routersStringDeclarations = this.serializerHandler.generateRoutersStringFromMetadata(routersMetadata);
 
       appRouterSourceFile.addStatements(/* ts */ `

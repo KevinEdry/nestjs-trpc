@@ -9,7 +9,7 @@ node_modules
 npm-debug.log
 .DS_Store
 
-# tests
+# examples
 /test
 /coverage
 /.nyc_output

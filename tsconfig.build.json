@@ -1,23 +1,4 @@
 {
-  "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": "./lib",
-    "composite": true,
-    "module": "commonjs",
-    "declaration": true,
-    "declarationMap": true,
-    "noImplicitAny": false,
-    "importHelpers": true,
-    "removeComments": false,
-    "noLib": false,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "target": "es2018",
-    "sourceMap": false,
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "strict": true
-  },
-  "include": ["lib/**/*"],
-  "exclude": ["node_modules", "dist", "tests/**/*", "*.spec.ts"]
+  "extends": "./tsconfig.json",
+  "exclude": ["node_modules", "examples", "docs", "dist", "**/*spec.ts"]
 }

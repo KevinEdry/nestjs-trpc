@@ -7,60 +7,6 @@ settings:
 importers:
 
   .:
-    devDependencies:
-      '@commitlint/cli':
-        specifier: ^17.5.1
-        version: 17.5.1
-      '@commitlint/config-angular':
-        specifier: ^17.4.4
-        version: 17.4.4
-      eslint:
-        specifier: ^8.37.0
-        version: 8.37.0
-      husky:
-        specifier: ^8.0.3
-        version: 8.0.3
-      jest:
-        specifier: ^29.5.0
-        version: 29.5.0(@types/node@18.15.11)(ts-node@10.9.1)
-      lint-staged:
-        specifier: ^13.2.0
-        version: 13.2.0
-      release-it:
-        specifier: ^15.10.0
-        version: 15.10.0
-      rimraf:
-        specifier: ^4.4.1
-        version: 4.4.1
-      ts-node:
-        specifier: ^10.9.1
-        version: 10.9.1(@types/node@18.15.11)(typescript@5.0.3)
-      tsconfig-paths:
-        specifier: ^4.2.0
-        version: 4.2.0
-      tslib:
-        specifier: ^2.5.0
-        version: 2.5.0
-
-  docs:
-    dependencies:
-      next:
-        specifier: ^14.2.4
-        version: 14.2.4(@babel/core@7.21.4)(react-dom@18.3.1)(react@18.3.1)
-      nextra:
-        specifier: ^2.13.4
-        version: 2.13.4(next@14.2.4)(react-dom@18.3.1)(react@18.3.1)
-      nextra-theme-docs:
-        specifier: ^2.13.4
-        version: 2.13.4(next@14.2.4)(nextra@2.13.4)(react-dom@18.3.1)(react@18.3.1)
-      react:
-        specifier: ^18.3.1
-        version: 18.3.1
-      react-dom:
-        specifier: ^18.3.1
-        version: 18.3.1(react@18.3.1)
-
-  packages/nestjs-trpc:
     dependencies:
       '@nestjs/common':
         specifier: '>= 8.0.0'
@@ -88,8 +34,14 @@ importers:
         version: 17.0.1
       zod:
         specifier: '>= 3.14.3'
-        version: 3.21.4
+        version: 3.23.8
     devDependencies:
+      '@commitlint/cli':
+        specifier: ^17.5.1
+        version: 17.5.1
+      '@commitlint/config-angular':
+        specifier: ^17.4.4
+        version: 17.4.4
       '@nestjs/cli':
         specifier: ^9.3.0
         version: 9.3.0
@@ -99,17 +51,56 @@ importers:
       '@types/lodash':
         specifier: ^4.17.5
         version: 4.17.5
+      eslint:
+        specifier: ^8.37.0
+        version: 8.37.0
+      husky:
+        specifier: ^8.0.3
+        version: 8.0.3
+      jest:
+        specifier: ^29.5.0
+        version: 29.5.0(@types/node@18.15.11)(ts-node@10.9.1)
+      lint-staged:
+        specifier: ^13.2.0
+        version: 13.2.0
+      release-it:
+        specifier: ^15.10.0
+        version: 15.10.0
       rimraf:
         specifier: ^4.4.1
         version: 4.4.1
       ts-node:
         specifier: ^10.9.1
         version: 10.9.1(@types/node@18.15.11)(typescript@5.0.3)
+      tsconfig-paths:
+        specifier: ^4.2.0
+        version: 4.2.0
+      tslib:
+        specifier: ^2.5.0
+        version: 2.5.0
       typescript:
         specifier: ^5.0.3
         version: 5.0.3
 
-  tests:
+  docs:
+    dependencies:
+      next:
+        specifier: ^14.2.4
+        version: 14.2.4(@babel/core@7.21.4)(react-dom@18.3.1)(react@18.3.1)
+      nextra:
+        specifier: ^2.13.4
+        version: 2.13.4(next@14.2.4)(react-dom@18.3.1)(react@18.3.1)
+      nextra-theme-docs:
+        specifier: ^2.13.4
+        version: 2.13.4(next@14.2.4)(nextra@2.13.4)(react-dom@18.3.1)(react@18.3.1)
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
+
+  examples/nestjs-express:
     dependencies:
       '@nestjs/common':
         specifier: ^8.2.4
@@ -128,7 +119,7 @@ importers:
         version: 10.18.0
       nestjs-trpc:
         specifier: workspace:*
-        version: link:../packages/nestjs-trpc
+        version: link:../..
       reflect-metadata:
         specifier: ^0.1.13
         version: 0.1.13
@@ -137,7 +128,7 @@ importers:
         version: 7.8.0
       zod:
         specifier: ^3.21.4
-        version: 3.21.4
+        version: 3.23.8
     devDependencies:
       '@nestjs/cli':
         specifier: ^9.3.0
@@ -2981,7 +2972,7 @@ packages:
     dev: true
 
   /cookie-signature@1.0.6:
-    resolution: {integrity: sha1-4wOogrNCzD7oylE6eZmXNNqzriw=}
+    resolution: {integrity: sha512-QADzlaHc8icV8I7vbaJXJwod9HWYp8uCqf1xa4OfNu1T7JVxQIrUgOWtHdNDtPiywmFbiS12VjotIXLrKM3orQ==}
     dev: false
 
   /cookie@0.4.0:
@@ -3565,7 +3556,7 @@ packages:
     dev: false
 
   /dicer@0.2.5:
-    resolution: {integrity: sha1-WZbAhrszIYyBLAkL3cCc0S+stw8=}
+    resolution: {integrity: sha512-FDvbtnq7dzlPz0wyYlOExifDEZcu8h+rErEXgfxqmLfRfC/kJidEFh4+effJRO3P0xmfqyPbSMG0LveNRfTKVg==}
     engines: {node: '>=0.8.0'}
     dependencies:
       readable-stream: 1.1.14
@@ -3624,7 +3615,7 @@ packages:
     dev: true
 
   /ee-first@1.1.1:
-    resolution: {integrity: sha1-WQxhFWsK4vTwJVcyoViyZrxWsh0=}
+    resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
     dev: false
 
   /electron-to-chromium@1.4.348:
@@ -6515,7 +6506,7 @@ packages:
     dev: false
 
   /media-typer@0.3.0:
-    resolution: {integrity: sha1-hxDXrwqmJvj/+hzgAWhUUmMlV0g=}
+    resolution: {integrity: sha512-dq+qelQ9akHpcOl/gUVRTxVIOkAJ1wR3QAvb4RsVjS8oVoFjDGTc679wJYmUmknUF5HwMLOgb5O+a3KxfWapPQ==}
     engines: {node: '>= 0.6'}
     dev: false
 
@@ -6544,7 +6535,7 @@ packages:
     dev: true
 
   /merge-descriptors@1.0.1:
-    resolution: {integrity: sha1-sAqqVW3YtEVoFQ7J0blT8/kMu2E=}
+    resolution: {integrity: sha512-cCi6g3/Zr1iqQi6ySbseM1Xvooa98N0w31jzUYrXPX2xqObmFGHJ0tQ5u74H3mVh7wLouTseZyYIq39g8cNp1w==}
     dev: false
 
   /merge-stream@2.0.0:
@@ -8320,6 +8311,7 @@ packages:
 
   /rimraf@3.0.2:
     resolution: {integrity: sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==}
+    deprecated: Rimraf versions prior to v4 are no longer supported
     hasBin: true
     dependencies:
       glob: 7.2.3
@@ -9907,10 +9899,6 @@ packages:
   /yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
-
-  /zod@3.21.4:
-    resolution: {integrity: sha512-m46AKbrzKVzOzs/DZgVnG5H55N1sv1M8qZU3A8RIKbs3mrACDNeIOeilDymVb2HdmP8uwshOCF4uJ8uM9rCqJw==}
-    dev: false
 
   /zod@3.23.8:
     resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}

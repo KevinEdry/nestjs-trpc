@@ -74,7 +74,7 @@ class UserRouter {
       const users = await this.userService.getUsers();
       return users;
     } catch (e: unknown) {
-      throw new TRPCError("An error has occured when trying to get users.", e)
+      throw new TRPCError("An error has occured when trying to get users.", "INTERNAL_SERVER_ERROR", e)
     }
   }
 }

@@ -9,7 +9,8 @@ import { SerializerHandler } from './handlers/serializer.handler';
 @Injectable()
 export class TRPCGenerator implements OnModuleInit {
   private project: Project;
-  private readonly OUTPUT_FILE_NAME = 'trpc.ts';
+  private readonly APP_ROUTER_OUTPUT_FILE = 'trpc.ts';
+  private readonly HELPER_TYPES_OUTPUT_FILE = "helpers.ts"
 
   constructor(
     @Inject(ConsoleLogger) private readonly consoleLogger: ConsoleLogger,
@@ -33,26 +34,35 @@ export class TRPCGenerator implements OnModuleInit {
     outputDirPath: string,
   ): Promise<void> {
     try {
-      const trpcSourceFile = this.project.createSourceFile(
-        path.resolve(outputDirPath, this.OUTPUT_FILE_NAME),
+      const appRouterSourceFile = this.project.createSourceFile(
+        path.resolve(outputDirPath, this.APP_ROUTER_OUTPUT_FILE),
         undefined,
         { overwrite: true },
       );
 
-      generateStaticDeclaration(trpcSourceFile);
+
+      const helperTypesSourceFile = this.project.createSourceFile(
+        path.resolve(outputDirPath, this.HELPER_TYPES_OUTPUT_FILE),
+        undefined,
+        { overwrite: true },
+      );
+
+
+      generateStaticDeclaration(appRouterSourceFile);
 
       const routersMetadata = await this.serializerHandler.serializeRouters(routers);
       const routersStringDeclarations = this.serializerHandler.generateRoutersStringFromMetadata(routersMetadata);
 
-      trpcSourceFile.addStatements(/* ts */ `
+      appRouterSourceFile.addStatements(/* ts */ `
         const appRouter = t.router({${routersStringDeclarations}});
         export type AppRouter = typeof appRouter;
       `);
 
-      await saveOrOverrideFile(trpcSourceFile);
+      await saveOrOverrideFile(appRouterSourceFile);
+      await saveOrOverrideFile(helperTypesSourceFile);
 
       this.consoleLogger.log(
-        `AppRouter has been updated successfully at "${outputDirPath}/${this.OUTPUT_FILE_NAME}".`,
+        `AppRouter has been updated successfully at "${outputDirPath}/${this.APP_ROUTER_OUTPUT_FILE}".`,
         "TRPC Generator"
       );
     } catch (e: unknown) {

@@ -4,11 +4,16 @@ import { findCtxOutProperty } from '../utils/type.util';
 import { getDecoratorPropertyValue } from '../utils/file.util';
 import { ConsoleLogger, Inject, Injectable } from '@nestjs/common';
 import * as path from 'node:path';
+import { TRPC_MODULE_OPTIONS } from '../trpc.constants';
+import { TRPCModuleOptions } from '../interfaces';
 
 @Injectable()
 export class DecoratorHandler {
 
-  constructor(@Inject(ConsoleLogger) private readonly consoleLogger: ConsoleLogger) {}
+  constructor(
+    @Inject(ConsoleLogger) private readonly consoleLogger: ConsoleLogger,
+    @Inject(TRPC_MODULE_OPTIONS) private readonly options: TRPCModuleOptions,
+  ) {}
 
   public serializeProcedureDecorators(decorators: Decorator[], sourceFile: SourceFile, project: Project): DecoratorGeneratorMetadata[] {
     const sourceFileImportsMap = this.buildSourceFileImportsMap(sourceFile, project);
@@ -23,7 +28,9 @@ export class DecoratorHandler {
       } else if (decoratorName === 'Procedure') {
         const generatedType = this.handleProcedureDecorator(decorator, project);
         if (generatedType) {
-          console.log({ generatedType });
+
+          // Need to do this in a seperate file
+          console.log({ generatedType, sourceFilePath: sourceFile.getFilePath(), path: path.resolve(path.dirname(this.options.autoSchemaFile)) });
         }
       } else {
         this.consoleLogger.warn(`Decorator ${decoratorName}, not supported.`);

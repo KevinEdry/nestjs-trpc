@@ -8,6 +8,8 @@ import { TRPCFactory } from './factories/trpc.factory';
 import { TRPCGenerator } from './trpc.generator';
 import { RouterFactory } from './factories/router.factory';
 import { ProcedureFactory } from './factories/procedure.factory';
+import { DecoratorHandler } from './handlers/decorator.handler';
+import { SerializerHandler } from './handlers/serializer.handler';
 
 @Module({
   imports: [],
@@ -18,6 +20,8 @@ import { ProcedureFactory } from './factories/procedure.factory';
     MetadataScanner,
     RouterFactory,
     ProcedureFactory,
+    DecoratorHandler,
+    SerializerHandler,
     TRPCGenerator,
   ],
   exports: [],

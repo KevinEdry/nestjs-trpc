@@ -1,3 +1,5 @@
+import { Expression, SourceFile } from 'ts-morph';
+
 export interface RouterGeneratorMetadata {
   name: string;
   procedures: Array<ProcedureGeneratorMetadata>;
@@ -14,4 +16,9 @@ export interface DecoratorGeneratorMetadata {
     input?: string;
     output?: string;
   };
+}
+
+export interface SourceFileImportsMap {
+  initializer: Expression;
+  sourceFile: SourceFile;
 }

@@ -1,11 +1,40 @@
-# Introduction
+import Image from 'next/image';
 
-Welcome to Nextra! This is a basic docs template. You can use it as a starting point for your own project :)
+<div className="opacity-70 pt-7" align="center">
+  <Image src="/docs-logo.png" width={200} height={200} alt="nestjs-trpc banner"/>
+</div>
+<a href="https://nestjs-trpc.io/" target="_blank" rel="noopener">
+</a>
+<div align="center">
+  <h1 className="text-3xl font-extrabold pt-7">NestJS tRPC Adapter Documentation</h1>
+  <h3 className="text-xl pb-5">An opinionated approach to building<br />End-to-end typesafe APIs with tRPC within NestJS.</h3>
+  <figure>
+    <img src="https://assets.trpc.io/www/v10/v10-dark-landscape.gif" alt="Demo" />
+      <div align="center pt-5">
+        The client above is <strong>not</strong> importing any code from the server, only its type declarations.
+      </div>
+  </figure>
+</div>
 
-## What is Nextra?
+## Introduction
+**NestJS RPC** is a library designed to integrate the capabilities of tRPC into the NestJS framework. It aims to provide native support for decorators and implement an opinionated approach that aligns with NestJS conventions.
 
-A **simple**, **powerful** and **flexible** site generation framework with everything you love from Next.js.
+## Features
+- ✅&nbsp; Supports most tRPC features out of the box with more to come.
+- 🧙‍&nbsp; Full static typesafety & autocompletion on the client, for inputs, outputs, and errors.
+- 🙀&nbsp; Implements the Nestjs opinionated approach to how tRPC works.
+- ⚡️&nbsp; Same client-side DX - We generate the AppRouter on the fly.
+- 🔋&nbsp; Examples are available in the ./examples folder.
+- 📦&nbsp; Out of the box support for **Dependency Injection** within the routes and procedures.
+- 👀&nbsp; Native support for `express`, and `zod` with more drivers to come!
 
-## Documentation
+## Upcoming Features (WIP)
+<br/>
+- [ ] Generate custom procedure context type.
+- [ ] Custom context class support.
+- [ ] Error formatting support.
+- [ ] `@Input`, `@Context` param decorators for procedure.
+- [ ] `@Meta` procedure decorator.
+- [ ] Support for `@Subscription` procedure type.
+- [ ] Fastify driver.
 
-The documentation is available at [https://nextra.site](https://nextra.site).

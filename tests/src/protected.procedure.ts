@@ -27,13 +27,8 @@ export class ProtectedProcedure implements TRPCProcedure<Context> {
     return next({
       ctx: {
         user: opts.ctx.auth.user,
+        bla: 0
       },
     });
   }) satisfies TRPCProcedure<Context>["use"]
 }
-
-export type ProtectedProcedureContext = {
-  ctx: {
-    user: string;
-  };
-};

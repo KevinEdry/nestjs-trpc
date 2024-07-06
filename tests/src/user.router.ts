@@ -10,7 +10,8 @@ export class UserRouter {
 
   @Procedure(ProtectedProcedure)
   @Query({input: z.string()})
-  authors() {
+  authors(args) {
+    console.log({args})
     return this.userService.test();
   }
 }

@@ -3,7 +3,7 @@ import { MetadataScanner, ModuleRef } from '@nestjs/core';
 import {
   PROCEDURE_METADATA_KEY,
   PROCEDURE_TYPE_KEY,
-  PROCEDURE_KEY
+  PROCEDURE_KEY,
 } from '../trpc.constants';
 import {
   ProcedureFactoryMetadata,

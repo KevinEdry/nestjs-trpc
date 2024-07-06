@@ -5,6 +5,7 @@ import { ConsoleLogger, Inject, Injectable, OnModuleInit } from '@nestjs/common'
 import { camelCase } from 'lodash';
 
 import {
+  ClassDeclaration,
   CompilerOptions,
   Decorator,
   Expression,
@@ -16,6 +17,7 @@ import {
   StructureKind,
   SyntaxKind,
   VariableDeclarationKind,
+  Type
 } from 'ts-morph';
 import {
   DecoratorGeneratorMetadata,
@@ -197,10 +199,79 @@ export class TRPCGenerator implements OnModuleInit {
               ...(output != null ? { output } : {}),
             },
           });
+        } else if (decoratorName === 'Procedure') {
+          const argument = decorator.getArguments()[0];
+          if (!Node.isIdentifier(argument)) {
+            return array;
+          }
+
+          const symbol = argument.getSymbol();
+          if (!symbol) {
+            return null;
+          }
+
+          const declaration = symbol.getDeclarations()[0];
+
+          let classDeclaration: ClassDeclaration | undefined;
+
+          if (Node.isImportSpecifier(declaration)) {
+            const importDeclaration = declaration.getImportDeclaration();
+            const moduleSpecifier = importDeclaration.getModuleSpecifierValue();
+            const sourceFile = declaration.getSourceFile();
+
+            const resolvedPath = path.resolve(
+              path.dirname(sourceFile.getFilePath()),
+              moduleSpecifier + '.ts',
+            );
+
+            const importedSourceFile = this.project.addSourceFileAtPathIfExists(resolvedPath);
+
+            if (importedSourceFile) {
+              classDeclaration = importedSourceFile.getClass(declaration.getName());
+            }
+          } else if (Node.isClassDeclaration(declaration)) {
+            classDeclaration = declaration;
+          }
+
+          if (!classDeclaration) {
+            return array;
+          }
+
+          const useProperty = classDeclaration.getProperty('use');
+          if (!useProperty) {
+            return array;
+          }
+
+          const useMethodType = useProperty.getType();
+
+          const callSignatures = useMethodType.getCallSignatures();
+          if (callSignatures.length === 0) {
+            return array;
+          }
+
+          const returnType = callSignatures[0].getReturnType();
+
+          const typeArguments = returnType.getTypeArguments();
+          if (typeArguments.length === 0) {
+            return array;
+          }
+
+          const nextParamType = typeArguments[0];
+
+          const ctxOutType = this.findCtxOutProperty(nextParamType);
+          if (!ctxOutType) {
+            return array;
+          }
+
+          const generatedType = `export type ProtectedProcedureContext = { ${ctxOutType} }`;
+
+          console.log({ generatedType });
+
+          return array;
         } else {
-          // this.consoleLogger.warn(
-          //   `Decorator ${decoratorName}, not supported.`,
-          // );
+          this.consoleLogger.warn(
+            `Decorator ${decoratorName}, not supported.`,
+          );
         }
         return array;
       },
@@ -238,6 +309,17 @@ export class TRPCGenerator implements OnModuleInit {
       }
     }
     return null;
+  }
+
+  private findCtxOutProperty(type: Type): string | undefined {
+    const typeText = type.getText();
+    const ctxOutMatch = typeText.match(/_ctx_out:\s*{([^}]*)}/);
+
+    if (ctxOutMatch && ctxOutMatch[1]) {
+      return ctxOutMatch[1].trim();
+    }
+
+    return undefined;
   }
 
   private generateStaticDeclaration(sourceFile: SourceFile): void {

@@ -1,0 +1,7 @@
+{
+  "nestjs": "NestJS Quickstart",
+  "trpc": "tRPC Quickstart",
+  "setup": {
+    "title": "Setup"
+  }
+}

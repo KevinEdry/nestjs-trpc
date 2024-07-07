@@ -1,5 +1,7 @@
 export default {
   logo: <div className={"md:nx-inline-flex nx-gap-2 nx-items-center"}><img src={'/logo.png'} width={40} /> NestJS tRPC</div>,
+  primaryHue: 200,
+  primarySaturation: 100,
   project: {
     link: 'https://github.com/KevinEdry/nestjs-trpc',
   },
@@ -28,7 +30,7 @@ export default {
       if (title === 'Introduction') {
         return <>🙋🏻‍♂️&nbsp;{title}</>
       }
-      if (title === "Setup") {
+      if (title === "Getting Started") {
         return <>📦️&nbsp;{title}</>
       }
       return <>{title}</>

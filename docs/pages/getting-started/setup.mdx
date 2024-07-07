@@ -1,0 +1,55 @@
+import {Tabs, Tab} from "@nextui-org/react";
+import NpmIcon from '../../public/icons/npm.svg';
+import PnpmIcon from '../../public/icons/pnpm.svg';
+import YarnIcon from '../../public/icons/yarn.svg';
+import BunIcon from '../../public/icons/bun.svg';
+
+# Setup
+This document will guide you installing and setting up **NestJS tRPC** in your nestjs project.
+
+### Installation
+To install **NestJS tRPC** with your preferred package manager, you can use any of the following commands:
+
+<div className="flex w-full flex-col pt-5">
+  <Tabs aria-label="options" color="primary" variant="underlined">
+    <Tab key="npm" title={
+      <div className="flex items-center space-x-2">
+          <NpmIcon width={20}/><span>npm</span>
+      </div>
+    }>
+      ```bash filename="Terminal" copy
+      npm install nestjs-trpc
+      ```
+    </Tab>
+    <Tab key="pnpm" title={
+      <div className="flex items-center space-x-2">
+        <PnpmIcon width={20}/><span>pnpm</span>
+      </div>
+    }>
+      ```bash filename="Terminal" copy
+      pnpm add nestjs-trpc
+      ```
+    </Tab>
+    <Tab key="yarn" title={
+      <div className="flex items-center space-x-2">
+        <YarnIcon width={20}/><span>yarn</span>
+      </div>
+    }>
+      ```bash filename="Terminal" copy
+      yarn add nestjs-trpc
+      ```
+    </Tab>
+    <Tab key="bun" title={
+      <div className="flex items-center space-x-2">
+        <BunIcon width={20}/><span>bun</span>
+      </div>
+    }>
+      ```bash filename="Terminal" copy
+      bun install nestjs-trpc
+      ```
+    </Tab>
+  </Tabs>
+</div>
+
+### Initialization
+`NestJS tRPC` is simple to set up and use

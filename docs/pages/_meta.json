@@ -6,8 +6,12 @@
       "footer": true
     }
   },
-  "another": "Another Page",
-  "advanced": "Advanced (A Folder)",
+  "getting-started": {
+    "title": "Getting Started"
+  },
+  "usage": {
+    "title": "Usage"
+  },
   "about": {
     "title": "About",
     "type": "page"

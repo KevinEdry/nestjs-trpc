@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://nestjs-trpc.io
+
+# Sitemaps
+Sitemap: https://nestjs-trpc.io/sitemap.xml

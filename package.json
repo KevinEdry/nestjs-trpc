@@ -20,7 +20,7 @@
     "debug:dev": "ts-node --inspect-brk lib/index.ts",
     "format": "prettier \"src/**/*.ts\" --ignore-path ./.prettierignore --write",
     "clean": "tsc -b --clean",
-    "prepare": "husky install & npm run build"
+    "prepare": "husky install & pnpm run build"
   },
   "keywords": [],
   "author": {

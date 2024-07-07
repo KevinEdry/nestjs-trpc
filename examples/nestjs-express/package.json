@@ -18,10 +18,7 @@
     "@nestjs/common": "^8.2.4",
     "@nestjs/core": "^8.2.4",
     "@nestjs/platform-express": "^8.2.4",
-    "@trpc/client": "^10.45.2",
-    "@trpc/server": "^10.18.0",
     "nestjs-trpc": "workspace:*",
-    "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",
     "zod": "^3.21.4"
   },

@@ -45,6 +45,9 @@
     "ts-morph": "^15.0.0 || ^16.0.0 || ^17.0.0",
     "zod": ">= 3.14.3"
   },
+  "peerDevDependencies": {
+    "@types/node": "20.14.10"
+  },
   "peerDependenciesMeta": {
     "ts-morph": {
       "optional": true

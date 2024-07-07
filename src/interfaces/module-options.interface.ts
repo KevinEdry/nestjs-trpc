@@ -5,7 +5,7 @@ import * as trpcExpress from '@trpc/server/adapters/express';
  */
 export interface TRPCModuleOptions {
   /**
-   * Path to trpc router type output.
+   * Path to trpc router and helpers types output.
    */
   autoSchemaFile?: string;
 
@@ -17,7 +17,7 @@ export interface TRPCModuleOptions {
 
   /**
    * The exposed trpc options when creating a route with `createExpressMiddleware`.
-   * If none options are provided, the adapter will use the default options.
+   * If not provided, the adapter will use a default createContext.
    */
   createContext?: (opts : trpcExpress.CreateExpressContextOptions) => ({});
 }

@@ -18,19 +18,21 @@ export default {
   },
   docsRepositoryBase: 'https://github.com/KevinEdry/nestjs-trpc',
   footer: {
-    text: 'Nextra Docs Template',
+    text: () => <span>
+      Made in Seatlle with ❤️ by{" "}
+      <a href="https://github.com/KevinEdry"
+         target="_blank"
+         >
+        <u> Kevin Edry </u>
+      </a>
+    </span>
   },
   sidebar: {
     titleComponent({ title, type }) {
-      if (type === 'separator') {
-        return (
-          <div style={{ background: 'cyan', textAlign: 'center' }}>{title}</div>
-        )
-      }
       if (title === 'Introduction') {
         return <>🙋🏻‍♂️&nbsp;{title}</>
       }
-      if (title === "Getting Started") {
+      if (title === "Setup") {
         return <>📦️&nbsp;{title}</>
       }
       return <>{title}</>

@@ -87,9 +87,5 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/KevinEdry/nestjs-trpc"
-  },
-  "workspaces": [
-    "examples/*",
-    "docs"
-  ]
+  }
 }

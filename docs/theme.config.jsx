@@ -37,5 +37,74 @@ export default {
       }
       return <>{title}</>
     }
-  }
+  },
+  useNextSeoProps() {
+    return {
+      defaultTitle: "NestJS tRPC Documentation",
+      titleTemplate: "NestJS tRPC Guide Documents - %s",
+      additionalLinkTags: [
+        {
+          rel: "apple-touch-icon",
+          sizes: "180x180",
+          href: "/favicon/apple-touch-icon.png"
+        },
+        {
+          rel: "manifest",
+          href: "/favicon/site.webmanifest"
+        },
+        ...[16, 32].map(size => ({
+          rel: "icon",
+          type: "image/png",
+          sizes: `${size}x${size}`,
+          href: `/favicon/favicon-${size}x${size}.png`
+        })),
+      ],
+      additionalMetaTags: [
+        {
+          property: "og:image",
+          content: "/og.jpg"
+        },
+        {
+          property: "og:type",
+          content: "object"
+        },
+        {
+          property: "og:title",
+          content: "NestJS tRPC Adapter Documentation",
+        },
+        {
+          property: "og:description",
+          content: "NestJS Helper Libraries"
+        },
+        {
+          property: "og:site_name",
+          content: "NestJS tRPC Documentation"
+        },
+        {
+          property: "og:url",
+          content: "https://nestjs-trpc.io"
+        },
+        {
+          name: "twitter:card",
+          content: "summary"
+        },
+        {
+          name: "twitter:image",
+          content: "https://nestjs-trpc.io/banner.png"
+        },
+        {
+          name: "twitter:title",
+          content: "NestJS tRPC Documentation"
+        },
+        {
+          name: "twitter:description",
+          content: "NestJS tRPC Adapter Documentation"
+        },
+        {
+          name: "twitter:site",
+          content: "@KevinEdry"
+        }
+      ]
+    }
+  },
 }

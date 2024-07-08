@@ -1,13 +1,11 @@
 import '../styles/globals.css'
-import { NextUIProvider } from "@nextui-org/system";
-import { Analytics } from "@vercel/analytics/react"
-
+import { Analytics } from "@vercel/analytics/react";
 
 export default function App({ Component, pageProps }) {
   return (
-    <NextUIProvider>
-        <Analytics/>
-        <Component {...pageProps} />
-    </NextUIProvider>
+    <main>
+      <Analytics/>
+      <Component {...pageProps} />
+    </main>
   )
 }

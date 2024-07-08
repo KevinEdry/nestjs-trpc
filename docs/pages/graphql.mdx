@@ -1,0 +1,40 @@
+import { Callout} from 'nextra/components';
+
+# Why Migrate from GraphQL?
+
+The **NestJS tRPC** adapter offers a powerful alternative to NestJS & GraphQL. Here's why you might consider migrating:
+
+### Key Advantages
+
+1. **End-to-End Type Safety**
+Achieve seamless type inference from backend to frontend without code generation, significantly reducing runtime errors caused by type mismatches.
+
+2. **Simplified Development**
+Eliminate the need for schema definitions and resolvers. Directly utilize your existing models and business logic, resulting in less boilerplate and faster development cycles.
+
+3. **Familiar NestJS Patterns**
+Leverage your existing NestJS knowledge with minimal learning curve, as `nestjs-trpc` integrates smoothly with the NestJS ecosystem.
+
+4. **Performance Benefits**
+Enjoy a lighter-weight solution compared to a full GraphQL implementation, with reduced overhead in request processing and response serialization.
+
+5. **Seamless Integration**
+Integrate tRPC alongside your existing NestJS modules and services, enabling a gradual migration path from GraphQL to tRPC.
+
+6. **Enhanced Developer Experience**
+Benefit from full IDE support including autocomplete and IntelliSense, easier debugging, and a simplified testing setup compared to GraphQL.
+
+7. **Flexible Querying**
+Utilize powerful query composition, including the ability to batch multiple procedure calls in a single HTTP request and support for efficient caching and invalidation strategies.
+
+### Migration Considerations
+
+- Learning Curve: Your team will need to familiarize themselves with tRPC concepts, though they are generally straightforward for TypeScript developers.
+- Client-Side Updates: Existing client-side code will require updates to use the tRPC client instead of GraphQL queries.
+- Feature Parity: Evaluate whether tRPC can fulfill all your current GraphQL use cases before committing to migration.
+
+<Callout type="warning">
+  If your application heavily relies on GraphQL-specific features like subscriptions, carefully assess if tRPC can meet these needs before proceeding with migration.
+</Callout>
+
+For a comprehensive overview of tRPC's capabilities, consult the [official tRPC documentation](https://trpc.io/docs).

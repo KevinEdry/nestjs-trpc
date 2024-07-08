@@ -6,7 +6,9 @@
       "footer": true
     }
   },
-  "setup": "Setup",
+  "setup": {
+    "title": "Setup"
+  },
   "-- quickstart-guide": {
     "type": "separator",
     "title": "\uD83D\uDDD2\uFE0F Quickstart Guide"

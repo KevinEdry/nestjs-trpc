@@ -1,3 +1,55 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+    --bg: #090909;
+    --bg-contrast: #181818;
+    --bg-contrast-light: #262626;
+}
+
+body {
+    background: var(--bg) !important;
+}
+
+/*      Code block Header      */
+.nextra-code-block > :is(html[class~=dark] .dark\:nx-text-gray-200) {
+    background: var(--bg-contrast-light) !important;
+    font-size: small;
+}
+
+/*      Code block Body      */
+:is(html[class~=dark] .dark\:nx-bg-primary-300\/10) {
+    background: var(--bg-contrast);
+    border: 1px solid var(--bg-contrast-light);
+}
+
+/*      Tab Key      */
+button:is(html[class~=dark] .dark\:nx-text-gray-200) {
+    color: rgba(163,163,163,var(--tw-text-opacity)) !important;
+}
+
+/*      Tab Key Selected      */
+button[aria-selected="true"] {
+    color: white !important;
+    border-color: white;
+    outline: none !important;
+}
+
+/*      Navbar bottom addons      */
+:is(html[class~=dark] .dark\:nx-shadow-\[0_-12px_16px_\#111\]) {
+    background: transparent;
+    box-shadow: none;
+}
+
+/*      Warning Callout      */
+:is(html[class~=dark] .dark\:nx-text-yellow-200) {
+    background: transparent;
+    border: 1px solid var(--bg-contrast-light);
+    color: rgba(163,163,163,var(--tw-text-opacity));
+}
+
+/*Header*/
+:is(html[class~=dark] .dark\:nx-shadow-\[0_-1px_0_rgba\(255\,255\,255\,\.1\)_inset\]){
+    background: transparent !important;
+}

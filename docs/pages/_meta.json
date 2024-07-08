@@ -6,7 +6,8 @@
       "breadcrumb": false,
       "footer": true,
       "sidebar": false,
-      "toc": false
+      "toc": false,
+      "layout": "full"
     }
   },
   "docs": {

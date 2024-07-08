@@ -4,41 +4,41 @@ title: "tRPC Guide and Concepts"
 
 # tRPC Core Concepts
 
-## What is tRPC?
+### What is tRPC?
 
 [tRPC](https://trpc.io/) is a powerful library for building end-to-end typesafe APIs without the need for a code generator. It allows you to define your APIs using TypeScript, ensuring that your client and server are always in sync.
 
-## Why Choose tRPC?
+### Why Choose tRPC?
 
 - **Type Safety**: Ensures end-to-end type safety without the need for code generation.
 - **Productivity**: Enhances developer productivity by reducing boilerplate code and runtime errors.
 - **Flexibility**: Can be used with any framework, including React, Next.js, and even vanilla TypeScript projects.
 - **Lightweight**: Minimal overhead compared to traditional REST or GraphQL.
 
-## Core Concepts
+### Core Concepts
 
-### Routers and Procedures
+#### Routers and Procedures
 
 tRPC revolves around the concept of routers and procedures. A router can contain multiple procedures, which are either queries or mutations.
 
 - **Router**: A collection of related procedures.
 - **Procedure**: A function exposed through the router, which can be a query (read-only operation) or a mutation (write operation).
 
-### Type Inference
+#### Type Inference
 
 tRPC leverages TypeScript's type inference to ensure that types are consistent across the client and server. When you define a router and its procedures, tRPC automatically infers the types for you.
 
-### Data Transformation
+#### Data Transformation
 
 tRPC allows you to define custom data transformers for serializing and deserializing data, ensuring that your API can handle complex data structures seamlessly.
 
-### Middlewares
+#### Middlewares
 
 tRPC supports middlewares, allowing you to add custom logic to your procedures. This can include authentication, authorization, logging, etc.
 
-## Example Concepts
+### Example Concepts
 
-### Defining a Router
+#### Defining a Router
 
 Here's how you can define a simple router with a query and a mutation:
 
@@ -64,7 +64,7 @@ const appRouter = t.router({
 export type AppRouter = typeof appRouter;
 ```
 
-### Type-Safe Client
+#### Type-Safe Client
 
 With the router defined, tRPC ensures type safety on the client side:
 

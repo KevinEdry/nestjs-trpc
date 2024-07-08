@@ -1,9 +1,10 @@
 import '../styles/globals.css'
 import { Analytics } from "@vercel/analytics/react";
+import { GeistSans } from 'geist/font/sans'
 
 export default function App({ Component, pageProps }) {
   return (
-    <main>
+    <main className={GeistSans.className}>
       <Analytics/>
       <Component {...pageProps} />
     </main>

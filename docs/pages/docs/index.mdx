@@ -42,12 +42,12 @@ This document will guide you through the installation and setting up of **NestJS
   import { TRPCModule } from 'nestjs-trpc';
 
   @Module({
-  imports: [
-  TRPCModule.forRoot({
-  autoSchemaFile: './src/@generated',
-}),
-  ],
-})
+    imports: [
+      TRPCModule.forRoot({
+        autoSchemaFile: './src/@generated',
+      }),
+    ],
+  })
   export class AppModule {}
   ```
   The `forRoot()` method takes an options object as an argument. These options are passed through to the underlying express driver. For example, if you want to disable the schema file generation (when deploying to production), you can omit the `autoSchemaFile` option.

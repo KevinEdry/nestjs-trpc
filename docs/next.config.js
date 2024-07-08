@@ -3,6 +3,7 @@ const withNextra = require('nextra')({
   themeConfig: './theme.config.jsx'
 })
 module.exports = withNextra({
+  transpilePackages: ['geist'],
   webpack(config) {
     // Grab the existing rule that handles SVG imports
     const fileLoaderRule = config.module.rules.find((rule) =>

@@ -3,7 +3,7 @@ import React, { ReactNode } from 'react';
 
 interface TableProps {
   children: ReactNode;
-  columns: string[];
+  columns?: string[];
 }
 
 interface CellProps {
@@ -11,7 +11,7 @@ interface CellProps {
   description?: string;
 }
 
-function Table({ children, columns }: TableProps) {
+function Table({ children, columns = [] }: TableProps) {
   return (
     <table className="w-full table-auto">
       <thead>

@@ -1,0 +1,56 @@
+import { Callout, FileTree } from 'nextra/components';
+import Link from 'next/link';
+import Table from '../../components/Table';
+
+# First Steps and Core Concepts
+
+In this documentation we will go through the basic concepts and recommended file structure of this adapter,
+our main goal developing this adapter was to make it synonymous with NestJS and it's opinionated approach and concepts.
+
+<Callout> If you are looking for an installation guide for this adapter, check out our <Link href="/docs/setup" className="underline">Setup Guide</Link>.</Callout>
+
+### Basic File Structure
+In **NestJS tRPC** we take a similar approach to how NestJS implements it's routing system, meaning the file structure should remain similar.
+
+<FileTree>
+  <FileTree.Folder name={"src"} open >
+    <FileTree.File name={"app.router.ts"}/>
+    <FileTree.File name={"app.procedure.ts"}/>
+    <FileTree.File name={"app.context.ts"}/>
+    <FileTree.File name={"app.service.ts"}/>
+    <FileTree.File name={"app.module.ts"}/>
+    <FileTree.File name={"main.ts"}/>
+  </FileTree.Folder>
+</FileTree>
+
+Here's a brief overview of those core files:
+<br/>
+<Table>
+  <Table.Row>
+    <Table.Cell>`app.router.ts`</Table.Cell>
+    <Table.Cell>Comparable to a NestJS controller, a basic router with a single route.</Table.Cell>
+  </Table.Row>
+  <Table.Row>
+    <Table.Cell>`app.procedure.ts`</Table.Cell>
+    <Table.Cell>Comparable to a NestJS guards or middlewares, its a procedure that can modify<br/>the request ctx.</Table.Cell>
+  </Table.Row>
+  <Table.Row>
+    <Table.Cell>`app.context.ts`</Table.Cell>
+    <Table.Cell>A context class that modifies the application context.</Table.Cell>
+  </Table.Row>
+  <Table.Row>
+    <Table.Cell>`app.service.ts`</Table.Cell>
+    <Table.Cell>A basic service, The same service you will use in any NestJS application.</Table.Cell>
+  </Table.Row>
+  <Table.Row>
+    <Table.Cell>`app.module.ts`</Table.Cell>
+    <Table.Cell>The root module of the application.</Table.Cell>
+  </Table.Row>
+  <Table.Row>
+    <Table.Cell>`main.ts`</Table.Cell>
+    <Table.Cell>The entry file of the application which uses the core function NestFactory<br/> to create a Nest application instance.</Table.Cell>
+  </Table.Row>
+</Table>
+
+### Platform
+As of writing, we only have support for the `expressjs` driver, while we continue working on the `fastify` driver.

@@ -1,53 +1,22 @@
 {
   "index": {
     "title": "Introduction",
+    "display": "hidden",
     "theme": {
       "breadcrumb": false,
-      "footer": true
+      "footer": true,
+      "sidebar": false,
+      "toc": false
     }
   },
-  "setup": {
-    "title": "Setup"
-  },
-  "-- quickstart-guide": {
-    "type": "separator",
-    "title": "\uD83D\uDDD2\uFE0F Quickstart Guide"
-  },
-  "nestjs": "NestJS Quickstart",
-  "trpc": "tRPC Core Concepts",
-  "graphql": "GraphQL Migration",
-  "-- features": {
-    "type": "separator",
-    "title": "📖 Features"
-  },
-  "routers": "Routers",
-  "procedures": "Procedures",
-  "context": "Context",
-  "middlewares": "Middlewares",
-  "dependency-injection": "Dependency Injection",
-  "client": "Client Usage",
-  "-- appendix": {
-    "type": "separator",
-    "title": "\uD83D\uDD17 Appendix"
-  },
-  "trpc-docs": {
-    "title": "⇲ tRPC Documentation",
-    "href": "https://trpc.io/docs",
-    "newWindow": true
-  },
-  "nestjs-docs": {
-    "title": "⇲ NestJS Documentation",
-    "href": "https://docs.nestjs.com",
-    "newWindow": true
-  },
-  "about": {
-    "title": "About",
+  "docs": {
+    "title": "Docs",
     "type": "page"
   },
   "contact": {
     "title": "Contact ↗",
     "type": "page",
-    "href": "https://twitter.com/shuding_",
+    "href": "https://twitter.com/KevinEdry",
     "newWindow": true
   }
 }

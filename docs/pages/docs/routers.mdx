@@ -1,0 +1,40 @@
+import { Cards, Card, Callout } from 'nextra/components';
+import NestJSIcon from '../../public/icons/nestjs.svg';
+import TrpcIcon from '../../public/icons/trpc.svg';
+
+# Routers
+
+Routes are responsible for handling incoming requests and returning responses to the client.
+Routers works exactly like the native NestJS controllers, but with some tRPC syntax.
+
+<br/>
+
+<Callout>
+  If you are not sure about the basic concepts of NestJS controllers and tRPC procedures, you can dive into those concepts in their official documentation.
+</Callout>
+<div className={"w-full router-cards"}>
+  <Cards>
+    <Card icon={<NestJSIcon width={50} height={50}/>} title={"What are NestJS Controllers"} href={"https://docs.nestjs.com/controllers"} arrow/>
+    <Card icon={<TrpcIcon width={50} height={50}/>} title={"What are tRPC Procedures"} href={"https://trpc.io/docs/server/procedures"} arrow/>
+  </Cards>
+</div>
+
+A router class can contain many `Procedure` methods, which can be one of:
+- `@Query(){:typescript}` - used to fetch data, generally does not change any data
+- `@Mutation(){:typescript}` - used to send data, often for create/update/delete purposes
+- `@Subscription(){:typescript}` - Not yet implemented.
+
+## Writing Routers
+In the following example we'll use the `@Router(){:tsx}` decorator, which is **required** to define a basic router.
+```typescript filename="dogs.router.ts" copy
+import { Router, Query } from 'nestjs-trpc';
+
+@Router()
+export class DogsRouter {
+  @Query()
+  findAll(): string {
+    return 'Who let the dogs out? who...';
+  }
+}
+```
+The `@Query(){:tsx}` decorator before the `findAll(){:tsx}` method tells **NestJS tRPC** to create a tRPC query for the specified router.

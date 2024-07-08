@@ -1,15 +1,15 @@
 import { Callout, Tabs, Steps } from 'nextra/components'
 import Link from 'next/link'
-import Table from '../components/Table';
+import Table from '../../components/Table';
 
-# Setup
+# Installation
 This document will guide you through the installation and setting up of **NestJS tRPC** in your nestjs project.
 <Callout type={"warning"} emoji={"⚠️"}>
-  If you don't have a NestJS project setup yet, please visit our <Link href="/nestjs" className="underline">NestJS Quickstart Guide</Link> or check out the official <Link href="https://docs.nestjs.com" target={"_blank"} className="underline">NestJS documentation</Link>.
+  If you don't have a NestJS project setup yet, please visit our <Link href="/docs/nestjs" className="underline">NestJS Quickstart Guide</Link> or check out the official <Link href="https://docs.nestjs.com" target={"_blank"} className="underline">NestJS documentation</Link>.
 </Callout>
 
 <Steps>
-  ### Installation
+  ### Manual Installation
   To install **NestJS tRPC** with your preferred package manager, you can use any of the following commands:
 
   <Tabs items={["npm", "pnpm", "yarn", "bun"]}>
@@ -42,12 +42,12 @@ This document will guide you through the installation and setting up of **NestJS
   import { TRPCModule } from 'nestjs-trpc';
 
   @Module({
-    imports: [
-      TRPCModule.forRoot({
-        autoSchemaFile: './src/@generated',
-      }),
-    ],
-  })
+  imports: [
+  TRPCModule.forRoot({
+  autoSchemaFile: './src/@generated',
+}),
+  ],
+})
   export class AppModule {}
   ```
   The `forRoot()` method takes an options object as an argument. These options are passed through to the underlying express driver. For example, if you want to disable the schema file generation (when deploying to production), you can omit the `autoSchemaFile` option.
@@ -57,6 +57,9 @@ This document will guide you through the installation and setting up of **NestJS
 
 </Steps>
 
+<Callout type="error" emoji={"✋"}>
+  When setting up **NestJS tRPC** you must set your `"sourceMap": true{:typescript}` in your `compilerOptions` within the `tsconfig.json` configuration file.
+</Callout>
 
 ### Module Options
 

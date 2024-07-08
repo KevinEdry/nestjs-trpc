@@ -1,11 +1,10 @@
 export default {
-  logo: <div className={"md:nx-inline-flex nx-gap-2 nx-items-center"}><img src={'/logo.png'} width={40} /> NestJS tRPC</div>,
+  logo: <div className={"md:nx-inline-flex nx-gap-2 nx-items-center nx-font-bold"}><img src={'/logo.png'} width={40} /> NestJS tRPC</div>,
   primaryHue: 200,
   primarySaturation: 100,
   project: {
     link: 'https://github.com/KevinEdry/nestjs-trpc',
   },
-
   banner: {
     key: '1.0-release',
     text: (
@@ -22,15 +21,6 @@ export default {
   sidebar: {
     toggleButton: true,
     defaultMenuCollapseLevel: 1,
-    titleComponent({ title, type }) {
-      if (title === 'Introduction') {
-        return <>🙋🏻‍♂️&nbsp;{title}</>
-      }
-      if (title === "Setup") {
-        return <>📦️&nbsp;{title}</>
-      }
-      return <>{title}</>
-    }
   },
   nextThemes: {
     defaultTheme: 'dark',

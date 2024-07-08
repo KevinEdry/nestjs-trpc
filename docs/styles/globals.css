@@ -48,8 +48,18 @@ button[aria-selected="true"] {
     border: 1px solid var(--bg-contrast-light);
     color: rgba(163,163,163,var(--tw-text-opacity));
 }
+/*      Default Callout      */
+:is(html[class~=dark] .dark\:nx-text-orange-300) {
+    background: transparent;
+    border: 1px solid var(--bg-contrast-light);
+    color: rgba(163,163,163,var(--tw-text-opacity));
+}
 
 /*Header*/
 :is(html[class~=dark] .dark\:nx-shadow-\[0_-1px_0_rgba\(255\,255\,255\,\.1\)_inset\]){
     background: transparent !important;
+}
+
+.router-cards > .nextra-cards {
+    --rows: 2 !important;
 }

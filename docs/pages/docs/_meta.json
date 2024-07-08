@@ -1,0 +1,56 @@
+{
+  "-- getting-started": {
+    "type": "separator",
+    "title": "Getting Started"
+  },
+  "index": {
+    "title": "Installation"
+  },
+
+  "-- overview": {
+    "type": "separator",
+    "title": "Overview"
+  },
+  "nestjs": "NestJS Quickstart",
+  "trpc": "tRPC Concepts",
+  "graphql": "GraphQL Migration",
+
+  "-- features": {
+    "type": "separator",
+    "title": "Usage Guide"
+  },
+
+  "structure": "First Steps",
+  "routers": "Routers",
+  "procedures": "Procedures",
+  "context": "Context",
+  "middlewares": "Middlewares",
+  "dependency-injection": "Dependency Injection",
+  "client": "Client Usage",
+
+  "-- appendix": {
+    "type": "separator",
+    "title": "Appendix"
+  },
+
+  "trpc-docs": {
+    "title": "⇲ tRPC Documentation",
+    "href": "https://trpc.io/docs",
+    "newWindow": true
+  },
+  "nestjs-docs": {
+    "title": "⇲ NestJS Documentation",
+    "href": "https://docs.nestjs.com",
+    "newWindow": true
+  },
+  "docs": {
+    "title": "Docs",
+    "type": "page"
+  },
+  "contact": {
+    "title": "Contact ↗",
+    "type": "page",
+    "href": "https://twitter.com/KevinEdry",
+    "newWindow": true
+  }
+}

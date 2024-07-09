@@ -1,58 +1,62 @@
-import { MegaphoneIcon, ArrowRight, DollarSignIcon, CopyIcon, Code, Zap } from 'lucide-react';
-import { Iframe } from '../Iframe';
-import { searchParams } from '../../utils/searchParams';
-import clsx from 'clsx';
+import { MegaphoneIcon, ArrowRight, DollarSignIcon, CopyIcon, CheckIcon, CodeIcon, ZapIcon, ShieldCheckIcon } from 'lucide-react';
+import { Preview } from '../Preview';
+import Link from "next/link";
+import { useCopyToClipboard } from "@uidotdev/usehooks";
+import { useState } from 'react';
+import FeatureCard from '../FeatureCard';
 
 export default function Home() {
+  const [copiedText, copyToClipboard] = useCopyToClipboard();
+  const [hasCopied, changeHasCopied] = useState(false);
+
+  const handleCopy = () => {
+    copyToClipboard("npm install nestjs-trpc");
+    changeHasCopied(true);
+    setTimeout(()=> {
+      changeHasCopied(false);
+    }, 3000)
+  }
+
   return (
-    <div className={"mx-auto mt-24 px-6 text-center md:px-8 max-w-[80rem] z-20"}>
-      <header className={"flex flex-col items-center"}>
-        <div className={"flex items-center gap-1 text-[#788188] text-sm"}>
-          <MegaphoneIcon width={15}/>
-          <p>Read about NestJS tRPC 1.0 Launch</p>
-          <ArrowRight width={15}/>
-        </div>
-        <h1 className={"text-6xl font-semibold bg-gradient-to-b from-[#FFFFFF] to-[#7EC7FF] inline-block text-[RGBA(0,0,0,0)] bg-clip-text"}>
+    <div className={"mx-auto mt-24 px-6 text-center md:px-8 max-w-[80rem] z-20 gap-12 flex flex-col"}>
+      <header className={"flex flex-col items-center gap-3"}>
+        <Link href={"https://github.com/KevinEdry/nestjs-trpc"}>
+          <button type={"button"} className={"flex items-center gap-1 text-[#788188] text-sm"}>
+            <MegaphoneIcon width={15}/>
+            <p>Read about NestJS tRPC 1.0 Launch</p>
+            <ArrowRight width={15}/>
+          </button>
+        </Link>
+        <h1 className={"text-6xl font-semibold bg-gradient-to-b from-white to-[#7EC7FF] inline-block text-[RGBA(0,0,0,0)] bg-clip-text"}>
           Bring type-safety<br />to NestJS
         </h1>
         <p className={"text-[#8BA1B2] text-xl"}>Discover how to write type-safe end-to-end apis using tRPC in NestJS.</p>
         <div className={"flex gap-3"}>
-          <div className={"flex gap-3 rounded-full border border-[#3D596E] h-full py-4 px-6 items-center"}>
+          <button type={"button"} onClick={()=>{handleCopy()}} className={"flex gap-3 rounded-full border border-[#3D596E] h-full py-4 px-6 items-center transition-all hover:bg-[#3D596E]"}>
             <DollarSignIcon width={17} className={"text-[#8BA1B2]"}/>
             <p>npm install nestjs-trpc</p>
-            <CopyIcon />
-          </div>
-          <button className={"flex py-4 px-6 bg-[#fff] text-[#000] rounded-full items-center"}>
-            <p>Documentation</p>
-            <ArrowRight />
+            {
+              hasCopied ? <CheckIcon/> : <CopyIcon/>
+            }
           </button>
+          <Link href={"/docs"}>
+            <button type={"button"} className={"flex py-4 px-6 gap-2 bg-gray text-[#000] rounded-full items-center group/docs transition-all hover:bg-gray/80"}>
+              <p>Documentation</p>
+              <ArrowRight width={15} className={"transition-transform group-hover/docs:translate-x-1"} />
+            </button>
+          </Link>
         </div>
       </header>
-      <section className={"relative w-full mt-10"}>
-        <div className={clsx(
-          "relative h-[800px] w-full rounded-xl p-[1px]",
-          "before:bg-gradient-to-b before:from-[RGBA(57,140,203,0.5)] before:to-[RGBA(18,18,18,0)] before:content before:blur-[180px] before:w-full before:h-full before:block before:absolute before:z-[-10]",
-          "after:absolute after:bg-gradient-to-b after:content after:z-[-1] after:rounded-xl after:from-[#75ABD4] after:to-[RGBA(120,129,136,0.4)] after:w-full after:h-full after:top-0 after:left-0")}>
-          <Iframe
-            src={
-              `https://stackblitz.com/edit/trpc-trpc-g4sqrv?` +
-              searchParams({
-                embed: '1',
-                file: "src/pages/api/trpc/[trpc].ts`",
-                hideNavigation: '1',
-                terminalHeight: '1',
-                showSidebar: '0',
-                view: 'editor',
-              })
-            }
-            frameBorder="0"
-          />
-        </div>
+      <section className={"relative w-full"}>
+        <Preview />
       </section>
-      <section className={"flex justify-center"}>
-        <div>box1</div>
-        <div>box2</div>
-        <div>box3</div>
+      <section className={"flex flex-col justify-between gap-3"}>
+        <h2 className={"text-4xl font-medium"}>Why use NestJS tRPC?</h2>
+        <div className={"flex justify-between gap-3 flex-wrap"}>
+          <FeatureCard icon={<ShieldCheckIcon />} title={"End-to-end type safety"} description={"Seamlessly integrates tRPC into NestJS, allowing you to build fully typed APIs with ease."} />
+          <FeatureCard icon={<CodeIcon />} title={"Great DX"} description={"Auto generated appRouter schema from your NestJS routers makes it easier to consume and manage your apis."} />
+          <FeatureCard icon={<ZapIcon />} title={"Seamless Integration"} description={"Works with existing NestJS projects, allowing gradual adoption and easy integration into your current workflow."} />
+        </div>
       </section>
     </div>
   )

@@ -10,6 +10,12 @@ module.exports = {
   theme: {
     colors: {
       primary: "#398CCB",
+      white: "#FFF",
+      black: "#000",
+      gray: "#D9D9D9",
+      "background-black": "#070707",
+      "border-gray": "#788188",
+      "border-primary": "#75ABD4"
     },
     extend: {},
   },

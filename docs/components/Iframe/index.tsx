@@ -3,9 +3,11 @@ import type { ComponentPropsWithoutRef } from 'react';
 import React, { useState } from 'react';
 
 export const Iframe = (
-  props: Omit<ComponentPropsWithoutRef<'iframe'>, 'className'>,
+  props: {
+    setLoaded: (loaded: boolean) => void;
+  } & Omit<ComponentPropsWithoutRef<'iframe'>, 'className'>,
 ) => {
-  const [loaded, setLoaded] = useState(false);
+  const { setLoaded } = props;
   return (
     <iframe
       loading="lazy"
@@ -13,11 +15,7 @@ export const Iframe = (
       onLoad={() => {
         setLoaded(true);
       }}
-      className={clsx(
-        'h-full w-full transition-opacity duration-1000',
-        loaded ? 'opacity-95' : 'opacity-0',
-        'rounded-xl'
-      )}
+      className={"h-full w-full rounded-xl"}
     />
   );
 };

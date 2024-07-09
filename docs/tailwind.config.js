@@ -14,5 +14,7 @@ module.exports = {
     extend: {},
   },
   darkMode: "class",
-  plugins: [],
+  plugins: [
+    require('tailwindcss-border-image'),
+  ],
 }

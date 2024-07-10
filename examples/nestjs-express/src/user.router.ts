@@ -1,30 +1,35 @@
 import { Inject } from '@nestjs/common';
-import { Router, Query, Procedure } from 'nestjs-trpc';
+import { Router, Query, Procedure, Input } from 'nestjs-trpc';
 import { UserService } from './user.service';
 import { ProtectedProcedure } from './protected.procedure';
 import { z } from 'zod';
+import { TRPCError } from '@trpc/server';
 
-const bobj = z.object({
-  bla: z.array(z.object({
-    yaya: z.string(),
-  }))
-})
+const userSchema = z.object({
+  name: z.string(),
+  email: z.string(),
+  password: z.string(),
+});
 
-const newZodSchema = z.array(z.object(
-  {
-    a: z.string(),
-    b: bobj,
-  }
-))
+type User = z.infer<typeof userSchema>;
 
-@Router({alias: "leRouter"})
+@Router({ alias: 'users' })
 export class UserRouter {
   constructor(@Inject(UserService) private readonly userService: UserService) {}
 
+  @Query({
+    input: z.object({ userId: z.string() }),
+    output: userSchema,
+  })
   @Procedure(ProtectedProcedure)
-  @Query({input: z.string(), output: newZodSchema})
-  authors(args) {
-    console.log({args})
-    return this.userService.test();
+  async getUserById(@Input('userId') userId: string): Promise<User> {
+    if (user == null) {
+      throw new TRPCError({
+        message: 'Could not find user.',
+        code: 'NOT_FOUND',
+      });
+    }
+
+    return user;
   }
 }

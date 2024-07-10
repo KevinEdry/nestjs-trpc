@@ -107,7 +107,10 @@ export class ProcedureFactory {
   ): any {
     const procedureWithInput = input ? procedureInstance.input(input) : procedureInstance;
     const procedureWithOutput = output ? procedureWithInput.output(output) : procedureWithInput;
-    const procedureInvocation = (args: unknown) => routerInstance[procedureName](args);
+    const procedureInvocation = (args: unknown) => {
+      console.log({args})
+      return routerInstance[procedureName](args);
+    };
 
     return type === 'mutation'
       ? procedureWithOutput.mutation(procedureInvocation)

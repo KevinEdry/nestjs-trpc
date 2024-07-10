@@ -1,6 +1,8 @@
-import { Cards, Card, Callout } from 'nextra/components';
+import { Cards, Card, Callout, Tabs } from 'nextra/components';
+import Table from "../../components/Table";
 import NestJSIcon from '../../public/icons/nestjs.svg';
 import TrpcIcon from '../../public/icons/trpc.svg';
+import Link from 'next/link';
 
 # Routers
 
@@ -19,22 +21,171 @@ Routers works exactly like the native NestJS controllers, but with some tRPC syn
   </Cards>
 </div>
 
-A router class can contain many `Procedure` methods, which can be one of:
-- `@Query(){:typescript}` - used to fetch data, generally does not change any data
-- `@Mutation(){:typescript}` - used to send data, often for create/update/delete purposes
-- `@Subscription(){:typescript}` - Not yet implemented.
+### Writing Routers
+Let's compare the most basic functionality of tRPC and see how we implement it in NestJS with our adapter, in the following
+example we'll create a simple router with a single route that will get us a list of dogs from our imaginary database.
 
-## Writing Routers
-In the following example we'll use the `@Router(){:tsx}` decorator, which is **required** to define a basic router.
-```typescript filename="dogs.router.ts" copy
-import { Router, Query } from 'nestjs-trpc';
+<Tabs items={["NestJS Adapter Router", 'tRPC Router']}>
+  <Tabs.Tab>
+    ```typescript filename="dogs.router.ts" copy
+    import { DatabaseService } from "./database.service.ts";
+    import { Router, Query } from 'nestjs-trpc';
+    import { Inject } from '@nestjs/common';
+    import { z } from 'zod';
 
-@Router()
-export class DogsRouter {
-  @Query()
-  findAll(): string {
-    return 'Who let the dogs out? who...';
+    const dogsSchema = z.object({
+      name: z.string(),
+      breed: z.enum(["Labrador", "Corgi", "Beagle", "Golden Retriver"])
+    });
+
+    @Router()
+    export class DogsRouter {
+      constructor(@Inject(DatabaseService) private databaseService: DatabaseService){}
+
+      @Query({ output: z.array(dogSchema) })
+      async findAll(): string {
+        const dogs = await this.databaseService.dogs.findMany();
+        return dogs;
+      }
+    }
+    ```
+  </Tabs.Tab>
+  <Tabs.Tab>
+    ```typescript filename="server.ts" copy
+    import { db } from './db';
+    import { publicProcedure, router } from './trpc';
+    import { z } from 'zod';
+
+    const dogsSchema = z.object({
+      name: z.string(),
+      breed: z.enum(["Labrador", "Corgi", "Beagle", "Golden Retriver"])
+    });
+
+    const appRouter = router({
+      dogsRouter : {
+        findAll: publicProcedure
+          .output(z.array(dogsSchema))
+          .query(async () => {
+            const dogs = await db.dogs.findMany();
+            return dogs;
+          }
+        ),
+      }
+    });
+    ```
+  </Tabs.Tab>
+</Tabs>
+
+In that example we used the `@Router(){:tsx}` decorator, which is **required** to define a basic router.<br/>
+The `@Query(){:tsx}` decorator before the `findAll(){:tsx}` method tells **NestJS tRPC** to create a tRPC query for the specified router and output schema.
+
+<Callout>
+  The `@Router()` decorator can also take an `alias: string` parameter that will change it's name when applied to the trpc router. `@Router(alias?: string){:tsx}`.
+</Callout>
+
+#### Method Decorators
+
+##### Procedures
+While we discussed how to perform data fetching with our adapter, any complete data platform needs a way to modify server-side data as well.
+This can be done by using the right decorator, here is a list of the available procedure decorators:
+<br/>
+<Table columns={["Decorator", "Output"]}>
+  <Table.Row>
+    <Table.Cell>`@Query({ input?: ZodSchema, output?: ZodSchema })`</Table.Cell>
+    <Table.Cell>`publicProcedure.query()`</Table.Cell>
+  </Table.Row>
+  <Table.Row>
+    <Table.Cell>`@Mutation({ input?: ZodSchema, output?: ZodSchema })`</Table.Cell>
+    <Table.Cell>`publicProcedure.mutation()`</Table.Cell>
+  </Table.Row>
+  <Table.Row>
+    <Table.Cell>`@Subscription({ input?: ZodSchema, output?: ZodSchema })`</Table.Cell>
+    <Table.Cell>`publicProcedure.subscription()`</Table.Cell>
+  </Table.Row>
+</Table>
+
+tRPC procedures may define validation logic for their input and/or output, and validators are also used to infer the types of inputs and outputs in the client-side.
+We can pass those schemas directly to the decorator as shown above.<br/>For me information on how tRPC procedure validation works, check their <Link href={"https://trpc.io/docs/server/validators"} className="underline" target="_blank">official documentation page</Link>.
+
+##### Middlewares
+By default every route will be assigned the `publicProcedure` base, but it is possible to use custom procedures (also known as middlewares) in our router via the `@Procedure()` decorator.
+<Table columns={["Decorator", "Output"]}>
+  <Table.Row>
+    <Table.Cell>`@Procedure(customProcedure: TRPCProcedure)`</Table.Cell>
+    <Table.Cell>`customProcedure.query()`</Table.Cell>
+  </Table.Row>
+</Table>
+You can read more about the implementation in our <Link href={"/docs/procedures"} className="underline">Procedures Guide</Link>.
+
+#### Parameter Decorators
+In order to grab the request parameters when defining a route method we can use dedicated decorators, such as @Ctx() or @Input(),
+which are available out of the box. Below is a list of the provided decorators and the plain platform-specific objects they represent.
+<br/>
+<Table>
+  <Table.Row>
+    <Table.Cell>`@Options()`</Table.Cell>
+    <Table.Cell>`opts`</Table.Cell>
+  </Table.Row>
+  <Table.Row>
+    <Table.Cell>`@Context()`</Table.Cell>
+    <Table.Cell>`opts.ctx`</Table.Cell>
+  </Table.Row>
+  <Table.Row>
+    <Table.Cell>`@Path()`</Table.Cell>
+    <Table.Cell>`opts.path`</Table.Cell>
+  </Table.Row>
+  <Table.Row>
+    <Table.Cell>`@Type()`</Table.Cell>
+    <Table.Cell>`opts.type`</Table.Cell>
+  </Table.Row>
+  <Table.Row>
+    <Table.Cell>`@RawInput()`</Table.Cell>
+    <Table.Cell>`opts.rawInput`</Table.Cell>
+  </Table.Row>
+  <Table.Row>
+    <Table.Cell>`@Input(key?: string)`</Table.Cell>
+    <Table.Cell>`opts.input / opts.input[key]`</Table.Cell>
+  </Table.Row>
+</Table>
+
+#### Putting it all together
+Below is an example of a UserRouter completed with most of the features and decorators mentioned above.
+```typescript filename="user.router.ts" copy
+import { Inject } from '@nestjs/common';
+import { Router, Query, Procedure, Input } from 'nestjs-trpc';
+import { UserService } from './user.service';
+import { ProtectedProcedure } from './protected.procedure';
+import { z } from 'zod';
+import { TRPCError } from '@trpc/server';
+
+const userSchema = z.object({
+  name: z.string(),
+  email: z.string(),
+  password: z.string(),
+});
+
+type User = z.infer<typeof userSchema>;
+
+@Router({ alias: 'users' })
+export class UserRouter {
+  constructor(@Inject(UserService) private readonly userService: UserService) {}
+
+  @Query({
+    input: z.object({ userId: z.string() }),
+    output: userSchema,
+  })
+  @Procedure(ProtectedProcedure)
+  async getUserById(@Input('userId') userId: string): Promise<User> {
+    const user = await this.userService.getUser(userId);
+
+    if (user == null) {
+      throw new TRPCError({
+        message: 'Could not find user.',
+        code: 'NOT_FOUND',
+      });
+    }
+
+    return user;
   }
 }
 ```
-The `@Query(){:tsx}` decorator before the `findAll(){:tsx}` method tells **NestJS tRPC** to create a tRPC query for the specified router.

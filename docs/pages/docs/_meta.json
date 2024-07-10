@@ -24,7 +24,6 @@
   "routers": "Routers",
   "procedures": "Procedures",
   "context": "Context",
-  "middlewares": "Middlewares",
   "dependency-injection": "Dependency Injection",
   "client": "Client Usage",
 

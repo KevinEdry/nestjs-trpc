@@ -22,7 +22,7 @@
 
   "structure": "First Steps",
   "routers": "Routers",
-  "procedures": "Procedures",
+  "middlewares": "Middlewares",
   "context": "Context",
   "dependency-injection": "Dependency Injection",
   "client": "Client Usage",

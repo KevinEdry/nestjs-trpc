@@ -15,7 +15,7 @@ In **NestJS tRPC** we take a similar approach to how NestJS implements it's rout
 <FileTree>
   <FileTree.Folder name={"src"} open >
     <FileTree.File name={"app.router.ts"}/>
-    <FileTree.File name={"app.procedure.ts"}/>
+    <FileTree.File name={"app.middleware.ts"}/>
     <FileTree.File name={"app.context.ts"}/>
     <FileTree.File name={"app.service.ts"}/>
     <FileTree.File name={"app.module.ts"}/>
@@ -31,8 +31,8 @@ Here's a brief overview of those core files:
     <Table.Cell>Comparable to a NestJS controller, a basic router with a single route.</Table.Cell>
   </Table.Row>
   <Table.Row>
-    <Table.Cell>`app.procedure.ts`</Table.Cell>
-    <Table.Cell>Comparable to a NestJS guards or middlewares, its a procedure that can modify<br/>the request ctx.</Table.Cell>
+    <Table.Cell>`app.middleware.ts`</Table.Cell>
+    <Table.Cell>Comparable to a NestJS guards or middlewares, its a middleware that can modify<br/>the request ctx.</Table.Cell>
   </Table.Row>
   <Table.Row>
     <Table.Cell>`app.context.ts`</Table.Cell>

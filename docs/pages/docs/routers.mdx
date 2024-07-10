@@ -1,3 +1,7 @@
+---
+title: "Routers"
+---
+
 import { Cards, Card, Callout, Tabs } from 'nextra/components';
 import Table from "../../components/Table";
 import NestJSIcon from '../../public/icons/nestjs.svg';
@@ -21,7 +25,7 @@ Routers works exactly like the native NestJS controllers, but with some tRPC syn
   </Cards>
 </div>
 
-### Writing Routers
+#### Writing Routers
 Let's compare the most basic functionality of tRPC and see how we implement it in NestJS with our adapter, in the following
 example we'll create a simple router with a single route that will get us a list of dogs from our imaginary database.
 
@@ -83,6 +87,9 @@ The `@Query(){:tsx}` decorator before the `findAll(){:tsx}` method tells **NestJ
   The `@Router()` decorator can also take an `alias: string` parameter that will change it's name when applied to the trpc router. `@Router(alias?: string){:tsx}`.
 </Callout>
 
+#### Dependency injection
+Routers fully supports Dependency Injection. Just as with NestJS providers and controllers, they are able to inject dependencies that are available within the same module. As usual, this is done through the `constructor`.
+
 #### Method Decorators
 
 ##### Procedures
@@ -108,14 +115,14 @@ tRPC procedures may define validation logic for their input and/or output, and v
 We can pass those schemas directly to the decorator as shown above.<br/>For me information on how tRPC procedure validation works, check their <Link href={"https://trpc.io/docs/server/validators"} className="underline" target="_blank">official documentation page</Link>.
 
 ##### Middlewares
-By default every route will be assigned the `publicProcedure` base, but it is possible to use custom procedures (also known as middlewares) in our router via the `@Procedure()` decorator.
+By default every route will be assigned the `publicProcedure` base, but it is possible to use custom middlewares instead our router via the `@Middlewares()` decorator.
 <Table columns={["Decorator", "Output"]}>
   <Table.Row>
-    <Table.Cell>`@Procedure(customProcedure: TRPCProcedure)`</Table.Cell>
-    <Table.Cell>`customProcedure.query()`</Table.Cell>
+    <Table.Cell>`@Middlewares(middleware: TRPCMiddleware)`</Table.Cell>
+    <Table.Cell>`middleware.query()`</Table.Cell>
   </Table.Row>
 </Table>
-You can read more about the implementation in our <Link href={"/docs/procedures"} className="underline">Procedures Guide</Link>.
+You can read more about the implementation in our <Link href={"/docs/middlewares"} className="underline">Middlewares Guide</Link>.
 
 #### Parameter Decorators
 In order to grab the request parameters when defining a route method we can use dedicated decorators, such as @Ctx() or @Input(),

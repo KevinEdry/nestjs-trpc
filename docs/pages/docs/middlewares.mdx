@@ -1,0 +1,116 @@
+---
+title: "Middlewares"
+---
+
+import { Callout, Cards, Card, Tabs } from 'nextra/components'
+import NestJSIcon from '../../public/icons/nestjs.svg';
+import TrpcIcon from '../../public/icons/trpc.svg';
+
+# Middlewares
+
+Our package lets you create middlewares.
+You are able to add those middlewares to a router class method by the `@Middlewares(){:tsx}` decorator.<br/>
+The tRPC concept of middlewares is comparable to how `Guards` and `Middlewares` work in NestJS.
+
+<Callout>
+  If you are not sure about the basic concepts of NestJS or tRPC middlewares, you can dive into those concepts in their official documentation.
+</Callout>
+<div className={"w-full router-cards"}>
+  <Cards>
+    <Card icon={<NestJSIcon width={50} height={50}/>} title={"What are NestJS Middlewares"} href={"https://docs.nestjs.com/middleware"} arrow/>
+    <Card icon={<TrpcIcon width={50} height={50}/>} title={"What are tRPC Middlewares"} href={"https://trpc.io/docs/server/middlewares"} arrow/>
+  </Cards>
+</div>
+
+#### Creating a Custom Procedure
+You can implement a middleware in a class with an `@Injectable()` decorator. The class should implement the `TRPCMiddleware` interface.
+Let's start by implementing a simple logger middleware.
+
+<Tabs items={["NestJS Adapter Middleware", 'tRPC Middleware']}>
+  <Tabs.Tab>
+    ```typescript filename="logger.middleware.ts" copy
+    import { TRPCMiddleware, TRPCMiddlewareOptions } from 'nestjs-trpc';
+    import { Context } from "./@generated/helpers.ts";
+    import { Inject, Injectable, ConsoleLogger } from '@nestjs/common';
+
+    @Injectable()
+    export class LoggedMiddleware implements TRPCMiddleware<Context> {
+
+      constructror(
+        @Inject(ConsoleLogger) private readonly consoleLogger: ConsoleLogger
+      ) {}
+
+      use(opts: TRPCMiddlewareOptions) {
+        const start = Date.now();
+        const { next, path, type } = opts;
+        const result = await next();
+
+        const durationMs = Date.now() - start;
+        const meta = { path, type, durationMs }
+
+        result.ok
+          ? this.consoleLogger.log('OK request timing:', meta)
+          : this.consoleLogger.error('Non-OK request timing', meta);
+
+        return result;
+      }
+    }
+    ```
+  </Tabs.Tab>
+  <Tabs.Tab>
+    ```typescript filename="server.ts" copy
+    export const loggedProcedure = publicProcedure.use(async (opts) => {
+      const start = Date.now();
+
+      const result = await opts.next();
+
+      const durationMs = Date.now() - start;
+      const meta = { path: opts.path, type: opts.type, durationMs };
+
+      result.ok
+        ? console.log('OK request timing:', meta)
+        : console.error('Non-OK request timing', meta);
+
+      return result;
+    });
+    ```
+  </Tabs.Tab>
+</Tabs>
+
+
+#### Dependency injection
+Middlewares fully supports Dependency Injection. Just as with NestJS middlewares and guards, they are able to inject dependencies that are available within the same module. As usual, this is done through the `constructor`.
+
+
+#### Applying middleware
+To use the middleware in your procedure instead of the default `publicProcedure`, pass the class to the `@Middlewares(){:tsx}` method decorator.
+```typescript {16} filename="dogs.router.ts" copy showLineNumbers
+import { DatabaseService } from "./database.service.ts";
+import { LoggedMiddleware } from "./logged.middleware.ts";
+import { Router, Query, Middlewares } from 'nestjs-trpc';
+import { Inject } from '@nestjs/common';
+import { z } from 'zod';
+
+const dogsSchema = z.object({
+name: z.string(),
+  breed: z.enum(["Labrador", "Corgi", "Beagle", "Golden Retriver"])
+});
+
+@Router()
+export class DogsRouter {
+  constructor(@Inject(DatabaseService) private databaseService: DatabaseService){}
+
+  @Middlewares(LoggedMiddleware)
+  @Query({ output: z.array(dogSchema) })
+  async findAll(): string {
+    const dogs = await this.databaseService.dogs.findMany();
+    return dogs;
+  }
+}
+```
+
+The `@Middlewares(){:tsx}` decorator can also handle an array of middlewares in case you want to chain them together.
+```typescript /LoggedMiddleware/ /AuthMiddleware/
+@Middlewares([LoggedMiddleware, AuthMiddleware])
+```
+The execution order will be determined by the order of the middlewares array.

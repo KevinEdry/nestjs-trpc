@@ -24,7 +24,6 @@ export default {
   },
   docsRepositoryBase: 'https://github.com/KevinEdry/nestjs-trpc',
   sidebar: {
-    toggleButton: true,
     defaultMenuCollapseLevel: 1,
   },
   nextThemes: {

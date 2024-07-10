@@ -10,6 +10,7 @@ module.exports = {
   theme: {
     colors: {
       primary: "#398CCB",
+      subtext: "#8BA1B2",
       white: "#FFF",
       black: "#000",
       gray: "#D9D9D9",

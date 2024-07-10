@@ -31,7 +31,7 @@ export default function Home() {
           Bring type-safety<br />to NestJS
         </h1>
         <p className={"text-[#8BA1B2] text-xl"}>Discover how to write type-safe end-to-end apis using tRPC in NestJS.</p>
-        <div className={"flex gap-3"}>
+        <div className={"flex flex-wrap justify-center gap-3"}>
           <button type={"button"} onClick={()=>{handleCopy()}} className={"flex gap-3 rounded-full border border-[#3D596E] h-full py-4 px-6 items-center transition-all hover:bg-[#3D596E]"}>
             <DollarSignIcon width={17} className={"text-[#8BA1B2]"}/>
             <p>npm install nestjs-trpc</p>
@@ -50,12 +50,15 @@ export default function Home() {
       <section className={"relative w-full"}>
         <Preview />
       </section>
-      <section className={"flex flex-col justify-between gap-3"}>
-        <h2 className={"text-4xl font-medium"}>Why use NestJS tRPC?</h2>
+      <section className={"flex flex-col justify-between gap-5 mt-16"}>
+        <div>
+          <h2 className={"text-4xl font-medium"}>Why use NestJS tRPC?</h2>
+          <p className={"text-xl text-subtext"}>It's the best way to write NestJS APIs since the GraphQL adapter!</p>
+        </div>
         <div className={"flex justify-between gap-3 flex-wrap"}>
-          <FeatureCard icon={<ShieldCheckIcon />} title={"End-to-end type safety"} description={"Seamlessly integrates tRPC into NestJS, allowing you to build fully typed APIs with ease."} />
-          <FeatureCard icon={<CodeIcon />} title={"Great DX"} description={"Auto generated appRouter schema from your NestJS routers makes it easier to consume and manage your apis."} />
-          <FeatureCard icon={<ZapIcon />} title={"Seamless Integration"} description={"Works with existing NestJS projects, allowing gradual adoption and easy integration into your current workflow."} />
+          <FeatureCard Icon={ShieldCheckIcon} title={"End-to-end type safety"} description={"Seamlessly integrates tRPC into NestJS, allowing you to build fully typed APIs with ease."} />
+          <FeatureCard Icon={CodeIcon} title={"Great DX"} description={"Auto generated appRouter schema from your NestJS routers makes it easier to consume and manage your apis."} />
+          <FeatureCard Icon={ZapIcon} title={"Seamless Integration"} description={"Works with existing NestJS projects, allowing gradual adoption and easy integration into your current workflow."} />
         </div>
       </section>
     </div>

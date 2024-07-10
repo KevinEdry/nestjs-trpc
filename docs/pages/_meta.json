@@ -7,6 +7,8 @@
       "footer": true,
       "sidebar": false,
       "toc": false,
+      "pagination": false,
+      "timestamp": false,
       "layout": "full"
     }
   },

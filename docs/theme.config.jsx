@@ -1,9 +1,14 @@
+import { Footer } from './components/Footer';
+
 export default {
   logo: <div className={"md:nx-inline-flex nx-gap-2 nx-items-center nx-font-bold"}><img src={'/logo.png'} width={40} /> NestJS tRPC</div>,
   primaryHue: 200,
   primarySaturation: 100,
   project: {
     link: 'https://github.com/KevinEdry/nestjs-trpc',
+  },
+  footer: {
+    component: <Footer />
   },
   banner: {
     key: '1.0-release',

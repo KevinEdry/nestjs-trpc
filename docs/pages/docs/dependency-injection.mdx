@@ -1,0 +1,27 @@
+---
+title: "Middlewares"
+---
+
+import { Callout } from 'nextra/components';
+import Link from 'next/link';
+
+# Dependency injection
+
+NestJS is built around the strong design pattern commonly known as Dependency injection.
+
+<Callout>
+  If you are new to NestJS and/or the concept of Dependency Injection, the NestJS official docs recommends to read <Link href={"https://angular.dev/guide/di"} target={"_blank"} className={"underline"}>this article</Link> about dependency injection from the angular official documentation.
+</Callout>
+
+>NestJS Official Documentation:<br/>
+>Thanks to TypeScript capabilities, it's extremely easy to manage dependencies because they are resolved just by type.
+>In the example below, Nest will resolve the catsService by creating and returning an instance of CatsService (or, in the normal case of a singleton, returning the existing instance if it has already been requested elsewhere).
+>This dependency is resolved and passed to your router's constructor (or assigned to the indicated property)
+
+With this adapter, it is possible to use dependency injection with you routers, middlewares or context providers with ease.
+The adapter will automatically resolve the dependency and will inject the instance when invoking the method.<br/>
+To do that we use the `@Inject()` decorator provided by NestJS. You can read more about it in their <Link href={"https://docs.nestjs.com/providers#dependency-injection"} target={"_blank"} className={"underline"}>official documentation</Link>.
+
+```typescript /Inject/
+constructor(@Inject(CatsService) private catsService: CatsService) {}
+```

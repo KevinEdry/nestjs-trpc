@@ -13,6 +13,29 @@ import type { RouterDef } from '@trpc/server/dist/core/router';
 import type { ZodSchema } from 'zod';
 import type { TRPCMiddleware } from './middleware.interface';
 
+export enum ProcedureParamDecoratorType {
+  Options = 'options',
+  Context = 'ctx',
+  Input = 'input',
+  RawInput = 'rawInput',
+  Type = 'type',
+  Path = 'path',
+}
+
+interface ProcedureParamDecoratorBase {
+  type: ProcedureParamDecoratorType;
+  index: number;
+}
+
+type ProcedureInputParamDecorator = ProcedureParamDecoratorBase & {
+  type: ProcedureParamDecoratorType.Input;
+  key?: string;
+};
+
+export type ProcedureParamDecorator =
+  | ProcedureParamDecoratorBase
+  | ProcedureInputParamDecorator;
+
 export interface ProcedureFactoryMetadata {
   type: ProcedureType;
   input: ZodSchema | undefined;
@@ -20,6 +43,7 @@ export interface ProcedureFactoryMetadata {
   middlewares?: TRPCMiddleware;
   name: string;
   implementation: ({ input, output }) => any;
+  params: Array<ProcedureParamDecorator>;
 }
 
 export interface CustomProcedureFactoryMetadata {

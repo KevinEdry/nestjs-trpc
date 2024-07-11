@@ -7,7 +7,7 @@ import {
 
 @Injectable()
 export class UserService {
-  test(): string {
+  async test(): Promise<string> {
     return 'test';
   }
 }

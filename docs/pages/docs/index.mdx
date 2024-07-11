@@ -1,59 +1,57 @@
-import { Callout, Tabs, Steps } from 'nextra/components'
-import Link from 'next/link'
+import { Callout, Tabs, Steps } from 'nextra/components';
+import Link from 'next/link';
 import Table from '../../components/Table';
 
 # Installation
+
 This document will guide you through the installation and setting up of **NestJS tRPC** in your nestjs project.
-<Callout type={"warning"} emoji={"⚠️"}>
-  If you don't have a NestJS project setup yet, please visit our <Link href="/docs/nestjs" className="underline">NestJS Quickstart Guide</Link> or check out the official <Link href="https://docs.nestjs.com" target={"_blank"} className="underline">NestJS documentation</Link>.
+
+<Callout type={'warning'} emoji={'⚠️'}>
+  If you don't have a NestJS project setup yet, please visit our{' '}
+  <Link href="/docs/nestjs" className="underline">
+    NestJS Quickstart Guide
+  </Link>{' '}
+  or check out the official{' '}
+  <Link href="https://docs.nestjs.com" target={'_blank'} className="underline">
+    NestJS documentation
+  </Link>
+  .
 </Callout>
 
 <Steps>
   ### Manual Installation
   To install **NestJS tRPC** with your preferred package manager, you can use any of the following commands:
 
-  <Tabs items={["npm", "pnpm", "yarn", "bun"]}>
-    <Tabs.Tab>
-      ```bash copy
-      npm install nestjs-trpc
-      ```
-    </Tabs.Tab>
-    <Tabs.Tab>
-      ```bash copy
-      pnpm add nestjs-trpc
-      ```
-    </Tabs.Tab>
-    <Tabs.Tab>
-      ```bash copy
-      yarn add nestjs-trpc
-      ```
-    </Tabs.Tab>
-    <Tabs.Tab>
-      ```bash copy
-      bun install nestjs-trpc
-      ```
-    </Tabs.Tab>
-  </Tabs>
+{' '}
 
-  ### Initialization
-  Once the packages are installed, we can import the `TRPCModule` and configure it with the `forRoot()` static method.
-  ```typescript filename="app.module.ts"
-  import { Module } from '@nestjs/common';
-  import { TRPCModule } from 'nestjs-trpc';
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+  <Tabs.Tab>```bash copy npm install nestjs-trpc ```</Tabs.Tab>
+  <Tabs.Tab>```bash copy pnpm add nestjs-trpc ```</Tabs.Tab>
+  <Tabs.Tab>```bash copy yarn add nestjs-trpc ```</Tabs.Tab>
+  <Tabs.Tab>```bash copy bun install nestjs-trpc ```</Tabs.Tab>
+</Tabs>
 
-  @Module({
-    imports: [
-      TRPCModule.forRoot({
-        autoSchemaFile: './src/@generated',
-      }),
-    ],
-  })
-  export class AppModule {}
-  ```
-  The `forRoot()` method takes an options object as an argument. These options are passed through to the underlying express driver. For example, if you want to disable the schema file generation (when deploying to production), you can omit the `autoSchemaFile` option.
+### Initialization
 
+Once the packages are installed, we can import the `TRPCModule` and configure it with the `forRoot()` static method.
 
-  ### Start your NestJS server. You should be good to go! 🎉
+```typescript filename="app.module.ts"
+import { Module } from '@nestjs/common';
+import { TRPCModule } from 'nestjs-trpc';
+
+@Module({
+  imports: [
+    TRPCModule.forRoot({
+      autoSchemaFile: './src/@generated',
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+The `forRoot()` method takes an options object as an argument. These options are passed through to the underlying express driver. For example, if you want to disable the schema file generation (when deploying to production), you can omit the `autoSchemaFile` option.
+
+### Start your NestJS server. You should be good to go! 🎉
 
 </Steps>
 
@@ -64,14 +62,15 @@ This document will guide you through the installation and setting up of **NestJS
 ### Module Options
 
 You can import `TRPCModuleOptions` type from `nestjs-trpc` to safely assert all of the `TRPCModule` option types.
+
 ```typescript
-  import { TRPCModule, TRPCModuleOptions } from 'nestjs-trpc';
-  const trpcOptions: TRPCModuleOptions = {
-    autoSchemaFile: './src/@generated'
-  }
+import { TRPCModule, TRPCModuleOptions } from 'nestjs-trpc';
+const trpcOptions: TRPCModuleOptions = {
+  autoSchemaFile: './src/@generated',
+};
 ```
 
-<Table columns={["Prop", "Type", "Default"]}>
+<Table columns={['Prop', 'Type', 'Default']}>
   <Table.Row>
     <Table.Cell icon>`basePath`</Table.Cell>
     <Table.Cell>`string`</Table.Cell>
@@ -87,5 +86,14 @@ You can import `TRPCModuleOptions` type from `nestjs-trpc` to safely assert all 
     <Table.Cell>`(opts : CreateExpressContextOptions) => ({})`</Table.Cell>
     <Table.Cell>-</Table.Cell>
   </Table.Row>
+  <Table.Row>
+    <Table.Cell icon>`transformer`</Table.Cell>
+    <Table.Cell>`unknown`</Table.Cell>
+    <Table.Cell>-</Table.Cell>
+  </Table.Row>
+  <Table.Row>
+    <Table.Cell icon>`errorShape`</Table.Cell>
+    <Table.Cell>`ErrorFormatter<RootConfigTypes['ctx'],TRPCErrorShape<number> & { [key: string]: any }>`</Table.Cell>
+    <Table.Cell>-</Table.Cell>
+  </Table.Row>
 </Table>
-

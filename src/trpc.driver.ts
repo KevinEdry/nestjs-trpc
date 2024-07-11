@@ -33,11 +33,13 @@ export class TRPCDriver<
 
     const app = httpAdapter.getInstance<ExpressApplication>();
 
-    const createContext = (opts : trpcExpress.CreateExpressContextOptions) => ({}); // no context
-
-    type Context = Awaited<ReturnType<typeof createContext>>;
-
-    const { procedure, router } = initTRPC.context<Context>().create();
+    //@ts-ignore
+    const { procedure, router } = initTRPC.context().create({
+      ...(options.transformer != null
+        ? { transformer: options.transformer }
+        : {}),
+      ...(options.errorShape != null ? { errorShape: options.errorShape } : {}),
+    });
 
     const appRouter: AnyRouter = this.trpcFactory.serializeAppRoutes(
       router,
@@ -48,16 +50,18 @@ export class TRPCDriver<
       options.basePath ?? '/trpc',
       trpcExpress.createExpressMiddleware({
         router: appRouter,
-        createContext: options.createContext ?? createContext
+        ...(options.createContext != null
+          ? { createContext: options.createContext }
+          : {}),
       }),
     );
-
 
     if (options.autoSchemaFile != null) {
       await this.trpcFactory.generateSchemaFiles(options.autoSchemaFile);
     } else {
       this.consoleLogger.log(
-        'Skipping appRouter types generation - `autoSchemaFile` was not provided.', "TRPC Driver"
+        'Skipping appRouter types generation - `autoSchemaFile` was not provided.',
+        'TRPC Driver',
       );
     }
   }

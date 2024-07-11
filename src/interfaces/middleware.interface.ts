@@ -1,5 +1,6 @@
 import {
-  type DataTransformerOptions, ProcedureBuilder,
+  type DataTransformerOptions,
+  ProcedureBuilder,
   type RootConfig,
   type unsetMarker,
 } from '@trpc/server';
@@ -17,8 +18,8 @@ type ProcedureParams<Context = any> = {
   _output_in: typeof unsetMarker;
   _output_out: typeof unsetMarker;
   _meta: object;
-}
+};
 
-export interface TRPCProcedure<Context = object> {
-  use: Parameters<ProcedureBuilder<ProcedureParams<Context>>["use"]>[0]
+export interface TRPCMiddleware<Context = object> {
+  use: Parameters<ProcedureBuilder<ProcedureParams<Context>>['use']>[0];
 }

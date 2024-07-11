@@ -159,9 +159,9 @@ which are available out of the box. Below is a list of the provided decorators a
 Below is an example of a UserRouter completed with most of the features and decorators mentioned above.
 ```typescript filename="user.router.ts" copy
 import { Inject } from '@nestjs/common';
-import { Router, Query, Procedure, Input } from 'nestjs-trpc';
+import { Router, Query, Middlewares, Input } from 'nestjs-trpc';
 import { UserService } from './user.service';
-import { ProtectedProcedure } from './protected.procedure';
+import { ProtectedMiddleware } from './protected.middleware';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 
@@ -181,7 +181,7 @@ export class UserRouter {
     input: z.object({ userId: z.string() }),
     output: userSchema,
   })
-  @Procedure(ProtectedProcedure)
+  @Middlewares(ProtectedMiddleware)
   async getUserById(@Input('userId') userId: string): Promise<User> {
     const user = await this.userService.getUser(userId);
 

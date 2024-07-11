@@ -1,5 +1,5 @@
 import { Inject } from '@nestjs/common';
-import { Router, Query, Procedure, Input } from 'nestjs-trpc';
+import { Router, Query, Middlewares, Input } from 'nestjs-trpc';
 import { UserService } from './user.service';
 import { ProtectedProcedure } from './protected.procedure';
 import { z } from 'zod';
@@ -21,7 +21,7 @@ export class UserRouter {
     input: z.object({ userId: z.string() }),
     output: userSchema,
   })
-  @Procedure(ProtectedProcedure)
+  @Middlewares(ProtectedProcedure)
   async getUserById(@Input('userId') userId: string): Promise<User> {
     if (user == null) {
       throw new TRPCError({

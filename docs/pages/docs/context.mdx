@@ -1,0 +1,29 @@
+---
+title: "Context"
+---
+
+import { Cards, Card, Callout, Tabs } from 'nextra/components';
+import Table from "../../components/Table";
+import NestJSIcon from '../../public/icons/nestjs.svg';
+import TrpcIcon from '../../public/icons/trpc.svg';
+import Link from 'next/link';
+
+# Context
+
+Currently, the only way to extend the default tRPC context is by passing a context function to the module options, specifically the `` option:
+```typescript filename=app.module.ts
+import { Module } from '@nestjs/common';
+import { TRPCModule } from 'nestjs-trpc';
+
+@Module({
+  imports: [
+    TRPCModule.forRoot({
+      createContext: (opts) => {
+
+      },
+    }),
+  ],
+})
+export class AppModule {}
+```
+

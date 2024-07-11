@@ -11,13 +11,13 @@ import type {
 } from '@trpc/server';
 import type { RouterDef } from '@trpc/server/dist/core/router';
 import type { ZodSchema } from 'zod';
-import type { TRPCProcedure } from './procedure.interface';
+import type { TRPCMiddleware } from './middleware.interface';
 
 export interface ProcedureFactoryMetadata {
   type: ProcedureType;
   input: ZodSchema | undefined;
   output: ZodSchema | undefined;
-  procedureDef?: TRPCProcedure;
+  middlewares?: TRPCMiddleware;
   name: string;
   implementation: ({ input, output }) => any;
 }
@@ -31,7 +31,7 @@ export interface RouterInstance {
   name: string;
   instance: unknown;
   alias?: string;
-  routeProcedureDef?: TRPCProcedure;
+  middlewares?: TRPCMiddleware;
 }
 
 export interface RoutersFactoryMetadata {

@@ -13,11 +13,11 @@ import { ROUTER_METADATA_KEY } from '../trpc.constants';
  * @param {object} args configuration object specifying:
  * - `alias` - string that defines a router alias. The alias is used both in the auto schema file generation, and for the actual api access.
  *
- * @see [Routing](https://docs.nestjs.com/controllers#routing)
+ * @see [Routers](https://nestjs-trpc.io/docs/routers)
  *
  * @publicApi
  */
-export function Router(args?: {alias?: string}) {
+export function Router(args?: { alias?: string }) {
   return applyDecorators(
     ...[SetMetadata(ROUTER_METADATA_KEY, { alias: args?.alias })],
   );

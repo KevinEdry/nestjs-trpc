@@ -1,2 +1,2 @@
 export * from './module-options.interface';
-export * from './procedure.interface';
+export * from './middleware.interface';

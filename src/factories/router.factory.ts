@@ -2,16 +2,13 @@ import { ConsoleLogger, Injectable } from '@nestjs/common';
 import { ModulesContainer } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import { camelCase } from 'lodash';
-import {
-  PROCEDURE_KEY,
-  ROUTER_METADATA_KEY
-} from '../trpc.constants';
+import { MIDDLEWARE_KEY, ROUTER_METADATA_KEY } from '../trpc.constants';
 import {
   RouterInstance,
   TRPCPublicProcedure,
   TRPCRouter,
 } from '../interfaces/factory.interface';
-import { TRPCProcedure } from '../interfaces';
+import { TRPCMiddleware } from '../interfaces';
 import { ProcedureFactory } from './procedure.factory';
 
 @Injectable()
@@ -19,7 +16,7 @@ export class RouterFactory {
   constructor(
     private readonly consoleLogger: ConsoleLogger,
     private readonly modulesContainer: ModulesContainer,
-    private readonly procedureFactory: ProcedureFactory
+    private readonly procedureFactory: ProcedureFactory,
   ) {}
 
   getRouters(): Array<RouterInstance> {
@@ -37,40 +34,58 @@ export class RouterFactory {
     return routers;
   }
 
-  private extractRouterFromWrapper(wrapper: InstanceWrapper): RouterInstance | undefined {
+  private extractRouterFromWrapper(
+    wrapper: InstanceWrapper,
+  ): RouterInstance | undefined {
     const { instance, name } = wrapper;
     if (!instance) return undefined;
 
-    const router = Reflect.getMetadata(ROUTER_METADATA_KEY, instance.constructor);
-    const routeProcedureDef: TRPCProcedure = Reflect.getMetadata(PROCEDURE_KEY, instance.constructor);
+    const router = Reflect.getMetadata(
+      ROUTER_METADATA_KEY,
+      instance.constructor,
+    );
+    const middlewares: TRPCMiddleware = Reflect.getMetadata(
+      MIDDLEWARE_KEY,
+      instance.constructor,
+    );
 
     if (router != null) {
-      return { name, instance, alias: router.alias, routeProcedureDef };
+      return { name, instance, alias: router.alias, middlewares };
     }
 
     return undefined;
   }
 
-  serializeRoutes(router: TRPCRouter, procedure: TRPCPublicProcedure): Record<string, any> {
+  serializeRoutes(
+    router: TRPCRouter,
+    procedure: TRPCPublicProcedure,
+  ): Record<string, any> {
     const routers = this.getRouters();
     const routerSchema = {};
 
-    routers.forEach(route => {
-      const { instance, name, routeProcedureDef, alias } = route;
+    routers.forEach((route) => {
+      const { instance, name, middlewares, alias } = route;
       const camelCasedRouterName = camelCase(alias ?? name);
       const prototype = Object.getPrototypeOf(instance);
 
-      const procedures = this.procedureFactory.getProcedures(instance, prototype);
-
-      this.consoleLogger.log(`Router ${name} as ${camelCasedRouterName}.`, 'Router Factory');
-
-      routerSchema[camelCasedRouterName] = this.procedureFactory.serializeProcedures(
-        procedures,
+      const procedures = this.procedureFactory.getProcedures(
         instance,
-        camelCasedRouterName,
-        procedure,
-        routeProcedureDef
+        prototype,
       );
+
+      this.consoleLogger.log(
+        `Router ${name} as ${camelCasedRouterName}.`,
+        'Router Factory',
+      );
+
+      routerSchema[camelCasedRouterName] =
+        this.procedureFactory.serializeProcedures(
+          procedures,
+          instance,
+          camelCasedRouterName,
+          procedure,
+          middlewares,
+        );
     });
 
     return routerSchema;

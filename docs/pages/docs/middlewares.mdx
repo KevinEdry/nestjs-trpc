@@ -108,9 +108,3 @@ export class DogsRouter {
   }
 }
 ```
-
-The `@Middlewares(){:tsx}` decorator can also handle an array of middlewares in case you want to chain them together.
-```typescript /LoggedMiddleware/ /AuthMiddleware/
-@Middlewares([LoggedMiddleware, AuthMiddleware])
-```
-The execution order will be determined by the order of the middlewares array.

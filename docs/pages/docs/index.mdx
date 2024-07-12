@@ -7,28 +7,37 @@ import Table from '../../components/Table';
 This document will guide you through the installation and setting up of **NestJS tRPC** in your nestjs project.
 
 <Callout type={'warning'} emoji={'⚠️'}>
-  If you don't have a NestJS project setup yet, please visit our{' '}
-  <Link href="/docs/nestjs" className="underline">
-    NestJS Quickstart Guide
-  </Link>{' '}
-  or check out the official{' '}
-  <Link href="https://docs.nestjs.com" target={'_blank'} className="underline">
-    NestJS documentation
-  </Link>
-  .
+  If you don't have a NestJS project setup yet, please visit our
+  <Link href="/docs/nestjs" className="underline">NestJS Quickstart Guide</Link>
+  or check out the official
+  <Link href="https://docs.nestjs.com" target={'_blank'} className="underline">NestJS documentation</Link>.
 </Callout>
 
 <Steps>
   ### Manual Installation
   To install **NestJS tRPC** with your preferred package manager, you can use any of the following commands:
 
-{' '}
-
 <Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
-  <Tabs.Tab>```bash copy npm install nestjs-trpc ```</Tabs.Tab>
-  <Tabs.Tab>```bash copy pnpm add nestjs-trpc ```</Tabs.Tab>
-  <Tabs.Tab>```bash copy yarn add nestjs-trpc ```</Tabs.Tab>
-  <Tabs.Tab>```bash copy bun install nestjs-trpc ```</Tabs.Tab>
+  <Tabs.Tab>
+    ```bash copy 
+    npm install nestjs-trpc
+    ```
+  </Tabs.Tab>
+  <Tabs.Tab>
+    ```bash copy
+    pnpm add nestjs-trpc 
+    ```
+  </Tabs.Tab>
+  <Tabs.Tab>
+    ```bash copy
+    yarn add nestjs-trpc 
+    ```
+   </Tabs.Tab>
+  <Tabs.Tab>
+    ```bash copy
+    bun install nestjs-trpc 
+    ```
+   </Tabs.Tab>
 </Tabs>
 
 ### Initialization
@@ -83,7 +92,7 @@ const trpcOptions: TRPCModuleOptions = {
   </Table.Row>
   <Table.Row>
     <Table.Cell icon>`createContext`</Table.Cell>
-    <Table.Cell>`(opts : CreateExpressContextOptions) => ({})`</Table.Cell>
+    <Table.Cell>`(opts : CreateExpressContextOptions) => {}`</Table.Cell>
     <Table.Cell>-</Table.Cell>
   </Table.Row>
   <Table.Row>
@@ -93,7 +102,7 @@ const trpcOptions: TRPCModuleOptions = {
   </Table.Row>
   <Table.Row>
     <Table.Cell icon>`errorShape`</Table.Cell>
-    <Table.Cell>`ErrorFormatter<RootConfigTypes['ctx'],TRPCErrorShape<number> & { [key: string]: any }>`</Table.Cell>
+    <Table.Cell>`(opts: { shape, error }) => {}`</Table.Cell>
     <Table.Cell>-</Table.Cell>
   </Table.Row>
 </Table>

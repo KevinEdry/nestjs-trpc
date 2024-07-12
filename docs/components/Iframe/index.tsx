@@ -15,7 +15,7 @@ export const Iframe = (
       onLoad={() => {
         setLoaded(true);
       }}
-      className={"h-full w-full rounded-xl"}
+      className={'h-full w-full rounded-xl'}
     />
   );
 };

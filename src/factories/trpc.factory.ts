@@ -15,7 +15,8 @@ export class TRPCFactory {
   constructor(
     private readonly trpcGenerator: TRPCGenerator,
     @Inject(RouterFactory) private readonly routerFactory: RouterFactory,
-    @Inject(ProcedureFactory) private readonly procedureFactory: ProcedureFactory,
+    @Inject(ProcedureFactory)
+    private readonly procedureFactory: ProcedureFactory,
   ) {}
 
   serializeAppRoutes(
@@ -29,11 +30,14 @@ export class TRPCFactory {
   async generateSchemaFiles(outputFilePath: string): Promise<void> {
     const routers = this.routerFactory.getRouters();
     const mappedRoutesAndProcedures = routers.map((route) => {
-      const { instance, name } = route;
+      const { instance, name, alias } = route;
       const prototype = Object.getPrototypeOf(instance);
-      const procedures = this.procedureFactory.getProcedures(instance, prototype);
+      const procedures = this.procedureFactory.getProcedures(
+        instance,
+        prototype,
+      );
 
-      return { name, instance: { ...route }, procedures };
+      return { name, alias, instance: { ...route }, procedures };
     });
 
     await this.trpcGenerator.generate(

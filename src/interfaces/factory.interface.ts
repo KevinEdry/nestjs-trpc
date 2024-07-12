@@ -60,6 +60,7 @@ export interface RouterInstance {
 
 export interface RoutersFactoryMetadata {
   name: string;
+  alias?: string;
   instance: RouterInstance;
   procedures: Array<ProcedureFactoryMetadata>;
 }

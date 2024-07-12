@@ -95,6 +95,7 @@ export class DecoratorHandler {
     }
 
     const declaration = symbol.getDeclarations()[0];
+    const className = declaration.getText();
     const classDeclaration = this.resolveClassDeclaration(declaration, project);
 
     if (!classDeclaration) {
@@ -123,9 +124,10 @@ export class DecoratorHandler {
     const nextParamType = typeArguments[0];
     const ctxOutType = findCtxOutProperty(nextParamType);
 
-    // TODO: change the name of the type based on the middleware name.
+    // TODO: Add Context base type.
+
     return ctxOutType
-      ? `export type ProtectedMiddlewareContext = { ${ctxOutType} }`
+      ? `export type ${className}Context = { ${ctxOutType} }`
       : null;
   }
 

@@ -2,6 +2,7 @@ import { Expression, SourceFile } from 'ts-morph';
 
 export interface RouterGeneratorMetadata {
   name: string;
+  alias?: string;
   procedures: Array<ProcedureGeneratorMetadata>;
 }
 

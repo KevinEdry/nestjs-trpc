@@ -22,7 +22,7 @@ The tRPC concept of middlewares is comparable to how `Guards` and `Middlewares` 
   </Cards>
 </div>
 
-#### Creating a Custom Procedure
+#### Creating a Middleware
 You can implement a middleware in a class with an `@Injectable()` decorator. The class should implement the `TRPCMiddleware` interface.
 Let's start by implementing a simple logger middleware.
 
@@ -108,3 +108,6 @@ export class DogsRouter {
   }
 }
 ```
+
+#### Modified Context
+With a middlewares you can change and inject certain parameters in the context to be available to the procedure, this can be done by using the `next(){:tsx}` method available from the `opts`.

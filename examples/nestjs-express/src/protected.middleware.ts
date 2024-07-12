@@ -10,7 +10,7 @@ interface Context {
 }
 
 @Injectable()
-export class ProtectedProcedure implements TRPCMiddleware<Context> {
+export class ProtectedMiddleware implements TRPCMiddleware<Context> {
   constructor(@Inject(UserService) private readonly userService: UserService) {}
 
   use = ((opts) => {

@@ -10,20 +10,22 @@ import Link from 'next/link';
 
 # Context
 
-Currently, the only way to extend the default tRPC context is by passing a context function to the module options, specifically the `` option:
-```typescript filename=app.module.ts
+Currently, the only way to extend the default tRPC context is by passing a context function to the module options, specifically the `createContext` option:
+
+```typescript {8} filename="app.module.ts" copy
 import { Module } from '@nestjs/common';
 import { TRPCModule } from 'nestjs-trpc';
 
 @Module({
   imports: [
     TRPCModule.forRoot({
-      createContext: (opts) => {
-
-      },
+      authoSchemaFile: "/src/@generated",
+      createContext: (opts) => {},
     }),
   ],
 })
 export class AppModule {}
 ```
+
+While we added this capability to the adapter options, it's practical usage in NestJS is limited since you have dependency injection available throughout the module, and anything you can do with the context is probably better off as a service or a middleware instead.
 

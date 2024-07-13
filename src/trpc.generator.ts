@@ -18,15 +18,25 @@ import {
   saveOrOverrideFile,
 } from './utils/file.util';
 import { SerializerHandler } from './handlers/serializer.handler';
+import { TRPCContext, TRPCMiddleware } from './interfaces';
+import { MiddlewareHandler } from './handlers/middleware.handler';
+import type { Class } from 'type-fest';
+import { ContextHandler } from './handlers/context.handler';
 
+// TODO - Change "handlers" and "Generator" folder and naming scheme to "compilers".
 @Injectable()
 export class TRPCGenerator implements OnModuleInit {
   private project: Project;
   private readonly APP_ROUTER_OUTPUT_FILE = 'server.ts';
-  private readonly HELPER_TYPES_OUTPUT_FILE = 'helpers.ts';
+  private readonly HELPER_TYPES_OUTPUT_FILE = 'index.ts';
+  private readonly HELPER_TYPES_OUTPUT_PATH = path.join(__dirname, 'types');
 
   constructor(
     @Inject(ConsoleLogger) private readonly consoleLogger: ConsoleLogger,
+    @Inject(MiddlewareHandler)
+    private readonly middlewareHandler: MiddlewareHandler,
+    @Inject(ContextHandler)
+    private readonly contextHandler: ContextHandler,
     @Inject(SerializerHandler)
     private readonly serializerHandler: SerializerHandler,
   ) {}
@@ -43,21 +53,13 @@ export class TRPCGenerator implements OnModuleInit {
     this.project = new Project({ compilerOptions: defaultCompilerOptions });
   }
 
-  //TODO - Generate Context from the createContext method.
-
-  public async generate(
+  public async generateSchemaFile(
     routers: RoutersFactoryMetadata[],
     outputDirPath: string,
   ): Promise<void> {
     try {
       const appRouterSourceFile = this.project.createSourceFile(
         path.resolve(outputDirPath, this.APP_ROUTER_OUTPUT_FILE),
-        undefined,
-        { overwrite: true },
-      );
-
-      const helperTypesSourceFile = this.project.createSourceFile(
-        path.resolve(outputDirPath, this.HELPER_TYPES_OUTPUT_FILE),
         undefined,
         { overwrite: true },
       );
@@ -79,10 +81,63 @@ export class TRPCGenerator implements OnModuleInit {
       `);
 
       await saveOrOverrideFile(appRouterSourceFile);
-      await saveOrOverrideFile(helperTypesSourceFile);
 
       this.consoleLogger.log(
         `AppRouter has been updated successfully at "${outputDirPath}/${this.APP_ROUTER_OUTPUT_FILE}".`,
+        'TRPC Generator',
+      );
+    } catch (e: unknown) {
+      console.error(e);
+      this.consoleLogger.warn('TRPC Generator encountered an error.', e);
+    }
+  }
+
+  public async generateHelpersFile(resources: {
+    middlewares: Array<Class<TRPCMiddleware>>;
+    context?: Class<TRPCContext>;
+  }): Promise<void> {
+    try {
+      const { middlewares, context } = resources;
+
+      const helperTypesSourceFile = this.project.createSourceFile(
+        path.resolve(
+          this.HELPER_TYPES_OUTPUT_PATH,
+          this.HELPER_TYPES_OUTPUT_FILE,
+        ),
+        undefined,
+        { overwrite: true },
+      );
+
+      const contextType = await this.contextHandler.getContextInterface(
+        context,
+        this.project,
+      );
+
+      helperTypesSourceFile.addTypeAlias({
+        isExported: true,
+        name: 'Context',
+        type: contextType ?? '{}',
+      });
+
+      for (const middleware of middlewares) {
+        const middlewareInterface =
+          await this.middlewareHandler.getMiddlewareInterface(
+            middleware,
+            this.project,
+          );
+
+        helperTypesSourceFile.addInterface({
+          isExported: true,
+          name: `${middlewareInterface.name}Context`,
+          extends: ['Context'],
+          properties: middlewareInterface.properties,
+        });
+      }
+
+      await saveOrOverrideFile(helperTypesSourceFile);
+
+      this.consoleLogger.log(
+        `Helper types has been updated successfully at "nestjs-trpc/types".`,
         'TRPC Generator',
       );
     } catch (e: unknown) {

@@ -12,6 +12,7 @@ import type {
 import type { RouterDef } from '@trpc/server/dist/core/router';
 import type { ZodSchema } from 'zod';
 import type { TRPCMiddleware } from './middleware.interface';
+import type { Class } from 'type-fest';
 
 export enum ProcedureParamDecoratorType {
   Options = 'options',
@@ -40,7 +41,7 @@ export interface ProcedureFactoryMetadata {
   type: ProcedureType;
   input: ZodSchema | undefined;
   output: ZodSchema | undefined;
-  middlewares?: TRPCMiddleware;
+  middlewares?: Class<TRPCMiddleware>;
   name: string;
   implementation: ({ input, output }) => any;
   params: Array<ProcedureParamDecorator>;

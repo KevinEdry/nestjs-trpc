@@ -1,6 +1,9 @@
 # dependencies
 node_modules
 
+# generated types
+/types
+
 # IDE
 /.idea
 /.awcache

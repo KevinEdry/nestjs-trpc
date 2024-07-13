@@ -13,6 +13,7 @@ import {
   TRPCPublicProcedure,
 } from '../interfaces/factory.interface';
 import { TRPCMiddleware, ProcedureOptions } from '../interfaces';
+import type { Class } from 'type-fest';
 
 @Injectable()
 export class ProcedureFactory {
@@ -45,7 +46,7 @@ export class ProcedureFactory {
     const callback = prototype[name];
     const type = Reflect.getMetadata(PROCEDURE_TYPE_KEY, callback);
     const metadata = Reflect.getMetadata(PROCEDURE_METADATA_KEY, callback);
-    const middlewares: TRPCMiddleware = Reflect.getMetadata(
+    const middlewares: Class<TRPCMiddleware> = Reflect.getMetadata(
       MIDDLEWARE_KEY,
       callback,
     );

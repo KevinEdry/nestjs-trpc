@@ -19,7 +19,7 @@ export class ProtectedMiddleware implements TRPCMiddleware {
     const start = Date.now();
     const result = await opts.next({
       ctx: {
-        kev: 1,
+        ben: 1,
       },
     });
     const durationMs = Date.now() - start;

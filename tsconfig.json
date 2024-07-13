@@ -9,7 +9,6 @@
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "baseUrl": "./",
     "noLib": false
   },
   "include": ["src/**/*.ts"],

@@ -10,6 +10,8 @@ import { RouterFactory } from './factories/router.factory';
 import { ProcedureFactory } from './factories/procedure.factory';
 import { DecoratorHandler } from './handlers/decorator.handler';
 import { SerializerHandler } from './handlers/serializer.handler';
+import { MiddlewareHandler } from './handlers/middleware.handler';
+import { ContextHandler } from './handlers/context.handler';
 
 @Module({
   imports: [],
@@ -21,6 +23,8 @@ import { SerializerHandler } from './handlers/serializer.handler';
     RouterFactory,
     ProcedureFactory,
     DecoratorHandler,
+    MiddlewareHandler,
+    ContextHandler,
     SerializerHandler,
     TRPCGenerator,
   ],
@@ -51,6 +55,9 @@ export class TRPCModule implements OnModuleInit {
 
     this.consoleLogger.setContext(LOGGER_CONTEXT);
     await this.trpcDriver.start(this.options);
-    this.consoleLogger.log('Server has been initialized successfully.', "TRPC Server");
+    this.consoleLogger.log(
+      'Server has been initialized successfully.',
+      'TRPC Server',
+    );
   }
 }

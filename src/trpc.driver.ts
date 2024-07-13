@@ -60,6 +60,7 @@ export class TRPCDriver<
       );
     }
 
+    // TODO - Change context docs to match new implementation.
     app.use(
       options.basePath ?? '/trpc',
       trpcExpress.createExpressMiddleware({
@@ -73,7 +74,11 @@ export class TRPCDriver<
     );
 
     if (options.autoSchemaFile != null) {
-      await this.trpcFactory.generateSchemaFiles(options.autoSchemaFile);
+      await this.trpcFactory.generateSchemaFile(options.autoSchemaFile);
+      await this.trpcFactory.generateHelperFile(
+        options.autoSchemaFile,
+        options.context,
+      );
     } else {
       this.consoleLogger.log(
         'Skipping appRouter types generation - `autoSchemaFile` was not provided.',

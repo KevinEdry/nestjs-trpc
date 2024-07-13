@@ -1,5 +1,12 @@
 import { Inject } from '@nestjs/common';
-import { Router, Query, Middlewares, Input } from 'nestjs-trpc';
+import {
+  Router,
+  Query,
+  Middlewares,
+  Input,
+  Context,
+  Options,
+} from 'nestjs-trpc';
 import { UserService } from './user.service';
 import { ProtectedMiddleware } from './protected.middleware';
 import { z } from 'zod';
@@ -15,8 +22,13 @@ export class UserRouter {
     output: userSchema,
   })
   @Middlewares(ProtectedMiddleware)
-  async getUserById(@Input('userId') userId: string): Promise<User> {
+  async getUserById(
+    @Input('userId') userId: string,
+    @Context() ctx: unknown,
+    @Options() opts: unknown,
+  ): Promise<User> {
     const user = await this.userService.getUser(userId);
+    console.log({ ctx, opts });
 
     if (user == null) {
       throw new TRPCError({

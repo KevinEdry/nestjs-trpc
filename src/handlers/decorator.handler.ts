@@ -4,6 +4,9 @@ import {
   SourceFile,
   Node,
   Project,
+  MethodDeclaration,
+  Type,
+  SyntaxKind,
 } from 'ts-morph';
 import {
   DecoratorGeneratorMetadata,
@@ -63,7 +66,7 @@ export class DecoratorHandler {
             project,
           );
           if (generatedType) {
-            // TODO: Need to do this in a seperate file
+            // TODO: Need to do this in a seperate fi
             console.log({
               generatedType,
               sourceFilePath: sourceFile.getFilePath(),
@@ -102,33 +105,57 @@ export class DecoratorHandler {
       return null;
     }
 
-    const useProperty = classDeclaration.getProperty('use');
-    if (!useProperty) {
+    const useMethod = classDeclaration.getMethod('use');
+    if (!useMethod) {
       return null;
     }
 
-    const useMethodType = useProperty.getType();
-    const callSignatures = useMethodType.getCallSignatures();
-
-    if (callSignatures.length === 0) {
+    const ctxType = this.extractCtxTypeFromUseMethod(useMethod);
+    if (!ctxType) {
       return null;
     }
 
-    const returnType = callSignatures[0].getReturnType();
-    const typeArguments = returnType.getTypeArguments();
+    console.log({ ctxType: ctxType.getText() });
 
-    if (typeArguments.length === 0) {
-      return null;
-    }
+    return `export type ${className}Context = ${ctxType.getText()}`;
+  }
 
-    const nextParamType = typeArguments[0];
-    const ctxOutType = findCtxOutProperty(nextParamType);
+  private extractCtxTypeFromUseMethod(
+    useMethod: MethodDeclaration,
+  ): Type | null {
+    const body = useMethod.getBody();
+    if (!body) return null;
 
-    // TODO: Add Context base type.
+    // Find the call to opts.next()
+    const nextCall = body
+      .getDescendantsOfKind(SyntaxKind.CallExpression)
+      .find((call) => {
+        const expression = call.getExpression();
+        return (
+          Node.isPropertyAccessExpression(expression) &&
+          expression.getName() === 'next' &&
+          Node.isIdentifier(expression.getExpression()) &&
+          expression.getExpression().getText() === 'opts'
+        );
+      });
 
-    return ctxOutType
-      ? `export type ${className}Context = { ${ctxOutType} }`
-      : null;
+    if (!nextCall) return null;
+
+    // Get the argument passed to opts.next()
+    const nextArg = nextCall.getArguments()[0];
+    if (!Node.isObjectLiteralExpression(nextArg)) return null;
+
+    // Find the 'ctx' property in the argument
+    const ctxProperty = nextArg
+      .getProperties()
+      .find(
+        (prop) => Node.isPropertyAssignment(prop) && prop.getName() === 'ctx',
+      );
+
+    if (!Node.isPropertyAssignment(ctxProperty)) return null;
+
+    // Get the type of the 'ctx' property value
+    return ctxProperty.getInitializer()?.getType() || null;
   }
 
   private resolveClassDeclaration(

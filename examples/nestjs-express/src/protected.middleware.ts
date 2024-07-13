@@ -1,5 +1,8 @@
-import { TRPCMiddleware } from 'nestjs-trpc';
-import { TRPCError } from '@trpc/server';
+import {
+  MiddlewareOptions,
+  MiddlewareResponse,
+  TRPCMiddleware,
+} from 'nestjs-trpc';
 import { Inject, Injectable } from '@nestjs/common';
 import { UserService } from './user.service';
 
@@ -10,24 +13,20 @@ interface Context {
 }
 
 @Injectable()
-export class ProtectedMiddleware implements TRPCMiddleware<Context> {
+export class ProtectedMiddleware implements TRPCMiddleware {
   constructor(@Inject(UserService) private readonly userService: UserService) {}
-
-  use = ((opts) => {
-    const { ctx, next } = opts;
-
-    console.log({ opts, ctx });
-
-    console.log(this.userService.test());
-    if (ctx.auth?.user == null) {
-      throw new TRPCError({ code: 'UNAUTHORIZED' });
-    }
-
-    return next({
+  async use(opts: MiddlewareOptions<Context>): Promise<MiddlewareResponse> {
+    const start = Date.now();
+    const result = await opts.next({
       ctx: {
-        user: opts.ctx.auth.user,
-        bla: 0,
+        kev: 1,
       },
     });
-  }) satisfies TRPCMiddleware<Context>['use'];
+    const durationMs = Date.now() - start;
+    const meta = { path: opts.path, type: opts.type, durationMs };
+    result.ok
+      ? console.log('OK request timing:', meta)
+      : console.error('Non-OK request timing', meta);
+    return result;
+  }
 }

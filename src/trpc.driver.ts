@@ -31,7 +31,7 @@ export class TRPCDriver<
       throw new Error(`No support for current HttpAdapter: ${platformName}`);
     }
 
-    const app = httpAdapter.getInstance<ExpressApplication>();
+    const app = httpAdapter.getInstance<ExpressApplication>(); 
 
     //@ts-ignore
     const { procedure, router } = initTRPC.context().create({

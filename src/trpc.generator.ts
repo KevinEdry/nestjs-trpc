@@ -43,6 +43,8 @@ export class TRPCGenerator implements OnModuleInit {
     this.project = new Project({ compilerOptions: defaultCompilerOptions });
   }
 
+  //TODO - Generate Context from the createContext method.
+
   public async generate(
     routers: RoutersFactoryMetadata[],
     outputDirPath: string,

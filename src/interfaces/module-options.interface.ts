@@ -2,6 +2,7 @@ import type { CreateExpressContextOptions } from '@trpc/server/adapters/express'
 import { RootConfigTypes } from '@trpc/server/dist/core/internals/config';
 import { ErrorFormatter } from '@trpc/server/dist/error/formatter';
 import { TRPCErrorShape } from '@trpc/server/dist/rpc';
+import { TRPCContext } from './context.interface';
 
 /**
  * "TRPCModule" options object.
@@ -23,6 +24,7 @@ export interface TRPCModuleOptions {
    * If not provided, the adapter will use a default createContext.
    */
   createContext?: (opts: CreateExpressContextOptions) => {};
+  context?: TRPCContext;
 
   /**
    * Use custom error formatting

@@ -2,25 +2,16 @@ import { Module } from '@nestjs/common';
 import { UserRouter } from './user.router';
 import { TRPCModule } from 'nestjs-trpc';
 import { UserService } from './user.service';
-import { CatsController } from './user.controller';
 import { ProtectedMiddleware } from './protected.middleware';
-import * as trpcExpress from '@trpc/server/adapters/express';
+import { AppContext } from './app.context';
 
 @Module({
   imports: [
     TRPCModule.forRoot({
       autoSchemaFile: './src/@generated',
-      createContext(opts: trpcExpress.CreateExpressContextOptions) {
-        return {
-          bla: true,
-          auth: {
-            user: 'asfasdf',
-          },
-        };
-      },
+      context: AppContext,
     }),
   ],
-  controllers: [CatsController],
-  providers: [UserRouter, UserService, ProtectedMiddleware],
+  providers: [UserRouter, AppContext, UserService, ProtectedMiddleware],
 })
 export class AppModule {}

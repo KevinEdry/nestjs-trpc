@@ -64,7 +64,6 @@ export class TRPCDriver<
       );
     }
 
-    // TODO - Change context docs to match new implementation.
     app.use(
       options.basePath ?? '/trpc',
       trpcExpress.createExpressMiddleware({

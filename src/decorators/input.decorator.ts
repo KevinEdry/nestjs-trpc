@@ -4,6 +4,15 @@ import {
 } from '../interfaces/factory.interface';
 import { PROCEDURE_PARAM_METADATA_KEY } from '../trpc.constants';
 
+/**
+ * Input procedure parameter decorator. Extracts the `input` parameter out of the procedure `opts`.
+ *
+ * @param key string to be used extracting a specific input key - `input[key]`.
+ *
+ * @see [Parameter Decorators](https://www.nestjs-trpc.io/docs/routers#parameter-decorators)
+ *
+ * @publicApi
+ */
 export function Input(key?: string): ParameterDecorator {
   return (
     target: Object,

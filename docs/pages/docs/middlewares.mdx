@@ -2,14 +2,14 @@
 title: "Middlewares"
 ---
 
-import { Callout, Cards, Card, Tabs } from 'nextra/components'
+import { Callout, Cards, Card, Tabs, Steps } from 'nextra/components'
 import NestJSIcon from '../../public/icons/nestjs.svg';
 import TrpcIcon from '../../public/icons/trpc.svg';
 
 # Middlewares
 
-Our package lets you create middlewares.
-You are able to add those middlewares to a router class method by the `@Middlewares(){:tsx}` decorator.<br/>
+With this adapter you can create procedure middlewares, 
+those middlewares then can be added to a router class method by the `@Middlewares(){:tsx}` decorator.<br/>
 The tRPC concept of middlewares is comparable to how `Guards` and `Middlewares` work in NestJS.
 
 <Callout>
@@ -22,7 +22,8 @@ The tRPC concept of middlewares is comparable to how `Guards` and `Middlewares` 
   </Cards>
 </div>
 
-#### Creating a Middleware
+<Steps>
+### Creating a Middleware
 You can implement a middleware in a class with an `@Injectable()` decorator. The class should implement the `TRPCMiddleware` interface.
 Let's start by implementing a simple logger middleware.
 
@@ -30,8 +31,8 @@ Let's start by implementing a simple logger middleware.
   <Tabs.Tab>
     ```typescript filename="logger.middleware.ts" copy
     import { TRPCMiddleware, TRPCMiddlewareOptions } from 'nestjs-trpc';
-    import { Context } from "./@generated/helpers.ts";
     import { Inject, Injectable, ConsoleLogger } from '@nestjs/common';
+    import type { Context } from "nestjs-trpc/types";
 
     @Injectable()
     export class LoggedMiddleware implements TRPCMiddleware<Context> {
@@ -77,12 +78,11 @@ Let's start by implementing a simple logger middleware.
   </Tabs.Tab>
 </Tabs>
 
+### Middleware registration
+Similar to NestJS providers, we need to register the middleware with Nest so that it can perform the injection and type generation. 
+We do this by editing our module file and adding the middleware to the `providers` array of the `@Module(){:tsx}` decorator.
 
-#### Dependency injection
-Middlewares fully supports Dependency Injection. Just as with NestJS middlewares and guards, they are able to inject dependencies that are available within the same module. As usual, this is done through the `constructor`.
-
-
-#### Applying middleware
+### Applying middleware
 To use the middleware in your procedure instead of the default `publicProcedure`, pass the class to the `@Middlewares(){:tsx}` method decorator.
 ```typescript {16} filename="dogs.router.ts" copy showLineNumbers
 import { DatabaseService } from "./database.service.ts";
@@ -92,7 +92,7 @@ import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 
 const dogsSchema = z.object({
-name: z.string(),
+  name: z.string(),
   breed: z.enum(["Labrador", "Corgi", "Beagle", "Golden Retriver"])
 });
 
@@ -108,6 +108,89 @@ export class DogsRouter {
   }
 }
 ```
+</Steps>
+
 
 #### Modified Context
-With a middlewares you can change and inject certain parameters in the context to be available to the procedure, this can be done by using the `next(){:tsx}` method available from the `opts`.
+With middlewares you can change and inject certain parameters in the context to be available to the procedure, this can be done by using the `next(){:tsx}` method available from the `opts` parameter.
+
+##### Generated Context
+When you modify the base context with a middleware, a new type will be generated with the middleware name and a `Context` suffix, for example if you have an `AuthMiddleware`, the generated type would be named `AuthMiddlewareContext`.
+
+Then you can import those types and use throughout your procedures from `nestjs-trpc/types`, for example:
+<Tabs items={["User Router", 'Auth Middleware', "Generated Interface"]}>
+  <Tabs.Tab>
+```typescript /AuthMiddlewareContext/ filename="user.router.ts" copy
+import type { AuthMiddlewareContext } from 'nestjs-trpc/types';
+import { UserService } from "./user.service.ts";
+import { AuthMiddleware } from "./auth.middleware.ts";
+import { Router, Query, Middlewares } from 'nestjs-trpc';
+import { Inject } from '@nestjs/common';
+import { z } from 'zod';
+
+const userSchema = z.object({
+  name: z.string(),
+  email: z.string(),
+  avatar: z.string()
+});
+
+@Router()
+export class UserRouter {
+  constructor(@Inject(UserService) private userService: UserService){}
+
+  @Middlewares(AuthMiddleware)
+  @Query({ output: userSchema })
+  async getUserProfile(@Context() ctx: AuthMiddlewareContext): string {
+    const { userId } = ctx.auth;
+    return await this.userService.getUserById(userId);
+  }
+}
+```
+  </Tabs.Tab>
+  <Tabs.Tab>
+```typescript {22-28} filename="auth.middleware.ts" copy
+import {
+  MiddlewareOptions,
+  MiddlewareResponse,
+  TRPCMiddleware,
+} from 'nestjs-trpc';
+import { Inject, Injectable } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { TRPCError } from '@trpc/server';
+import type { Context } from 'nestjs-trpc/types';
+
+@Injectable()
+export class AuthMiddleware implements TRPCMiddleware {
+  constructor(@Inject(AuthService) private readonly authService: AuthService) {}
+  async use(opts: MiddlewareOptions<Context>): Promise<MiddlewareResponse> {
+      const { req, next } = opts;
+      const session = await this.authService.getSession({ req });
+
+      if(session == null) {
+        throw new TRPCError("No session found.", "UNAUTHORIZED");
+      }
+
+      return next({
+        ctx: {
+          auth: {
+            userId: session.user.id
+          }
+        }
+      })
+  }
+}
+```
+  </Tabs.Tab>
+  <Tabs.Tab>
+```typescript filename="nestjs-trpc/types" copy
+export interface AuthMiddlewareContext extends Context {
+  auth: {
+    userId: string;
+  }
+}
+```
+  </Tabs.Tab>
+</Tabs>
+
+#### Dependency injection
+Middlewares fully supports Dependency Injection. Just as with NestJS middlewares and guards, they are able to inject dependencies that are available within the same module. As usual, this is done through the `constructor`.

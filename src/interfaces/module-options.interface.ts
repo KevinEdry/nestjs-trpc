@@ -23,8 +23,8 @@ export interface TRPCModuleOptions {
   /**
    * The exposed trpc options when creating a route with `createExpressMiddleware`.
    * If not provided, the adapter will use a default createContext.
+   * @link https://nestjs-trpc.io/docs/context
    */
-  createContext?: (opts: CreateExpressContextOptions) => {};
   context?: Class<TRPCContext>;
 
   /**

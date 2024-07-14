@@ -9,6 +9,7 @@ export class AppContext implements TRPCContext {
   async create(opts: ExpressContextOptions): Promise<Record<string, unknown>> {
     const res = await this.userService.test();
     return {
+      req: opts.req,
       auth: {
         user: res,
       },

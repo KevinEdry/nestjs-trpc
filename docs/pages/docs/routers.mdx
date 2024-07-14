@@ -87,8 +87,9 @@ The `@Query(){:tsx}` decorator before the `findAll(){:tsx}` method tells **NestJ
   The `@Router()` decorator can also take an `alias: string` parameter that will change it's name when applied to the trpc router. `@Router(alias?: string){:tsx}`.
 </Callout>
 
-#### Dependency injection
-Routers fully supports Dependency Injection. Just as with NestJS providers and controllers, they are able to inject dependencies that are available within the same module. As usual, this is done through the `constructor`.
+#### Router registration
+Similar to NestJS providers, we need to register the routers with Nest so that it can perform the injection and type generation. 
+We do this by editing our module file and adding the routers to the `providers` array of the `@Module(){:tsx}` decorator.
 
 #### Method Decorators
 
@@ -196,3 +197,6 @@ export class UserRouter {
   }
 }
 ```
+
+#### Dependency injection
+Routers fully supports Dependency Injection. Just as with NestJS providers and controllers, they are able to inject dependencies that are available within the same module. As usual, this is done through the `constructor`.

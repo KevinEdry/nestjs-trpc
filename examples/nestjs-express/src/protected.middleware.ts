@@ -5,12 +5,9 @@ import {
 } from 'nestjs-trpc';
 import { Inject, Injectable } from '@nestjs/common';
 import { UserService } from './user.service';
+import { TRPCError } from '@trpc/server';
 
-interface Context {
-  auth: {
-    user?: string;
-  };
-}
+import { Context } from 'nestjs-trpc/dist/types';
 
 @Injectable()
 export class ProtectedMiddleware implements TRPCMiddleware {
@@ -22,6 +19,7 @@ export class ProtectedMiddleware implements TRPCMiddleware {
         ben: 1,
       },
     });
+
     const durationMs = Date.now() - start;
     const meta = { path: opts.path, type: opts.type, durationMs };
     result.ok

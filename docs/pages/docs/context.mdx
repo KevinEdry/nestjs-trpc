@@ -2,30 +2,106 @@
 title: "Context"
 ---
 
-import { Cards, Card, Callout, Tabs } from 'nextra/components';
+import { Cards, Card, Callout, Tabs, Steps } from 'nextra/components';
 import Table from "../../components/Table";
 import NestJSIcon from '../../public/icons/nestjs.svg';
 import TrpcIcon from '../../public/icons/trpc.svg';
 import Link from 'next/link';
 
 # Context
+Your context holds data that all of your tRPC procedures will have access to, 
+and is a great place to put things like authentication information, or request configuration.
 
-Currently, the only way to extend the default tRPC context is by passing a context function to the module options, specifically the `createContext` option:
+While context is a key feature in tRPC, with NestJS it takes a back sit to the dependency injected Middelwares and Providers.
 
-```typescript {8} filename="app.module.ts" copy
-import { Module } from '@nestjs/common';
-import { TRPCModule } from 'nestjs-trpc';
+<Callout emoji={<TrpcIcon width={25} height={50} className="m-1"/>}>
+  If you are not sure about what is tRPC context, you can dive into those concepts in their <Link href={"https://trpc.io/docs/server/context"} target="blank" className="underline"> official documentation</Link>.
+</Callout>
 
-@Module({
-  imports: [
-    TRPCModule.forRoot({
-      authoSchemaFile: "/src/@generated",
-      createContext: (opts) => {},
-    }),
-  ],
-})
-export class AppModule {}
+Setting up the context can be done in 3 steps, defining the context class, registering the context with your module, and passing it to the `context` option of the TRPCModule.
+
+<Steps>
+  ### Defining a Context
+  To define a new context, we need to create a class that implements `TRPCContext` and it's method `create(){:tsx}`.
+  ```typescript filename="app.context.ts" copy
+  import { Inject, Injectable } from '@nestjs/common';
+  import { ExpressContextOptions, TRPCContext } from 'nestjs-trpc';
+  import { InnerContext } from './inner.context';
+
+  @Injectable()
+  export class AppContext implements TRPCContext {
+    constructor(@Inject(InnerContext) private readonly innerContext: InnerContext){}
+
+    async create(opts: ExpressContextOptions): Promise<Record<string, unknown>> {
+      const contextInner = await this.innerContext.create(opts);
+      return {
+        ...contextInner,
+        req: opts.req,
+        res: opts.res,
+      };
+    }
+  }
+  ```
+
+  <Callout>
+  In some scenarios it could make sense to split up your context into "inner" and "outer" classes. You can read more in the <Link href={"https://trpc.io/docs/server/context#inner-and-outer-context"} target="blank" className="underline"> official tRPC documentation</Link>.
+  </Callout>
+  
+  ### Context registration
+  Similar to NestJS providers, we need to register the context with Nest so that it can perform the injection and type generation. 
+  We do this by editing our module file and adding the context to the `providers` array of the `@Module(){:tsx}` decorator.
+
+  ### Including in options
+  Lastly we need to pass the context class to the `context` option in our `TRPCModule` import definition.
+
+  ```typescript {8} filename="app.module.ts" copy
+  import { Module } from '@nestjs/common';
+  import { TRPCModule } from 'nestjs-trpc';
+  import { AppContext } from 'app.context';
+
+  @Module({
+    imports: [
+      TRPCModule.forRoot({
+        authoSchemaFile: "/src/@generated",
+        context: AppContext,
+      }),
+    ],
+  })
+  export class AppModule {}
+  ```
+  Now that the context is applied, it will propegate throught all of your middlewares and procedures.
+</Steps>
+
+##### Generated Context
+When you apply a context class, a `Context` type will be generated from the `create(){:tsx}` method return statement. 
+
+You can import this type and use throughout your middlewares and procedures from `nestjs-trpc/types`, for example:
+<Tabs items={['App Context', "Generated Interface"]}>
+  <Tabs.Tab>
+  ```typescript filename="app.context.ts" copy
+  import { Injectable } from '@nestjs/common';
+  import { ExpressContextOptions, TRPCContext } from 'nestjs-trpc';
+
+  @Injectable()
+  export class AppContext implements TRPCContext {
+    create(opts: ExpressContextOptions): Record<string, unknown> {
+      return {
+        isContextApplied: true,
+      };
+    }
+  }
+  ```
+  </Tabs.Tab>
+  <Tabs.Tab>
+```typescript filename="nestjs-trpc/types" copy
+export type Context = {
+  isContextApplied: boolean;
+}
 ```
+  </Tabs.Tab>
+</Tabs>
 
-While we added this capability to the adapter options, it's practical usage in NestJS is limited since you have dependency injection available throughout the module, and anything you can do with the context is probably better off as a service or a middleware instead.
 
+### Dependency injection
+The context class fully supports Dependency Injection. Just as with NestJS providers and controllers, 
+it is able to inject dependencies that are available within the same module. As usual, this is done through the `constructor`.

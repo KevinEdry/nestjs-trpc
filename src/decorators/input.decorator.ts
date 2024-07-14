@@ -19,7 +19,7 @@ export function Input(key?: string): ParameterDecorator {
     propertyKey: string | symbol | undefined,
     parameterIndex: number,
   ) => {
-    if(propertyKey != null) {
+    if (propertyKey != null && typeof parameterIndex === 'number') {
       const existingParams: Array<ProcedureParamDecorator> =
         Reflect.getMetadata(PROCEDURE_PARAM_METADATA_KEY, target, propertyKey) ||
         [];

@@ -8,13 +8,13 @@ export function Context(): ParameterDecorator {
   return (
     target: Object,
     propertyKey: string | symbol | undefined,
-    parameterIndex: number,
+    parameterIndex?: number | TypedPropertyDescriptor<any>
   ) => {
-    if(propertyKey != null) {
+    if (propertyKey != null && typeof parameterIndex === 'number') {
       const existingParams: Array<ProcedureParamDecorator> =
         Reflect.getMetadata(PROCEDURE_PARAM_METADATA_KEY, target, propertyKey) ||
         [];
-  
+
       const procedureParamMetadata: ProcedureParamDecorator = {
         type: ProcedureParamDecoratorType.Context,
         index: parameterIndex,
@@ -27,6 +27,5 @@ export function Context(): ParameterDecorator {
         propertyKey,
       );
     }
-
   };
 }

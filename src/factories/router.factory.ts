@@ -28,7 +28,7 @@ export class RouterFactory {
     this.modulesContainer.forEach((moduleRef) => {
       moduleRef.providers.forEach((wrapper: InstanceWrapper) => {
         const router = this.extractRouterFromWrapper(wrapper);
-        if (router) {
+        if (router != null) {
           routers.push(router);
         }
       });
@@ -41,7 +41,6 @@ export class RouterFactory {
     wrapper: InstanceWrapper,
   ): RouterInstance | undefined {
     const { instance, name } = wrapper;
-    if (!instance) return undefined;
 
     const router = Reflect.getMetadata(
       ROUTER_METADATA_KEY,

@@ -16,6 +16,7 @@ describe('RouterFactory', () => {
   let procedureFactory: ProcedureFactory;
 
   beforeEach(async () => {
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RouterFactory,
@@ -45,8 +46,11 @@ describe('RouterFactory', () => {
   });
 
   describe('getRouters', () => {
+    it('should return an empty array if no routers are present', ()=> {
+      const result = routerFactory.getRouters();
+      expect(result).toHaveLength(0);
+    });
     it('should return routers with correct metadata', () => {
-      // Define necessary classes
       const userSchema = z.object({
         id: z.string(),
         name: z.string(),
@@ -86,25 +90,30 @@ describe('RouterFactory', () => {
         }
       }
 
+      class MockTestService {}
+
       // Create an instance of the router
       const userRouterInstance = new UserRouter(new UserService());
+      const mockServiceInstance = new MockTestService();
 
-      // Create a mock module and add it to the ModulesContainer
       const mockModule = {
         providers: new Map([
           ['UserRouter', { 
             name: 'UserRouter',
             instance: userRouterInstance,
             isResolved: true
+          }],
+          ['MockService', { 
+            name: 'MockService',
+            instance: mockServiceInstance,
+            isResolved: true
           }]
         ])
       };
       modulesContainer.set('TestModule', mockModule as any);
 
-      // Call getRouters
       const result = routerFactory.getRouters();
 
-      // Assertions
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         name: 'UserRouter',

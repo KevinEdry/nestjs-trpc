@@ -31,8 +31,6 @@ export class UserRouter {
   ): Promise<User> {
     const user = await this.userService.getUser(userId);
 
-    console.log({ ctx, opts });
-
     if (ctx.ben) {
       throw new TRPCError({
         message: 'Could not find user.',

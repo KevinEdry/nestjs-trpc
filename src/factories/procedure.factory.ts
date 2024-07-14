@@ -1,4 +1,4 @@
-import { ConsoleLogger, Injectable, Type } from '@nestjs/common';
+import { ConsoleLogger, Inject, Injectable, Type } from '@nestjs/common';
 import { MetadataScanner, ModuleRef } from '@nestjs/core';
 import {
   PROCEDURE_METADATA_KEY,
@@ -11,19 +11,21 @@ import {
   ProcedureParamDecorator,
   ProcedureParamDecoratorType,
   TRPCPublicProcedure,
-  isProcedureImplementation,
+  ProcedureImplementation,
 } from '../interfaces/factory.interface';
 import { TRPCMiddleware, ProcedureOptions } from '../interfaces';
 import type { Class } from 'type-fest';
 
 @Injectable()
 export class ProcedureFactory {
-  constructor(
-    private readonly consoleLogger: ConsoleLogger,
-    private readonly metadataScanner: MetadataScanner,
-    private readonly moduleRef: ModuleRef,
-  ) {}
+  @Inject(ConsoleLogger)
+  private readonly consoleLogger!: ConsoleLogger;
+  
+  @Inject(MetadataScanner)
+  private readonly metadataScanner!: MetadataScanner;
 
+  constructor(private moduleRef: ModuleRef) {}
+  
   getProcedures(
     instance: unknown,
     prototype: Record<string, Function>,
@@ -44,7 +46,7 @@ export class ProcedureFactory {
     name: string,
     prototype: Record<string, Function>,
   ): ProcedureFactoryMetadata {
-    const callback = prototype[name];
+    const callback = prototype[name] as ProcedureImplementation;
     const type = Reflect.getMetadata(PROCEDURE_TYPE_KEY, callback);
     const metadata = Reflect.getMetadata(PROCEDURE_METADATA_KEY, callback);
     const middlewares: Class<TRPCMiddleware> = Reflect.getMetadata(
@@ -52,19 +54,15 @@ export class ProcedureFactory {
       callback,
     );
 
-    if(isProcedureImplementation(callback)) {
-      return {
-        input: metadata?.input,
-        output: metadata?.output,
-        middlewares,
-        type,
-        name: callback.name,
-        implementation: callback,
-        params: this.extractProcedureParams(prototype, name),
-      };
-    }
-
-    throw new Error("Could not pass callback implementation");
+    return {
+      input: metadata?.input,
+      output: metadata?.output,
+      middlewares,
+      type,
+      name: callback.name,
+      implementation: callback,
+      params: this.extractProcedureParams(prototype, name),
+    };
   }
 
   serializeProcedures(
@@ -136,8 +134,11 @@ export class ProcedureFactory {
 
   private serializeProcedureParams(
     opts: ProcedureOptions,
-    params: Array<ProcedureParamDecorator>,
+    params: Array<ProcedureParamDecorator> | undefined,
   ): Array<undefined | unknown> {
+    if(params == null) {
+      return [];
+    }
     const args = new Array(Math.max(...params.map((val) => val.index)) + 1)
       .fill(undefined)
       .map((_val, idx) => {
@@ -146,14 +147,16 @@ export class ProcedureFactory {
           return undefined;
         }
         if (param.type === ProcedureParamDecoratorType.Input) {
-          // @ts-ignore Ignoring Typescript here because it fails to infer the discriminated union in the root interface.
-          return opts[param.type]?.[param.key];
+          //@ts-ignore
+          return param.key != null ? opts[param.type]?.[param.key] : opts[param.type];
         }
         if (param.type === ProcedureParamDecoratorType.Options) {
           return opts;
         }
         return opts[param.type];
       });
+
+    console.log({args})
     return args;
   }
 
@@ -164,7 +167,7 @@ export class ProcedureFactory {
     output: any,
     type: string,
     routerInstance: Record<string, (...args: any[]) => any>,
-    params: Array<ProcedureParamDecorator>,
+    params: Array<ProcedureParamDecorator> | undefined,
   ): any {
     const procedureWithInput = input
       ? procedureInstance.input(input)

@@ -24,31 +24,20 @@ export enum ProcedureParamDecoratorType {
   Path = 'path',
 }
 
-type ProcedureImplementation = ({
+export type ProcedureImplementation = ({
   input,
   output,
 }: {
-  input: ZodType<any, ZodTypeDef, any>;
-  output: ZodType<any, ZodTypeDef, any>;
+  input?: ZodType<any, ZodTypeDef, any>;
+  output?: ZodType<any, ZodTypeDef, any>;
 }) => any;
-
-export function isProcedureImplementation(
-  func: unknown
-): func is ProcedureImplementation {
-  return (
-    typeof func === 'function' &&
-    func.length === 1 &&
-    func.toString().includes('input') &&
-    func.toString().includes('output')
-  );
-}
 
 interface ProcedureParamDecoratorBase {
   type: ProcedureParamDecoratorType;
   index: number;
 }
 
-type ProcedureInputParamDecorator = ProcedureParamDecoratorBase & {
+export type ProcedureInputParamDecorator = ProcedureParamDecoratorBase & {
   type: ProcedureParamDecoratorType.Input;
   key?: string;
 };
@@ -64,7 +53,7 @@ export interface ProcedureFactoryMetadata {
   middlewares?: Class<TRPCMiddleware>;
   name: string;
   implementation: ProcedureImplementation;
-  params: Array<ProcedureParamDecorator>;
+  params: Array<ProcedureParamDecorator> | undefined;
 }
 
 export interface CustomProcedureFactoryMetadata {

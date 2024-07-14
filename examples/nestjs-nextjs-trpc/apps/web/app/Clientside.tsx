@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { trpc } from "./trpc";
+import { useEffect, useState } from 'react';
+import { trpc } from './trpc';
 
 export default function Clientside() {
-  const [greeting, setGreeting] = useState("");
+  const [greeting, setGreeting] = useState('');
   useEffect(() => {
-    trpc.hello.query({}).then((response) => {
+    trpc.users.getHello.query({ name: 'linoy' }).then((response) => {
       setGreeting(response);
     });
   });

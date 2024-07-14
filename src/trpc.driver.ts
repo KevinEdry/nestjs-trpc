@@ -15,23 +15,19 @@ export class TRPCDriver<
   @Inject(HttpAdapterHost)
   protected readonly httpAdapterHost!: HttpAdapterHost;
 
-  @Inject(ApplicationConfig)
-  protected readonly applicationConfig?: ApplicationConfig;
-
   @Inject(TRPCFactory)
   protected readonly trpcFactory!: TRPCFactory;
 
   @Inject(TRPCGenerator)
   protected readonly trpcGenerator!: TRPCGenerator;
 
-  @Inject(ModuleRef) 
-  protected readonly moduleRef!: ModuleRef;
-
   @Inject(ConsoleLogger)
   protected readonly consoleLogger!: ConsoleLogger;
+  
+  constructor(private moduleRef: ModuleRef) {}
 
   public async start(options: TRPCModuleOptions) {
-    const httpAdapter = this.httpAdapterHost.httpAdapter;
+    const { httpAdapter } = this.httpAdapterHost;
     const platformName = httpAdapter.getType();
 
     if (platformName !== 'express') {

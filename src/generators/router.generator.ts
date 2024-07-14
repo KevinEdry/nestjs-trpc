@@ -86,9 +86,9 @@ export class RouterGenerator {
     return routers
       .map((router) => {
         const { name, procedures, alias } = router;
-        return `${alias ?? camelCase(name)}: { ${procedures
+        return `${alias ?? camelCase(name)}: t.router({ ${procedures
           .map(generateProcedureString)
-          .join(',\n')} }`;
+          .join(',\n')} })`;
       })
       .join(',\n');
   }

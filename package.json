@@ -44,8 +44,8 @@
     "access": "public"
   },
   "peerDependencies": {
-    "@nestjs/common": ">= 8.0.0",
-    "@nestjs/core": ">= 8.0.0",
+    "@nestjs/common": "^9.0.0",
+    "@nestjs/core": "^9.0.0",
     "@trpc/server": "^10.18.0",
     "reflect-metadata": "^0.1.13",
     "ts-morph": ">= 22.0.0",

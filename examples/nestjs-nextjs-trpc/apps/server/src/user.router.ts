@@ -1,9 +1,16 @@
-import { Router, Query } from 'nestjs-trpc';
+import { Router, Query, Input } from 'nestjs-trpc';
+import { z } from 'zod';
 
 @Router({ alias: 'users' })
 export class UserRouter {
-  @Query()
-  getUserById(): string {
-    return 'bla';
+  @Query({
+    input: z.object({
+      name: z.string(),
+    }),
+    output: z.string(),
+  })
+  getHello(@Input('name') str: string): string {
+    console.log({ str });
+    return str;
   }
 }

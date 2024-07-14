@@ -1,18 +1,23 @@
 import { ConsoleLogger, Inject, Module } from '@nestjs/common';
 import { DynamicModule, OnModuleInit } from '@nestjs/common/interfaces';
 import { HttpAdapterHost, MetadataScanner } from '@nestjs/core';
-import { TRPCModuleOptions } from './interfaces';
+
 import { LOGGER_CONTEXT, TRPC_MODULE_OPTIONS } from './trpc.constants';
+
+import { TRPCModuleOptions } from './interfaces';
+
 import { TRPCDriver } from './trpc.driver';
+
 import { TRPCFactory } from './factories/trpc.factory';
-import { TRPCGenerator } from './generators/trpc.generator';
 import { RouterFactory } from './factories/router.factory';
 import { ProcedureFactory } from './factories/procedure.factory';
+import { MiddlewareFactory } from './factories/middleware.factory';
+
+import { TRPCGenerator } from './generators/trpc.generator';
 import { DecoratorGenerator } from './generators/decorator.generator';
 import { RouterGenerator } from './generators/router.generator';
 import { MiddlewareGenerator } from './generators/middleware.generator';
 import { ContextGenerator } from './generators/context.generator';
-import { MiddlewareFactory } from './factories/middleware.factory';
 
 @Module({
   imports: [],

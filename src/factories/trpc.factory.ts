@@ -27,7 +27,7 @@ export class TRPCFactory {
     router: TRPCRouter,
     procedure: ProcedureBuilder<any>,
   ): MergeRouters<Array<AnyRouter>, AnyRouterDef> {
-    const routerSchema = this.routerFactory.serializeRoutes(router, procedure);
+    const routerSchema = this.routerFactory.serializeRoutes(procedure);
     return router(routerSchema);
   }
 }

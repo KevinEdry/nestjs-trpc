@@ -1,4 +1,4 @@
-import { ConsoleLogger, Injectable } from '@nestjs/common';
+import { ConsoleLogger, Inject, Injectable } from '@nestjs/common';
 import { ModulesContainer } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import { camelCase } from 'lodash';
@@ -13,11 +13,14 @@ import { ProcedureFactory } from './procedure.factory';
 
 @Injectable()
 export class RouterFactory {
-  constructor(
-    private readonly consoleLogger: ConsoleLogger,
-    private readonly modulesContainer: ModulesContainer,
-    private readonly procedureFactory: ProcedureFactory,
-  ) {}
+  @Inject(ConsoleLogger)
+  private readonly consoleLogger!: ConsoleLogger;
+
+  @Inject(ModulesContainer)
+  private readonly modulesContainer!: ModulesContainer;
+
+  @Inject(ProcedureFactory)
+  private readonly procedureFactory!: ProcedureFactory;
 
   getRouters(): Array<RouterInstance> {
     const routers: Array<RouterInstance> = [];
@@ -57,7 +60,6 @@ export class RouterFactory {
   }
 
   serializeRoutes(
-    router: TRPCRouter,
     procedure: TRPCPublicProcedure,
   ): Record<string, any> {
     const routers = this.getRouters();

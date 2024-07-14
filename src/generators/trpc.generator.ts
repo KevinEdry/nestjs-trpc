@@ -10,15 +10,13 @@ import {
   CompilerOptions,
   ScriptTarget,
   ModuleKind,
-  SourceFile,
 } from 'ts-morph';
-import { RoutersFactoryMetadata } from '../interfaces/factory.interface';
 import {
   generateStaticDeclaration,
   saveOrOverrideFile,
 } from '../utils/file.util';
 import { RouterGenerator } from './router.generator';
-import { TRPCContext, TRPCMiddleware } from '../interfaces';
+import { TRPCContext } from '../interfaces';
 import { MiddlewareGenerator } from './middleware.generator';
 import type { Class } from 'type-fest';
 import { ContextGenerator } from './context.generator';
@@ -28,33 +26,31 @@ import { ProcedureFactory } from '../factories/procedure.factory';
 
 @Injectable()
 export class TRPCGenerator implements OnModuleInit {
-  private project: Project;
+  private project!: Project;
   private readonly APP_ROUTER_OUTPUT_FILE = 'server.ts';
   private readonly HELPER_TYPES_OUTPUT_FILE = 'index.ts';
   private readonly HELPER_TYPES_OUTPUT_PATH = path.join(__dirname, 'types');
 
-  constructor(
-    @Inject(ConsoleLogger)
-    private readonly consoleLogger: ConsoleLogger,
+  @Inject(ConsoleLogger)
+  private readonly consoleLogger!: ConsoleLogger;
 
-    @Inject(MiddlewareGenerator)
-    private readonly middlewareHandler: MiddlewareGenerator,
+  @Inject(MiddlewareGenerator)
+  private readonly middlewareHandler!: MiddlewareGenerator;
 
-    @Inject(ContextGenerator)
-    private readonly contextHandler: ContextGenerator,
+  @Inject(ContextGenerator)
+  private readonly contextHandler!: ContextGenerator;
 
-    @Inject(RouterGenerator)
-    private readonly serializerHandler: RouterGenerator,
+  @Inject(RouterGenerator)
+  private readonly serializerHandler!: RouterGenerator;
 
-    @Inject(RouterFactory)
-    private readonly routerFactory: RouterFactory,
+  @Inject(RouterFactory)
+  private readonly routerFactory!: RouterFactory;
 
-    @Inject(ProcedureFactory)
-    private readonly procedureFactory: ProcedureFactory,
+  @Inject(ProcedureFactory)
+  private readonly procedureFactory!: ProcedureFactory;
 
-    @Inject(MiddlewareFactory)
-    private readonly middlewareFactory: MiddlewareFactory,
-  ) {}
+  @Inject(MiddlewareFactory)
+  private readonly middlewareFactory!: MiddlewareFactory;
 
   onModuleInit() {
     const defaultCompilerOptions: CompilerOptions = {
@@ -149,13 +145,15 @@ export class TRPCGenerator implements OnModuleInit {
             middleware,
             this.project,
           );
-
-        helperTypesSourceFile.addInterface({
-          isExported: true,
-          name: `${middlewareInterface.name}Context`,
-          extends: ['Context'],
-          properties: middlewareInterface.properties,
-        });
+        
+          if(middlewareInterface != null) {
+            helperTypesSourceFile.addInterface({
+              isExported: true,
+              name: `${middlewareInterface.name}Context`,
+              extends: ['Context'],
+              properties: middlewareInterface.properties,
+            });
+          }
       }
 
       await saveOrOverrideFile(helperTypesSourceFile);

@@ -14,23 +14,25 @@ import { PROCEDURE_PARAM_METADATA_KEY } from '../trpc.constants';
 export function RawInput(): ParameterDecorator {
   return (
     target: Object,
-    propertyKey: string | symbol,
+    propertyKey: string | symbol | undefined,
     parameterIndex: number,
   ) => {
-    const existingParams: Array<ProcedureParamDecorator> =
-      Reflect.getMetadata(PROCEDURE_PARAM_METADATA_KEY, target, propertyKey) ||
-      [];
-
-    const procedureParamMetadata: ProcedureParamDecorator = {
-      type: ProcedureParamDecoratorType.RawInput,
-      index: parameterIndex,
-    };
-    existingParams.push(procedureParamMetadata);
-    Reflect.defineMetadata(
-      PROCEDURE_PARAM_METADATA_KEY,
-      existingParams,
-      target,
-      propertyKey,
-    );
+    if(propertyKey != null){
+      const existingParams: Array<ProcedureParamDecorator> =
+        Reflect.getMetadata(PROCEDURE_PARAM_METADATA_KEY, target, propertyKey) ||
+        [];
+  
+      const procedureParamMetadata: ProcedureParamDecorator = {
+        type: ProcedureParamDecoratorType.RawInput,
+        index: parameterIndex,
+      };
+      existingParams.push(procedureParamMetadata);
+      Reflect.defineMetadata(
+        PROCEDURE_PARAM_METADATA_KEY,
+        existingParams,
+        target,
+        propertyKey,
+      );
+    }
   };
 }

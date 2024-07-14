@@ -8,9 +8,10 @@ import type {
   unsetMarker,
   ProcedureType,
   Router,
+  ProcedureParams,
 } from '@trpc/server';
 import type { RouterDef } from '@trpc/server/dist/core/router';
-import type { ZodSchema } from 'zod';
+import type { ZodSchema, ZodType, ZodTypeDef } from 'zod';
 import type { TRPCMiddleware } from './middleware.interface';
 import type { Class } from 'type-fest';
 
@@ -21,6 +22,25 @@ export enum ProcedureParamDecoratorType {
   RawInput = 'rawInput',
   Type = 'type',
   Path = 'path',
+}
+
+type ProcedureImplementation = ({
+  input,
+  output,
+}: {
+  input: ZodType<any, ZodTypeDef, any>;
+  output: ZodType<any, ZodTypeDef, any>;
+}) => any;
+
+export function isProcedureImplementation(
+  func: unknown
+): func is ProcedureImplementation {
+  return (
+    typeof func === 'function' &&
+    func.length === 1 &&
+    func.toString().includes('input') &&
+    func.toString().includes('output')
+  );
 }
 
 interface ProcedureParamDecoratorBase {
@@ -43,7 +63,7 @@ export interface ProcedureFactoryMetadata {
   output: ZodSchema | undefined;
   middlewares?: Class<TRPCMiddleware>;
   name: string;
-  implementation: ({ input, output }) => any;
+  implementation: ProcedureImplementation;
   params: Array<ProcedureParamDecorator>;
 }
 
@@ -80,17 +100,4 @@ export type TRPCMergeRoutes = <TRouters extends AnyRouter[]>(
   >
 >;
 
-export type TRPCPublicProcedure = ProcedureBuilder<{
-  _config: RootConfig<{
-    ctx: object;
-    meta: object;
-    errorShape: never;
-    transformer: DataTransformerOptions;
-  }>;
-  _ctx_out: object;
-  _input_in: typeof unsetMarker;
-  _input_out: typeof unsetMarker;
-  _output_in: typeof unsetMarker;
-  _output_out: typeof unsetMarker;
-  _meta: object;
-}>;
+export type TRPCPublicProcedure = ProcedureBuilder<ProcedureParams>;

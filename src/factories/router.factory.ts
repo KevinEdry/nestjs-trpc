@@ -61,7 +61,7 @@ export class RouterFactory {
     procedure: TRPCPublicProcedure,
   ): Record<string, any> {
     const routers = this.getRouters();
-    const routerSchema = {};
+    const routerSchema = Object.create({});
 
     routers.forEach((route) => {
       const { instance, name, middlewares, alias } = route;
@@ -84,7 +84,7 @@ export class RouterFactory {
           instance,
           camelCasedRouterName,
           procedure,
-          middlewares,
+          middlewares
         );
     });
 

@@ -15,10 +15,8 @@ import { camelCase } from 'lodash';
 
 @Injectable()
 export class RouterGenerator {
-  constructor(
-    @Inject(DecoratorGenerator)
-    private readonly decoratorHandler: DecoratorGenerator,
-  ) {}
+  @Inject(DecoratorGenerator)
+  private readonly decoratorHandler!: DecoratorGenerator;
 
   public async serializeRouters(
     routers: RoutersFactoryMetadata[],

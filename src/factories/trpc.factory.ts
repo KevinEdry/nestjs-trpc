@@ -7,23 +7,25 @@ import {
   TRPCPublicProcedure,
   TRPCRouter,
 } from '../interfaces/factory.interface';
-import { AnyRouter } from '@trpc/server';
+import { AnyRouter, ProcedureBuilder, ProcedureParams } from '@trpc/server';
 import { ProcedureFactory } from './procedure.factory';
 import { TRPCContext, TRPCMiddleware } from '../interfaces';
 import type { Class } from 'type-fest';
 
 @Injectable()
 export class TRPCFactory {
-  constructor(
-    private readonly trpcGenerator: TRPCGenerator,
-    @Inject(RouterFactory) private readonly routerFactory: RouterFactory,
-    @Inject(ProcedureFactory)
-    private readonly procedureFactory: ProcedureFactory,
-  ) {}
+  @Inject(TRPCGenerator)
+  private readonly trpcGenerator!: TRPCGenerator;
+  
+  @Inject(RouterFactory) 
+  private readonly routerFactory!: RouterFactory;
+
+  @Inject(ProcedureFactory)
+  private readonly procedureFactory!: ProcedureFactory;
 
   serializeAppRoutes(
     router: TRPCRouter,
-    procedure: TRPCPublicProcedure,
+    procedure: ProcedureBuilder<any>,
   ): MergeRouters<Array<AnyRouter>, AnyRouterDef> {
     const routerSchema = this.routerFactory.serializeRoutes(router, procedure);
     return router(routerSchema);

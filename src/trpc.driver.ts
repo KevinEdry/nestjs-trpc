@@ -6,27 +6,29 @@ import { AnyRouter, initTRPC } from '@trpc/server';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { TRPCFactory } from './factories/trpc.factory';
 import { TRPCGenerator } from './generators/trpc.generator';
+import { Class } from 'type-fest';
 
 @Injectable()
 export class TRPCDriver<
   TOptions extends Record<string, any> = TRPCModuleOptions,
 > {
-  @Inject()
+  @Inject(HttpAdapterHost)
   protected readonly httpAdapterHost!: HttpAdapterHost;
 
-  @Inject()
+  @Inject(ApplicationConfig)
   protected readonly applicationConfig?: ApplicationConfig;
 
-  @Inject()
-  protected readonly trpcFactory: TRPCFactory;
+  @Inject(TRPCFactory)
+  protected readonly trpcFactory!: TRPCFactory;
 
-  @Inject()
-  protected readonly trpcGenerator: TRPCGenerator;
+  @Inject(TRPCGenerator)
+  protected readonly trpcGenerator!: TRPCGenerator;
 
-  @Inject(ModuleRef) protected readonly moduleRef: ModuleRef;
+  @Inject(ModuleRef) 
+  protected readonly moduleRef!: ModuleRef;
 
-  @Inject()
-  protected readonly consoleLogger: ConsoleLogger;
+  @Inject(ConsoleLogger)
+  protected readonly consoleLogger!: ConsoleLogger;
 
   public async start(options: TRPCModuleOptions) {
     const httpAdapter = this.httpAdapterHost.httpAdapter;
@@ -52,23 +54,19 @@ export class TRPCDriver<
       procedure,
     );
 
-    let contextInstance;
     const contextClass = options.context;
-    if (contextClass != null) {
-      contextInstance = this.moduleRef.get<Type<TRPCContext>, TRPCContext>(
-        //@ts-ignore
-        contextClass,
-        {
-          strict: false,
-        },
-      );
-    }
-
+    const contextInstance = contextClass != null ? this.moduleRef.get<Type<TRPCContext>, TRPCContext>(
+      contextClass,
+      {
+        strict: false,
+      },
+    ) : null;
+    
     app.use(
       options.basePath ?? '/trpc',
       trpcExpress.createExpressMiddleware({
         router: appRouter,
-        ...(options.context != null
+        ...(options.context != null && contextInstance != null
           ? {
               createContext: (opts) => contextInstance.create(opts),
             }

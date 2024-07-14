@@ -6,10 +6,6 @@ import {
   Type,
   SyntaxKind,
   SourceFile,
-  InterfaceDeclaration,
-  PropertySignature,
-  PropertyNamedNode,
-  TypeAliasDeclaration,
   OptionalKind,
   PropertySignatureStructure,
 } from 'ts-morph';
@@ -127,10 +123,13 @@ export class MiddlewareGenerator {
 
     if (type.isObject()) {
       type.getProperties().forEach((prop) => {
-        properties.push({
-          name: prop.getName(),
-          type: prop.getTypeAtLocation(prop.getValueDeclaration()).getText(),
-        });
+        const propValueDeclaration = prop.getValueDeclaration();
+        if(propValueDeclaration != null) {
+          properties.push({
+            name: prop.getName(),
+            type: prop.getTypeAtLocation(propValueDeclaration).getText(),
+          });
+        }
       });
     }
 

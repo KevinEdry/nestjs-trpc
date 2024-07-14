@@ -11,6 +11,7 @@ import {
   ProcedureParamDecorator,
   ProcedureParamDecoratorType,
   TRPCPublicProcedure,
+  isProcedureImplementation,
 } from '../interfaces/factory.interface';
 import { TRPCMiddleware, ProcedureOptions } from '../interfaces';
 import type { Class } from 'type-fest';
@@ -25,7 +26,7 @@ export class ProcedureFactory {
 
   getProcedures(
     instance: unknown,
-    prototype: object,
+    prototype: Record<string, Function>,
   ): Array<ProcedureFactoryMetadata> {
     return this.metadataScanner.scanFromPrototype(instance, prototype, (name) =>
       this.extractProcedureMetadata(name, prototype),
@@ -41,7 +42,7 @@ export class ProcedureFactory {
 
   private extractProcedureMetadata(
     name: string,
-    prototype: object,
+    prototype: Record<string, Function>,
   ): ProcedureFactoryMetadata {
     const callback = prototype[name];
     const type = Reflect.getMetadata(PROCEDURE_TYPE_KEY, callback);
@@ -51,15 +52,19 @@ export class ProcedureFactory {
       callback,
     );
 
-    return {
-      input: metadata?.input,
-      output: metadata?.output,
-      middlewares,
-      type,
-      name: callback.name,
-      implementation: callback,
-      params: this.extractProcedureParams(prototype, name),
-    };
+    if(isProcedureImplementation(callback)) {
+      return {
+        input: metadata?.input,
+        output: metadata?.output,
+        middlewares,
+        type,
+        name: callback.name,
+        implementation: callback,
+        params: this.extractProcedureParams(prototype, name),
+      };
+    }
+
+    throw new Error("Could not pass callback implementation");
   }
 
   serializeProcedures(
@@ -67,9 +72,9 @@ export class ProcedureFactory {
     instance: any,
     camelCasedRouterName: string,
     procedureBuilder: TRPCPublicProcedure,
-    routerMiddlewares: TRPCMiddleware,
+    routerMiddlewares: TRPCMiddleware | undefined,
   ): Record<string, any> {
-    const serializedProcedures = {};
+    const serializedProcedures = Object.create({});
 
     for (const procedure of procedures) {
       const { input, output, type, middlewares, name, params } = procedure;
@@ -103,8 +108,8 @@ export class ProcedureFactory {
 
   private createProcedureInstance(
     procedureBuilder: TRPCPublicProcedure,
-    procedureDef: TRPCMiddleware | Type<TRPCMiddleware>,
-    routeProcedureDef: TRPCMiddleware | Type<TRPCMiddleware>,
+    procedureDef: TRPCMiddleware | Type<TRPCMiddleware> | undefined,
+    routeProcedureDef: TRPCMiddleware | Type<TRPCMiddleware> | undefined,
   ): TRPCPublicProcedure {
     if (typeof procedureDef === 'function') {
       return this.createCustomProcedureInstance(procedureBuilder, procedureDef);
@@ -141,7 +146,7 @@ export class ProcedureFactory {
           return undefined;
         }
         if (param.type === ProcedureParamDecoratorType.Input) {
-          //@ts-ignore Ignoring Typescript here because it fails to infer the discriminated union in the root interface.
+          // @ts-ignore Ignoring Typescript here because it fails to infer the discriminated union in the root interface.
           return opts[param.type]?.[param.key];
         }
         if (param.type === ProcedureParamDecoratorType.Options) {
@@ -158,7 +163,7 @@ export class ProcedureFactory {
     input: any,
     output: any,
     type: string,
-    routerInstance: Function,
+    routerInstance: Record<string, (...args: any[]) => any>,
     params: Array<ProcedureParamDecorator>,
   ): any {
     const procedureWithInput = input

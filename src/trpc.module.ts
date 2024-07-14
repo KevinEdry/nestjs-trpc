@@ -33,12 +33,17 @@ import { MiddlewareFactory } from './factories/middleware.factory';
   exports: [],
 })
 export class TRPCModule implements OnModuleInit {
-  constructor(
-    @Inject(TRPC_MODULE_OPTIONS) private readonly options: TRPCModuleOptions,
-    @Inject(ConsoleLogger) private readonly consoleLogger: ConsoleLogger,
-    private readonly httpAdapterHost: HttpAdapterHost,
-    private readonly trpcDriver: TRPCDriver,
-  ) {}
+  @Inject(TRPC_MODULE_OPTIONS) 
+  private readonly options!: TRPCModuleOptions;
+
+  @Inject(ConsoleLogger) 
+  private readonly consoleLogger!: ConsoleLogger;
+  
+  @Inject(HttpAdapterHost) 
+  private readonly httpAdapterHost!: HttpAdapterHost;
+
+  @Inject(TRPCDriver) 
+  private readonly trpcDriver!: TRPCDriver;
 
   static forRoot<TOptions extends Record<string, any> = TRPCModuleOptions>(
     options: TOptions = {} as TOptions,

@@ -6,15 +6,11 @@ import {
 import { getDecoratorPropertyValue } from '../utils/file.util';
 import { ConsoleLogger, Inject, Injectable } from '@nestjs/common';
 import * as path from 'node:path';
-import { TRPC_MODULE_OPTIONS } from '../trpc.constants';
-import { TRPCModuleOptions } from '../interfaces';
 
 @Injectable()
 export class DecoratorGenerator {
-  constructor(
-    @Inject(ConsoleLogger) private readonly consoleLogger: ConsoleLogger,
-    @Inject(TRPC_MODULE_OPTIONS) private readonly options: TRPCModuleOptions,
-  ) {}
+  @Inject(ConsoleLogger)
+  private readonly consoleLogger!: ConsoleLogger;
 
   public serializeProcedureDecorators(
     decorators: Decorator[],

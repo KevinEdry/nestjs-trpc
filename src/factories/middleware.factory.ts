@@ -6,11 +6,12 @@ import { ProcedureFactory } from './procedure.factory';
 
 @Injectable()
 export class MiddlewareFactory {
-  constructor(
-    @Inject(RouterFactory) private readonly routerFactory: RouterFactory,
-    @Inject(ProcedureFactory)
-    private readonly procedureFactory: ProcedureFactory,
-  ) {}
+  @Inject(RouterFactory) 
+  private readonly routerFactory!: RouterFactory;
+
+  @Inject(ProcedureFactory)
+  private readonly procedureFactory!: ProcedureFactory;
+
   getMiddlewares(): Array<Class<TRPCMiddleware>> {
     const routers = this.routerFactory.getRouters();
 
@@ -22,7 +23,9 @@ export class MiddlewareFactory {
         prototype,
       );
 
-      return procedures.flatMap((procedure) => procedure.middlewares);
+      return procedures.flatMap((procedure) => {
+        return procedure.middlewares != null ? procedure.middlewares : []
+      });
     });
 
     // Returns a unique middleware array since we need to generate types only one time.

@@ -35,39 +35,50 @@ export function flattenZodSchema(
 
     if (identifierDeclaration) {
       const identifierInitializer = identifierDeclaration.getInitializer();
-      const identifierSchema = flattenZodSchema(
-        identifierInitializer,
-        importsMap,
-        sourceFile,
-        identifierInitializer.getText(),
-      );
 
-      schema = schema.replace(identifierName, identifierSchema);
+      if(identifierInitializer != null) {
+        const identifierSchema = flattenZodSchema(
+          identifierInitializer,
+          importsMap,
+          sourceFile,
+          identifierInitializer.getText(),
+        );
+  
+        schema = schema.replace(identifierName, identifierSchema);
+      }
     } else if (importsMap.has(identifierName)) {
       const importedIdentifier = importsMap.get(identifierName);
-      const { initializer } = importedIdentifier;
-      const identifierSchema = flattenZodSchema(
-        initializer,
-        importsMap,
-        importedIdentifier.sourceFile,
-        initializer.getText(),
-      );
 
-      schema = schema.replace(identifierName, identifierSchema);
+      if(importedIdentifier != null) {
+        const { initializer } = importedIdentifier;
+        const identifierSchema = flattenZodSchema(
+          initializer,
+          importsMap,
+          importedIdentifier.sourceFile,
+          initializer.getText(),
+        );
+  
+        schema = schema.replace(identifierName, identifierSchema);
+      }
+
     }
   } else if (Node.isObjectLiteralExpression(node)) {
     for (const property of node.getProperties()) {
       if (Node.isPropertyAssignment(property)) {
         const propertyText = property.getText();
-        schema = schema.replace(
-          propertyText,
-          flattenZodSchema(
-            property.getInitializer(),
-            importsMap,
-            sourceFile,
+        const propertyInitializer = property.getInitializer();
+
+        if( propertyInitializer != null) {
+          schema = schema.replace(
             propertyText,
-          ),
-        );
+            flattenZodSchema(
+              propertyInitializer,
+              importsMap,
+              sourceFile,
+              propertyText,
+            ),
+          );
+        }
       }
     }
   } else if (Node.isArrayLiteralExpression(node)) {

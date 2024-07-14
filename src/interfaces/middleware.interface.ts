@@ -1,31 +1,9 @@
-import {
-  type DataTransformerOptions,
-  ProcedureBuilder,
-  type RootConfig,
-  type unsetMarker,
-  Simplify,
+import type {
   ProcedureType,
+  ProcedureParams,
 } from '@trpc/server';
 import type { MiddlewareResult } from '@trpc/server/dist/core/middleware';
 
-type ProcedureParams = {
-  _config: RootConfig<{
-    ctx: Record<string, unknown>;
-    meta: object;
-    errorShape: never;
-    transformer: DataTransformerOptions;
-  }>;
-  _ctx_out: Record<string, unknown>;
-  _input_in: typeof unsetMarker;
-  _input_out: typeof unsetMarker;
-  _output_in: typeof unsetMarker;
-  _output_out: typeof unsetMarker;
-  _meta: object;
-};
-
-type SimplifiedMiddlewareResult = {
-  ctx: Record<string, unknown>;
-};
 
 export type MiddlewareResponse =
   | Promise<MiddlewareResult<ProcedureParams>>

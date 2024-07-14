@@ -5,6 +5,7 @@ import { TRPCContext, TRPCModuleOptions } from './interfaces';
 import { AnyRouter, initTRPC } from '@trpc/server';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { TRPCFactory } from './factories/trpc.factory';
+import { TRPCGenerator } from './generators/trpc.generator';
 
 @Injectable()
 export class TRPCDriver<
@@ -18,6 +19,9 @@ export class TRPCDriver<
 
   @Inject()
   protected readonly trpcFactory: TRPCFactory;
+
+  @Inject()
+  protected readonly trpcGenerator: TRPCGenerator;
 
   @Inject(ModuleRef) protected readonly moduleRef: ModuleRef;
 
@@ -74,11 +78,8 @@ export class TRPCDriver<
     );
 
     if (options.autoSchemaFile != null) {
-      await this.trpcFactory.generateSchemaFile(options.autoSchemaFile);
-      await this.trpcFactory.generateHelperFile(
-        options.autoSchemaFile,
-        options.context,
-      );
+      await this.trpcGenerator.generateSchemaFile(options.autoSchemaFile);
+      await this.trpcGenerator.generateHelpersFile(options.context);
     } else {
       this.consoleLogger.log(
         'Skipping appRouter types generation - `autoSchemaFile` was not provided.',

@@ -1,6 +1,5 @@
 import {
   ClassDeclaration,
-  Node,
   Project,
   MethodDeclaration,
   Type,
@@ -13,7 +12,7 @@ import type { Class } from 'type-fest';
 import { locate } from 'func-loc';
 
 @Injectable()
-export class ContextHandler {
+export class ContextGenerator {
   public async getContextInterface(
     context: Class<TRPCContext>,
     project: Project,

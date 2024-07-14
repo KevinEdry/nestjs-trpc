@@ -19,7 +19,7 @@ import type { Class } from 'type-fest';
 import { locate } from 'func-loc';
 
 @Injectable()
-export class MiddlewareHandler {
+export class MiddlewareGenerator {
   public async getMiddlewareInterface(
     middleware: Class<TRPCMiddleware>,
     project: Project,

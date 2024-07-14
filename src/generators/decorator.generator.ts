@@ -1,18 +1,8 @@
-import {
-  ClassDeclaration,
-  Decorator,
-  SourceFile,
-  Node,
-  Project,
-  MethodDeclaration,
-  Type,
-  SyntaxKind,
-} from 'ts-morph';
+import { Decorator, SourceFile, Project } from 'ts-morph';
 import {
   DecoratorGeneratorMetadata,
   SourceFileImportsMap,
 } from '../interfaces/generator.interface';
-import { findCtxOutProperty } from '../utils/type.util';
 import { getDecoratorPropertyValue } from '../utils/file.util';
 import { ConsoleLogger, Inject, Injectable } from '@nestjs/common';
 import * as path from 'node:path';
@@ -20,7 +10,7 @@ import { TRPC_MODULE_OPTIONS } from '../trpc.constants';
 import { TRPCModuleOptions } from '../interfaces';
 
 @Injectable()
-export class DecoratorHandler {
+export class DecoratorGenerator {
   constructor(
     @Inject(ConsoleLogger) private readonly consoleLogger: ConsoleLogger,
     @Inject(TRPC_MODULE_OPTIONS) private readonly options: TRPCModuleOptions,

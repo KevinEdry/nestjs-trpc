@@ -12,18 +12,20 @@ import {
   ModuleKind,
   SourceFile,
 } from 'ts-morph';
-import { RoutersFactoryMetadata } from './interfaces/factory.interface';
+import { RoutersFactoryMetadata } from '../interfaces/factory.interface';
 import {
   generateStaticDeclaration,
   saveOrOverrideFile,
-} from './utils/file.util';
-import { SerializerHandler } from './handlers/serializer.handler';
-import { TRPCContext, TRPCMiddleware } from './interfaces';
-import { MiddlewareHandler } from './handlers/middleware.handler';
+} from '../utils/file.util';
+import { RouterGenerator } from './router.generator';
+import { TRPCContext, TRPCMiddleware } from '../interfaces';
+import { MiddlewareGenerator } from './middleware.generator';
 import type { Class } from 'type-fest';
-import { ContextHandler } from './handlers/context.handler';
+import { ContextGenerator } from './context.generator';
+import { RouterFactory } from '../factories/router.factory';
+import { MiddlewareFactory } from '../factories/middleware.factory';
+import { ProcedureFactory } from '../factories/procedure.factory';
 
-// TODO - Change "handlers" and "Generator" folder and naming scheme to "compilers".
 @Injectable()
 export class TRPCGenerator implements OnModuleInit {
   private project: Project;
@@ -32,13 +34,26 @@ export class TRPCGenerator implements OnModuleInit {
   private readonly HELPER_TYPES_OUTPUT_PATH = path.join(__dirname, 'types');
 
   constructor(
-    @Inject(ConsoleLogger) private readonly consoleLogger: ConsoleLogger,
-    @Inject(MiddlewareHandler)
-    private readonly middlewareHandler: MiddlewareHandler,
-    @Inject(ContextHandler)
-    private readonly contextHandler: ContextHandler,
-    @Inject(SerializerHandler)
-    private readonly serializerHandler: SerializerHandler,
+    @Inject(ConsoleLogger)
+    private readonly consoleLogger: ConsoleLogger,
+
+    @Inject(MiddlewareGenerator)
+    private readonly middlewareHandler: MiddlewareGenerator,
+
+    @Inject(ContextGenerator)
+    private readonly contextHandler: ContextGenerator,
+
+    @Inject(RouterGenerator)
+    private readonly serializerHandler: RouterGenerator,
+
+    @Inject(RouterFactory)
+    private readonly routerFactory: RouterFactory,
+
+    @Inject(ProcedureFactory)
+    private readonly procedureFactory: ProcedureFactory,
+
+    @Inject(MiddlewareFactory)
+    private readonly middlewareFactory: MiddlewareFactory,
   ) {}
 
   onModuleInit() {
@@ -53,11 +68,20 @@ export class TRPCGenerator implements OnModuleInit {
     this.project = new Project({ compilerOptions: defaultCompilerOptions });
   }
 
-  public async generateSchemaFile(
-    routers: RoutersFactoryMetadata[],
-    outputDirPath: string,
-  ): Promise<void> {
+  public async generateSchemaFile(outputDirPath: string): Promise<void> {
     try {
+      const routers = this.routerFactory.getRouters();
+      const mappedRoutesAndProcedures = routers.map((route) => {
+        const { instance, name, alias } = route;
+        const prototype = Object.getPrototypeOf(instance);
+        const procedures = this.procedureFactory.getProcedures(
+          instance,
+          prototype,
+        );
+
+        return { name, alias, instance: { ...route }, procedures };
+      });
+
       const appRouterSourceFile = this.project.createSourceFile(
         path.resolve(outputDirPath, this.APP_ROUTER_OUTPUT_FILE),
         undefined,
@@ -67,7 +91,7 @@ export class TRPCGenerator implements OnModuleInit {
       generateStaticDeclaration(appRouterSourceFile);
 
       const routersMetadata = await this.serializerHandler.serializeRouters(
-        routers,
+        mappedRoutesAndProcedures,
         this.project,
       );
       const routersStringDeclarations =
@@ -92,13 +116,11 @@ export class TRPCGenerator implements OnModuleInit {
     }
   }
 
-  public async generateHelpersFile(resources: {
-    middlewares: Array<Class<TRPCMiddleware>>;
-    context?: Class<TRPCContext>;
-  }): Promise<void> {
+  public async generateHelpersFile(
+    context?: Class<TRPCContext>,
+  ): Promise<void> {
     try {
-      const { middlewares, context } = resources;
-
+      const middlewares = this.middlewareFactory.getMiddlewares();
       const helperTypesSourceFile = this.project.createSourceFile(
         path.resolve(
           this.HELPER_TYPES_OUTPUT_PATH,
@@ -108,16 +130,18 @@ export class TRPCGenerator implements OnModuleInit {
         { overwrite: true },
       );
 
-      const contextType = await this.contextHandler.getContextInterface(
-        context,
-        this.project,
-      );
+      if (context != null) {
+        const contextType = await this.contextHandler.getContextInterface(
+          context,
+          this.project,
+        );
 
-      helperTypesSourceFile.addTypeAlias({
-        isExported: true,
-        name: 'Context',
-        type: contextType ?? '{}',
-      });
+        helperTypesSourceFile.addTypeAlias({
+          isExported: true,
+          name: 'Context',
+          type: contextType ?? '{}',
+        });
+      }
 
       for (const middleware of middlewares) {
         const middlewareInterface =

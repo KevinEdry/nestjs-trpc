@@ -8,16 +8,16 @@ import {
   RoutersFactoryMetadata,
   ProcedureFactoryMetadata,
 } from '../interfaces/factory.interface';
-import { DecoratorHandler } from './decorator.handler';
+import { DecoratorGenerator } from './decorator.generator';
 import { generateProcedureString } from '../utils/type.util';
 import { Inject, Injectable } from '@nestjs/common';
 import { camelCase } from 'lodash';
 
 @Injectable()
-export class SerializerHandler {
+export class RouterGenerator {
   constructor(
-    @Inject(DecoratorHandler)
-    private readonly decoratorHandler: DecoratorHandler,
+    @Inject(DecoratorGenerator)
+    private readonly decoratorHandler: DecoratorGenerator,
   ) {}
 
   public async serializeRouters(

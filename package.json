@@ -1,6 +1,6 @@
 {
   "name": "nestjs-trpc",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "homepage": "https://nestjs-trpc.io",
   "main": "./dist/index.js",
   "types": "./src/index.ts",

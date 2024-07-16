@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
-<url><loc>https://nestjs-trpc.io</loc><lastmod>2024-07-07T18:08:30.648Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://nestjs-trpc.io/nestjs</loc><lastmod>2024-07-07T18:08:30.650Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://nestjs-trpc.io/setup</loc><lastmod>2024-07-07T18:08:30.650Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://nestjs-trpc.io/trpc</loc><lastmod>2024-07-07T18:08:30.650Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nestjs-trpc.io</loc><lastmod>2024-07-16T06:01:47.812Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nestjs-trpc.io/docs</loc><lastmod>2024-07-16T06:01:47.814Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nestjs-trpc.io/docs/client</loc><lastmod>2024-07-16T06:01:47.814Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nestjs-trpc.io/docs/context</loc><lastmod>2024-07-16T06:01:47.814Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nestjs-trpc.io/docs/dependency-injection</loc><lastmod>2024-07-16T06:01:47.814Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nestjs-trpc.io/docs/graphql</loc><lastmod>2024-07-16T06:01:47.814Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nestjs-trpc.io/docs/middlewares</loc><lastmod>2024-07-16T06:01:47.814Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nestjs-trpc.io/docs/nestjs</loc><lastmod>2024-07-16T06:01:47.814Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nestjs-trpc.io/docs/routers</loc><lastmod>2024-07-16T06:01:47.814Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nestjs-trpc.io/docs/structure</loc><lastmod>2024-07-16T06:01:47.814Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nestjs-trpc.io/docs/trpc</loc><lastmod>2024-07-16T06:01:47.814Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
 </urlset>

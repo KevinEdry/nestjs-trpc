@@ -27,7 +27,8 @@
     "format": "prettier \"src/**/*.ts\" --ignore-path ./.prettierignore --write",
     "clean": "tsc -b --clean",
     "test": "export TS_JEST_DISABLE_VER_CHECKER=true && jest --no-watchman --coverage",
-    "prepare": "husky install & pnpm run build"
+    "prepare": "husky install & pnpm run build",
+    "release": "release-it"
   },
   "keywords": [],
   "author": {

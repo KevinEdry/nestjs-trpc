@@ -4,7 +4,7 @@ import {
 } from '../interfaces/factory.interface';
 import { PROCEDURE_PARAM_METADATA_KEY } from '../trpc.constants';
 
-export function Context(): ParameterDecorator {
+export function Ctx(): ParameterDecorator {
   return (
     target: Object,
     propertyKey: string | symbol | undefined,
@@ -16,7 +16,7 @@ export function Context(): ParameterDecorator {
         [];
 
       const procedureParamMetadata: ProcedureParamDecorator = {
-        type: ProcedureParamDecoratorType.Context,
+        type: ProcedureParamDecoratorType.Ctx,
         index: parameterIndex,
       };
       existingParams.push(procedureParamMetadata);

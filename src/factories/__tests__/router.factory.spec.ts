@@ -1,5 +1,3 @@
-// File name: router.factory.spec.ts
-
 import { Test, TestingModule } from '@nestjs/testing';
 import { RouterFactory } from '../router.factory';
 import { ConsoleLogger } from '@nestjs/common';

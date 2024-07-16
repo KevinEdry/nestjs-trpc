@@ -1,5 +1,3 @@
-// File name: path.decorator.spec.ts
-
 import 'reflect-metadata';
 import { Path } from '../path.decorator';
 import { PROCEDURE_PARAM_METADATA_KEY } from '../../trpc.constants';

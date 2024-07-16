@@ -17,7 +17,7 @@ import type { Class } from 'type-fest';
 
 export enum ProcedureParamDecoratorType {
   Options = 'options',
-  Context = 'ctx',
+  Ctx = 'ctx',
   Input = 'input',
   RawInput = 'rawInput',
   Type = 'type',

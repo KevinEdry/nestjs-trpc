@@ -156,7 +156,6 @@ export class ProcedureFactory {
         return opts[param.type];
       });
 
-    console.log({args})
     return args;
   }
 

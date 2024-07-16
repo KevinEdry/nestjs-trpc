@@ -1,5 +1,3 @@
-// File name: procedure.factory.spec.ts
-
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProcedureFactory } from '../procedure.factory';
 import { ConsoleLogger } from '@nestjs/common';
@@ -9,7 +7,7 @@ import { z } from 'zod';
 import { ProcedureBuilder, TRPCError, initTRPC } from '@trpc/server';
 import { ProcedureFactoryMetadata, ProcedureParamDecoratorType } from '../../interfaces/factory.interface';
 import { TRPCMiddleware } from '../../interfaces';
-import { Context, Input, Middlewares, Options, Query } from '../../decorators';
+import { Ctx, Input, Middlewares, Options, Query } from '../../decorators';
 import { ProcedureType } from '../../trpc.enum';
 
 describe('ProcedureFactory', () => {
@@ -72,7 +70,7 @@ describe('ProcedureFactory', () => {
           output: userSchema
         })
         @Middlewares(ProtectedMiddleware)
-        async getUserById(@Input("userId") userId: string, @Context() ctx: any, @Options() opts: any): Promise<any> {
+        async getUserById(@Input("userId") userId: string, @Ctx() ctx: any, @Options() opts: any): Promise<any> {
           const user = await this.userService.getUser(userId);
           if (ctx.ben) {
             throw new TRPCError({
@@ -134,7 +132,7 @@ describe('ProcedureFactory', () => {
           implementation: jest.fn(),
           params: [
             { type: ProcedureParamDecoratorType.Input, index: 0, key: 'userId' },
-            { type:  ProcedureParamDecoratorType.Context, index: 1 },
+            { type:  ProcedureParamDecoratorType.Ctx, index: 1 },
             { type:  ProcedureParamDecoratorType.Options, index: 2 },
           ],
         },

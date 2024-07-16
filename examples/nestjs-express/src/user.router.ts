@@ -4,7 +4,7 @@ import {
   Query,
   Middlewares,
   Input,
-  Context,
+  Ctx,
   Options,
   ProcedureOptions,
 } from 'nestjs-trpc';
@@ -26,7 +26,7 @@ export class UserRouter {
   @Middlewares(ProtectedMiddleware)
   async getUserById(
     @Input('userId') userId: string,
-    @Context() ctx: ProtectedMiddlewareContext,
+    @Ctx() ctx: ProtectedMiddlewareContext,
     @Options() opts: ProcedureOptions,
   ): Promise<User> {
     const user = await this.userService.getUser(userId);

@@ -16,12 +16,13 @@ export class DecoratorGenerator {
     decorators: Decorator[],
     sourceFile: SourceFile,
     project: Project,
-  ): DecoratorGeneratorMetadata[] {
+  ): Array<DecoratorGeneratorMetadata> {
     const sourceFileImportsMap = this.buildSourceFileImportsMap(
       sourceFile,
       project,
     );
-    return decorators.reduce<DecoratorGeneratorMetadata[]>(
+
+    const decoratorsArray =  decorators.reduce<DecoratorGeneratorMetadata[]>(
       (array, decorator) => {
         const decoratorName = decorator.getName();
 
@@ -56,6 +57,8 @@ export class DecoratorGenerator {
       },
       [],
     );
+    
+    return decoratorsArray;
   }
 
   private buildSourceFileImportsMap(

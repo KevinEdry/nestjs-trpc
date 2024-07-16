@@ -107,7 +107,6 @@ export class TRPCGenerator implements OnModuleInit {
         'TRPC Generator',
       );
     } catch (e: unknown) {
-      console.error(e);
       this.consoleLogger.warn('TRPC Generator encountered an error.', e);
     }
   }
@@ -163,7 +162,6 @@ export class TRPCGenerator implements OnModuleInit {
         'TRPC Generator',
       );
     } catch (e: unknown) {
-      console.error(e);
       this.consoleLogger.warn('TRPC Generator encountered an error.', e);
     }
   }

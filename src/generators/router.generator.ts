@@ -22,11 +22,11 @@ export class RouterGenerator {
     routers: RoutersFactoryMetadata[],
     project: Project,
   ): Promise<RouterGeneratorMetadata[]> {
-    return Promise.all(
+    return await Promise.all(
       routers.map(async (router) => {
         const proceduresMetadata = await Promise.all(
           router.procedures.map(async (procedure) =>
-            this.serializeRouterProcedures(procedure, router.name, project),
+            await this.serializeRouterProcedures(procedure, router.name, project),
           ),
         );
 
@@ -70,18 +70,20 @@ export class RouterGenerator {
       );
     }
 
+    const serializedDecorators = this.decoratorHandler.serializeProcedureDecorators(
+      decorators,
+      sourceFile,
+      project,
+    );
+
     return {
       name: procedure.name,
-      decorators: this.decoratorHandler.serializeProcedureDecorators(
-        decorators,
-        sourceFile,
-        project,
-      ),
+      decorators: serializedDecorators,
     };
   }
 
   public generateRoutersStringFromMetadata(
-    routers: RouterGeneratorMetadata[],
+    routers: Array<RouterGeneratorMetadata>,
   ): string {
     return routers
       .map((router) => {

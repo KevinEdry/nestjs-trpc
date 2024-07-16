@@ -27,8 +27,8 @@
     "format": "prettier \"src/**/*.ts\" --ignore-path ./.prettierignore --write",
     "clean": "tsc -b --clean",
     "test": "export TS_JEST_DISABLE_VER_CHECKER=true && jest --no-watchman --coverage",
-    "prepare": "husky install & pnpm run build",
-    "release": "release-it"
+    "release": "release-it",
+    "commit": "commit"
   },
   "keywords": [],
   "author": {
@@ -67,6 +67,8 @@
   "devDependencies": {
     "@commitlint/cli": "^17.5.1",
     "@commitlint/config-angular": "^17.4.4",
+    "@commitlint/config-conventional": "^19.2.2",
+    "@commitlint/prompt-cli": "^19.3.1",
     "@eslint/js": "^9.6.0",
     "@nestjs/cli": "^9.3.0",
     "@nestjs/testing": "^9.0.0",

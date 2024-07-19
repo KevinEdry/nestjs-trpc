@@ -39,23 +39,28 @@ export class RouterFactory {
 
   private extractRouterFromWrapper(
     wrapper: InstanceWrapper,
-  ): RouterInstance | undefined {
+  ): RouterInstance | null {
     const { instance, name } = wrapper;
+
+    if(instance == null) {
+      return null;
+    }
 
     const router = Reflect.getMetadata(
       ROUTER_METADATA_KEY,
       instance.constructor,
     );
+
+    if(router == null){
+      return null;
+    }
+
     const middlewares: TRPCMiddleware = Reflect.getMetadata(
       MIDDLEWARE_KEY,
       instance.constructor,
     );
 
-    if (router != null) {
-      return { name, instance, alias: router.alias, middlewares };
-    }
-
-    return undefined;
+    return { name, instance, alias: router.alias, middlewares };
   }
 
   serializeRoutes(

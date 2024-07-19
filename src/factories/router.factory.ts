@@ -42,7 +42,7 @@ export class RouterFactory {
   ): RouterInstance | null {
     const { instance, name } = wrapper;
 
-    if(instance == null) {
+    if (instance == null) {
       return null;
     }
 
@@ -51,7 +51,7 @@ export class RouterFactory {
       instance.constructor,
     );
 
-    if(router == null){
+    if (router == null) {
       return null;
     }
 
@@ -63,9 +63,7 @@ export class RouterFactory {
     return { name, instance, alias: router.alias, middlewares };
   }
 
-  serializeRoutes(
-    procedure: TRPCPublicProcedure,
-  ): Record<string, any> {
+  serializeRoutes(procedure: TRPCPublicProcedure): Record<string, any> {
     const routers = this.getRouters();
     const routerSchema = Object.create({});
 
@@ -90,7 +88,7 @@ export class RouterFactory {
           instance,
           camelCasedRouterName,
           procedure,
-          middlewares
+          middlewares,
         );
     });
 

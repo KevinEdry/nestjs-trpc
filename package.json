@@ -1,5 +1,5 @@
 {
-  "name": "nestjs-trpc",
+  "name": "nestjs-trpc-workspace",
   "version": "1.1.1",
   "homepage": "https://nestjs-trpc.io",
   "main": "./dist/index.js",
@@ -30,7 +30,13 @@
     "release": "release-it",
     "commit": "commit"
   },
-  "keywords": [],
+  "keywords": [
+    "nestjs",
+    "trpc",
+    "adapter",
+    "nest",
+    "express"
+  ],
   "author": {
     "name": "Kevin Edry",
     "email": "kevin.edry@gmail.com",
@@ -48,21 +54,12 @@
   "peerDependencies": {
     "@nestjs/common": "^9.0.0",
     "@nestjs/core": "^9.0.0",
-    "@trpc/server": "^10.18.0",
     "reflect-metadata": "^0.1.13",
-    "ts-morph": ">= 22.0.0",
-    "zod": ">= 3.14.3"
+    "zod": ">= 3.14.3",
+    "@trpc/server": "^10.18.0"
   },
   "peerDevDependencies": {
     "@types/node": "20.14.10"
-  },
-  "peerDependenciesMeta": {
-    "ts-morph": {
-      "optional": true
-    },
-    "zod": {
-      "optional": true
-    }
   },
   "devDependencies": {
     "@commitlint/cli": "^17.5.1",
@@ -94,9 +91,19 @@
       "eslint --fix"
     ]
   },
+  "changelog": {
+    "labels": {
+      "feature": "Features",
+      "bug": "Bug fixes",
+      "enhancement": "Enhancements",
+      "docs": "Docs",
+      "dependencies": "Dependencies"
+    }
+  },
   "dependencies": {
     "func-loc": "^0.1.16",
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "ts-morph": ">= 22.0.0"
   },
   "repository": {
     "type": "git",

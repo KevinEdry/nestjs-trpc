@@ -1,0 +1,8 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./nestjs-trpc/tsconfig.build.json"
+    }
+  ]
+}

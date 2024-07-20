@@ -1,7 +1,7 @@
 module.exports = {
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    project: 'tsconfig.build.json',
+    project: 'packages/tsconfig.build.json',
     sourceType: 'module',
   },
   plugins: ['@typescript-eslint/eslint-plugin'],
@@ -23,6 +23,6 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/ban-types': 'off',
-    '@typescript-eslint/no-empty-function': 'off',
+    '@typescript-eslint/no-empty-function': 'off'
   },
 };

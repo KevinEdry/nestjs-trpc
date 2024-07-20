@@ -4,3 +4,4 @@ docs/
 public/
 *.md
 *.mdx
+packages/**/__tests__/*.ts

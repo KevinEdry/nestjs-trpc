@@ -1,0 +1,28 @@
+# dependencies
+node_modules
+
+# generated types
+/types
+
+# IDE
+/.idea
+/.awcache
+/.vscode
+
+# misc
+npm-debug.log
+.DS_Store
+
+# examples
+/test
+/coverage
+/.nyc_output
+test-schema.graphql
+*.test-definitions.ts
+
+# dist
+dist
+test/**/dist
+**/*.tsbuildinfo
+
+.yarn/

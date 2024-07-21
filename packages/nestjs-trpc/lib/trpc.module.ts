@@ -38,16 +38,16 @@ import { ContextGenerator } from './generators/context.generator';
   exports: [],
 })
 export class TRPCModule implements OnModuleInit {
-  @Inject(TRPC_MODULE_OPTIONS) 
+  @Inject(TRPC_MODULE_OPTIONS)
   private readonly options!: TRPCModuleOptions;
 
-  @Inject(ConsoleLogger) 
+  @Inject(ConsoleLogger)
   private readonly consoleLogger!: ConsoleLogger;
-  
-  @Inject(HttpAdapterHost) 
+
+  @Inject(HttpAdapterHost)
   private readonly httpAdapterHost!: HttpAdapterHost;
 
-  @Inject(TRPCDriver) 
+  @Inject(TRPCDriver)
   private readonly trpcDriver!: TRPCDriver;
 
   static forRoot<TOptions extends Record<string, any> = TRPCModuleOptions>(

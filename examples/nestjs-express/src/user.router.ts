@@ -13,7 +13,6 @@ import { ProtectedMiddleware } from './protected.middleware';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { User, userSchema } from './user.schema';
-import { ProtectedMiddlewareContext } from 'nestjs-trpc/dist/types';
 
 @Router({ alias: 'users' })
 export class UserRouter {
@@ -26,12 +25,12 @@ export class UserRouter {
   @Middlewares(ProtectedMiddleware)
   async getUserById(
     @Input('userId') userId: string,
-    @Ctx() ctx: ProtectedMiddlewareContext,
+    @Ctx() ctx: object,
     @Options() opts: ProcedureOptions,
   ): Promise<User> {
     const user = await this.userService.getUser(userId);
 
-    if (ctx.ben) {
+    if (ctx) {
       throw new TRPCError({
         message: 'Could not find user.',
         code: 'NOT_FOUND',

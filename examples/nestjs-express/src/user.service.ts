@@ -13,6 +13,10 @@ export class UserService {
   }
 
   async getUser(userId: string): Promise<User> {
-    return;
+    return {
+      name: 'user',
+      email: 'user@email.com',
+      password: '0000',
+    };
   }
 }

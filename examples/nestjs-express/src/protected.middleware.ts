@@ -7,12 +7,10 @@ import { Inject, Injectable } from '@nestjs/common';
 import { UserService } from './user.service';
 import { TRPCError } from '@trpc/server';
 
-import { Context } from 'nestjs-trpc/dist/types';
-
 @Injectable()
 export class ProtectedMiddleware implements TRPCMiddleware {
   constructor(@Inject(UserService) private readonly userService: UserService) {}
-  async use(opts: MiddlewareOptions<Context>): Promise<MiddlewareResponse> {
+  async use(opts: MiddlewareOptions<object>): Promise<MiddlewareResponse> {
     const start = Date.now();
     const result = await opts.next({
       ctx: {

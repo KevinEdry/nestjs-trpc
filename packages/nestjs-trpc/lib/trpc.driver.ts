@@ -23,7 +23,7 @@ export class TRPCDriver<
 
   @Inject(ConsoleLogger)
   protected readonly consoleLogger!: ConsoleLogger;
-  
+
   constructor(private moduleRef: ModuleRef) {}
 
   public async start(options: TRPCModuleOptions) {
@@ -51,13 +51,13 @@ export class TRPCDriver<
     );
 
     const contextClass = options.context;
-    const contextInstance = contextClass != null ? this.moduleRef.get<Type<TRPCContext>, TRPCContext>(
-      contextClass,
-      {
-        strict: false,
-      },
-    ) : null;
-    
+    const contextInstance =
+      contextClass != null
+        ? this.moduleRef.get<Type<TRPCContext>, TRPCContext>(contextClass, {
+            strict: false,
+          })
+        : null;
+
     app.use(
       options.basePath ?? '/trpc',
       trpcExpress.createExpressMiddleware({

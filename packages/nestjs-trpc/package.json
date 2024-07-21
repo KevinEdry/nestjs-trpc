@@ -3,7 +3,7 @@
   "version": "1.1.1",
   "homepage": "https://nestjs-trpc.io",
   "main": "./dist/index.js",
-  "types": "./src/index.ts",
+  "types": "./dist/index.d.ts",
   "license": "MIT",
   "files": [
     "dist"
@@ -21,11 +21,9 @@
     }
   },
   "scripts": {
-    "lint": "tslint -p tsconfig.json -c tslint.json --fix",
-    "build": "tsc -b -v",
+    "build": "tsc --project tsconfig.build.json",
     "start:dev": "tsc -w",
     "debug:dev": "ts-node --inspect-brk lib/index.ts",
-    "format": "prettier \"src/**/*.ts\" --ignore-path ./.prettierignore --write",
     "clean": "tsc -b --clean",
     "test": "export TS_JEST_DISABLE_VER_CHECKER=true && jest --no-watchman --coverage"
   },
@@ -46,26 +44,28 @@
     "access": "public"
   },
   "peerDependencies": {
-    "@nestjs/common": "^9.0.0",
-    "@nestjs/core": "^9.0.0",
+    "@nestjs/common": "^9.3.8 || ^10.0.0",
+    "@nestjs/core": "^9.3.8 || ^10.0.0",
     "zod": "^3.14.0",
     "@trpc/server": "^10.18.0",
     "reflect-metadata": "^0.1.13 || ^0.2.0",
-    "ts-morph": "^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^20.0.0 || ^21.0.0 || ^22.0.0"
+    "ts-morph": "^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^20.0.0 || ^21.0.0 || ^22.0.0",
+    "rxjs": "7.8.1"
   },
   "devDependencies": {
-    "@nestjs/common": "9.0.0",
-    "@nestjs/core": "9.0.0",
-    "@nestjs/cli": "^9.3.0",
-    "@nestjs/testing": "^9.0.0",
+    "@nestjs/common": "10.2.10",
+    "@nestjs/core": "10.2.10",
+    "@nestjs/testing": "10.2.10",
     "@types/express": "^4.17.17",
+    "rxjs": "7.8.1",
     "@types/jest": "29.2.4",
     "@types/lodash": "^4.17.5",
-    "tsconfig-paths": "^4.2.0",
-    "type-fest": "^4.21.0",
-    "typescript": "^5.0.3",
     "reflect-metadata": "0.2.2",
-    "ts-morph": "22.0.0"
+    "ts-morph": "22.0.0",
+    "type-fest": "^4.21.0",
+    "ts-node": "10.9.2",
+    "typescript": "5.5.3",
+    "tsconfig-paths": "^4.2.0"
   },
   "dependencies": {
     "func-loc": "^0.1.16",
@@ -74,6 +74,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/KevinEdry/nestjs-trpc"
+    "url": "https://github.com/KevinEdry/nestjs-trpc",
+    "directory": "packages/nestjs-trpc"
   }
 }

@@ -39,7 +39,6 @@
     "email": "kevin.edry@gmail.com",
     "url": "https://kevin-edry.com"
   },
-  "packageManager": "pnpm@8.12.1",
   "publishConfig": {
     "access": "public"
   },
@@ -60,7 +59,7 @@
     "rxjs": "7.8.1",
     "@types/jest": "29.2.4",
     "@types/lodash": "^4.17.5",
-    "reflect-metadata": "0.2.2",
+    "reflect-metadata": "0.1.13",
     "ts-morph": "22.0.0",
     "type-fest": "^4.21.0",
     "ts-node": "10.9.2",

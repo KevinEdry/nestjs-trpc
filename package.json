@@ -2,6 +2,7 @@
   "name": "nestjs-trpc-workspace",
   "version": "1.1.1",
   "homepage": "https://nestjs-trpc.io",
+  "private": true,
   "scripts": {
     "build": "tsc -b -v packages",
     "changelog": "lerna-changelog",
@@ -9,9 +10,9 @@
     "format": "prettier packages/**/*.ts --ignore-path ./.prettierignore --write",
     "lint": "eslint 'packages/**/*.ts' --fix",
     "release": "release-it",
-    "prepublish:npm": "pnpm build && pnpm changelog | pbcopy",
+    "prepublish:npm": "yarn build && yarn changelog | pbcopy",
     "publish:npm": "lerna publish",
-    "prepublish:next": "pnpm build",
+    "prepublish:next": "yarn build",
     "publish:next": "lerna publish --dist-tag next",
     "prepare": "husky"
   },
@@ -22,16 +23,17 @@
   },
   "license": "MIT",
   "engines": {
-    "node": "14 || 15 || 16 || 17 || 18 || 19 || 20",
-    "pnpm": ">=8.0.0"
+    "node": "14 || 15 || 16 || 17 || 18 || 19 || 20"
   },
   "workspaces": [
     "packages/*",
-    "examples/**/*",
     "examples/*",
+    "examples/nestjs-nextjs-trpc/apps/*",
     "docs"
   ],
-  "packageManager": "pnpm@8.12.1",
+  "resolutions": {
+    "nestjs-trpc": "file:packages/nestjs-trpc"
+  },
   "devDependencies": {
     "@commitlint/cli": "^17.5.1",
     "@commitlint/config-angular": "^17.4.4",

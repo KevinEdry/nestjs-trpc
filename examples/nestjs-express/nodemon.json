@@ -1,6 +1,0 @@
-{
-  "watch": ["src", "../packages/nest-trpc"],
-  "ext": "ts,json",
-  "ignore": ["src/**/*.spec.ts", "src/@generated/*.ts"],
-  "exec": "nest start --watch"
-}

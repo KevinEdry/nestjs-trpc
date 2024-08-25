@@ -1,11 +1,11 @@
 module.exports = {
     preset: 'ts-jest',
     testEnvironment: 'node',
-    roots: ['<rootDir>/src'],
+    roots: ['<rootDir>/lib'],
     testMatch: ['**/__tests__/**/*.ts?(x)', '**/?(*.)+(spec|test).ts?(x)'],
     transform: {
       '^.+\\.tsx?$': ['ts-jest', {
-        tsconfig: 'tsconfig.json',
+        tsconfig: 'tsconfig.spec.json',
         diagnostics: {
           ignoreCodes: [151001]
         }

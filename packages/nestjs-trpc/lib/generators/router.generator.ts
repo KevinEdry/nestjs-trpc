@@ -48,11 +48,12 @@ export class RouterGenerator {
       sourceMap: true,
     });
     const sourceFile = project.addSourceFileAtPath(location.path);
+    console.log(location)
     const classDeclaration = sourceFile.getClass(routerName);
 
     if (!classDeclaration) {
       throw new Error(
-        `Could not find router ${routerName}, class declaration.`,
+        `Could not find router ${routerName} class declaration.`,
       );
     }
 

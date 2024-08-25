@@ -30,7 +30,7 @@ export class UserRouter {
   ): Promise<User> {
     const user = await this.userService.getUser(userId);
 
-    if (ctx) {
+    if (!ctx) {
       throw new TRPCError({
         message: 'Could not find user.',
         code: 'NOT_FOUND',

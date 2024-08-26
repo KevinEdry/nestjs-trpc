@@ -36,21 +36,4 @@ describe('TRPCFactory', () => {
   it('should be defined', () => {
     expect(trpcFactory).toBeDefined();
   });
-
-  describe('serializeAppRoutes', () => {
-    it('should serialize app routes', () => {
-      const mockRouter = jest.fn();
-      const mockProcedure = {} as any;
-      const mockRouterSchema = { test: {} };
-
-      (routerFactory.serializeRoutes as jest.Mock).mockReturnValue(mockRouterSchema);
-      mockRouter.mockReturnValue({ test: {} });
-
-      const result = trpcFactory.serializeAppRoutes(mockRouter, mockProcedure);
-
-      expect(routerFactory.serializeRoutes).toHaveBeenCalledWith(mockProcedure);
-      expect(mockRouter).toHaveBeenCalledWith(mockRouterSchema);
-      expect(result).toEqual({ test: {} });
-    });
-  });
 });

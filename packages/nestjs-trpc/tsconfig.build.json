@@ -3,7 +3,8 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./lib",
-    "incremental": false
+    "incremental": false,
+    "experimentalDecorators": true
   },
   "exclude": ["node_modules", "dist", "lib/**/__tests__/*", "*.spec.ts"]
 }

@@ -5,8 +5,10 @@ import { ModulesContainer } from '@nestjs/core';
 import { ProcedureFactory } from '../procedure.factory';
 import { ROUTER_METADATA_KEY, MIDDLEWARE_KEY, PROCEDURE_TYPE_KEY, PROCEDURE_METADATA_KEY } from '../../trpc.constants';
 import { z } from 'zod';
-import { TRPCError } from '@trpc/server';
+import { initTRPC, TRPCError } from '@trpc/server';
 import { TRPCMiddleware } from '../../interfaces';
+
+const { router, procedure } = initTRPC.context().create();
 
 describe('RouterFactory', () => {
   let routerFactory: RouterFactory;
@@ -190,7 +192,7 @@ describe('RouterFactory', () => {
 
       // Mock serializeProcedures
       (procedureFactory.serializeProcedures as jest.Mock).mockReturnValue({
-        getUserById: jest.fn(),
+        getUserById: procedure.query(() => { return "mock" }),
       });
 
       // Mock procedure builder
@@ -202,7 +204,7 @@ describe('RouterFactory', () => {
       } as any;
 
       // Call serializeRoutes
-      const result = routerFactory.serializeRoutes(mockProcedureBuilder);
+      const result = routerFactory.serializeRoutes(router, mockProcedureBuilder);
 
       // Assertions
       expect(result).toHaveProperty('users');

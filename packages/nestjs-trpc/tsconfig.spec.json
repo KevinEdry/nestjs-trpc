@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "experimentalDecorators": true,
     "sourceMap": true,
     "outDir": "./dist/tests",
     "types": ["jest", "node"]

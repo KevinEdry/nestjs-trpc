@@ -36,7 +36,8 @@
     "url": "https://kevin-edry.com"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   },
   "peerDependencies": {
     "@nestjs/common": "^9.3.8 || ^10.0.0",

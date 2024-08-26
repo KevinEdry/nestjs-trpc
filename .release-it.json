@@ -6,10 +6,12 @@
     "github": {
       "release": true
     },
-    "npm": {
-      "publish": true
-    },
+    "npm": false,
     "plugins": {
+      "@release-it-plugins/workspaces": {
+        "publish": true,
+        "workspaces": ["packages/*"]
+      },
       "@release-it/conventional-changelog": {
         "infile": "CHANGELOG.md",
         "header": "# Changelog",

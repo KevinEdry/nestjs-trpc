@@ -1,5 +1,7 @@
 # Changelog
 
+## 1.3.0 (2024-08-26)
+
 ## 1.2.0 (2024-08-26)
 
 * fix: added correct registry version ([ce6c13e](https://github.com/KevinEdry/nestjs-trpc/commit/ce6c13e))

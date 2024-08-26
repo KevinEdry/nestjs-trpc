@@ -14,9 +14,10 @@
     "publish:npm": "lerna publish",
     "prepublish:next": "yarn build",
     "publish:next": "lerna publish --dist-tag next",
-    "postinstall": "husky",
     "prepack": "pinst --disable",
-    "postpack": "pinst --enable"
+    "postinstall": "husky",
+    "postpack": "pinst --enable",
+    "prepare": "husky"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"

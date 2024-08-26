@@ -57,6 +57,7 @@ const RAW_RUNTIME_STATE =
           ["@types/node", "npm:20.14.11"],\
           ["@typescript-eslint/eslint-plugin", "virtual:e8c2026326350578d02b68ad535fd35e48f18c0982f4815fcbf4f100a889dce5bd7633118913a4c281bc0db311d4afa92fce0fce29e476de8880d9feed95eb0b#npm:8.2.0"],\
           ["@typescript-eslint/parser", "virtual:e8c2026326350578d02b68ad535fd35e48f18c0982f4815fcbf4f100a889dce5bd7633118913a4c281bc0db311d4afa92fce0fce29e476de8880d9feed95eb0b#npm:8.2.0"],\
+          ["conventional-changelog-conventionalcommits", "npm:8.0.0"],\
           ["eslint", "npm:9.7.0"],\
           ["eslint-config-prettier", "virtual:e8c2026326350578d02b68ad535fd35e48f18c0982f4815fcbf4f100a889dce5bd7633118913a4c281bc0db311d4afa92fce0fce29e476de8880d9feed95eb0b#npm:9.1.0"],\
           ["eslint-plugin-import", "virtual:e8c2026326350578d02b68ad535fd35e48f18c0982f4815fcbf4f100a889dce5bd7633118913a4c281bc0db311d4afa92fce0fce29e476de8880d9feed95eb0b#npm:2.29.1"],\
@@ -8907,6 +8908,14 @@ const RAW_RUNTIME_STATE =
           ["compare-func", "npm:2.0.0"]\
         ],\
         "linkType": "HARD"\
+      }],\
+      ["npm:8.0.0", {\
+        "packageLocation": "../../.yarn/berry/cache/conventional-changelog-conventionalcommits-npm-8.0.0-b17be6f278-10c0.zip/node_modules/conventional-changelog-conventionalcommits/",\
+        "packageDependencies": [\
+          ["conventional-changelog-conventionalcommits", "npm:8.0.0"],\
+          ["compare-func", "npm:2.0.0"]\
+        ],\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["conventional-changelog-core", [\
@@ -17050,6 +17059,7 @@ const RAW_RUNTIME_STATE =
           ["@types/node", "npm:20.14.11"],\
           ["@typescript-eslint/eslint-plugin", "virtual:e8c2026326350578d02b68ad535fd35e48f18c0982f4815fcbf4f100a889dce5bd7633118913a4c281bc0db311d4afa92fce0fce29e476de8880d9feed95eb0b#npm:8.2.0"],\
           ["@typescript-eslint/parser", "virtual:e8c2026326350578d02b68ad535fd35e48f18c0982f4815fcbf4f100a889dce5bd7633118913a4c281bc0db311d4afa92fce0fce29e476de8880d9feed95eb0b#npm:8.2.0"],\
+          ["conventional-changelog-conventionalcommits", "npm:8.0.0"],\
           ["eslint", "npm:9.7.0"],\
           ["eslint-config-prettier", "virtual:e8c2026326350578d02b68ad535fd35e48f18c0982f4815fcbf4f100a889dce5bd7633118913a4c281bc0db311d4afa92fce0fce29e476de8880d9feed95eb0b#npm:9.1.0"],\
           ["eslint-plugin-import", "virtual:e8c2026326350578d02b68ad535fd35e48f18c0982f4815fcbf4f100a889dce5bd7633118913a4c281bc0db311d4afa92fce0fce29e476de8880d9feed95eb0b#npm:2.29.1"],\

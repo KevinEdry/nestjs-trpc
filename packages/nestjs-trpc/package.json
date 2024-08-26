@@ -37,8 +37,7 @@
   },
   "publishConfig": {
     "access": "public",
-    "registry": "https://registry.npmjs.org",
-    "ignoreVersion": true
+    "registry": "https://registry.npmjs.org"
   },
   "peerDependencies": {
     "@nestjs/common": "^9.3.8 || ^10.0.0",

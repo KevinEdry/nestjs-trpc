@@ -1,7 +1,7 @@
 import { Footer } from './components/Footer';
 
 export default {
-  logo: <div className={"md:nx-inline-flex nx-gap-2 nx-items-center nx-font-bold"}><img src={'/logo.png'} width={40} /> NestJS tRPC</div>,
+  logo: <div className={"md:nx-inline-flex nx-gap-2 nx-items-center nx-font-bold"}><img src={'/logo.png'} alt={'nestjs-trpc logo'} width={40} /> NestJS tRPC</div>,
   primaryHue: 200,
   primarySaturation: 100,
   project: {
@@ -13,14 +13,14 @@ export default {
   banner: {
     key: '1.0-release',
     text: (
-      <a href="https://nextra.site" target="_blank">
+      <a href="https://github.com/KevinEdry/nestjs-trpc/releases" target="_blank">
         🎉 NestJS tRPC 1.0 is released. Read more →
       </a>
     ),
     dismissible: true
   },
   chat: {
-    link: 'https://github.com/kevinedry/nestjs-chat',
+    link: 'https://discord.gg/trpc-867764511159091230',
   },
   docsRepositoryBase: 'https://github.com/KevinEdry/nestjs-trpc',
   sidebar: {

@@ -8,6 +8,16 @@
 <div align="center">
   <h1>Nestjs tRPC Adapter</h1>
   <h3>An opinionated approach to building<br />End-to-end typesafe APIs with tRPC within NestJS.</h3>
+  <a href="https://npmcharts.com/compare/nestjs-trpc?interval=30">
+    <img alt="weekly downloads" src="https://img.shields.io/npm/dm/nestjs-trpc.svg">
+  </a>
+  <a href="https://github.com/KevinEdry/nestjs-trpc/blob/main/LICENSE">
+    <img alt="MIT License" src="https://img.shields.io/github/license/KevinEdry/nestjs-trpc" />
+  </a>
+  <a href="https://discord.gg/trpc-867764511159091230">
+    <img alt="Discord" src="https://img.shields.io/discord/867764511159091230?color=7389D8&label&logo=discord&logoColor=ffffff" />
+  </a>
+  <br />
   <figure>
     <img src="https://assets.trpc.io/www/v10/v10-dark-landscape.gif" alt="Demo" />
     <figcaption>

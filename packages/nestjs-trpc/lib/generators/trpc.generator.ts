@@ -5,12 +5,7 @@ import {
   Injectable,
   OnModuleInit,
 } from '@nestjs/common';
-import {
-  Project,
-  CompilerOptions,
-  ScriptTarget,
-  ModuleKind,
-} from 'ts-morph';
+import { Project, CompilerOptions, ScriptTarget, ModuleKind } from 'ts-morph';
 import {
   generateStaticDeclaration,
   saveOrOverrideFile,
@@ -144,15 +139,15 @@ export class TRPCGenerator implements OnModuleInit {
             middleware,
             this.project,
           );
-        
-          if(middlewareInterface != null) {
-            helperTypesSourceFile.addInterface({
-              isExported: true,
-              name: `${middlewareInterface.name}Context`,
-              extends: ['Context'],
-              properties: middlewareInterface.properties,
-            });
-          }
+
+        if (middlewareInterface != null) {
+          helperTypesSourceFile.addInterface({
+            isExported: true,
+            name: `${middlewareInterface.name}Context`,
+            extends: ['Context'],
+            properties: middlewareInterface.properties,
+          });
+        }
       }
 
       await saveOrOverrideFile(helperTypesSourceFile);

@@ -3,7 +3,6 @@ import {
   ProcedureGeneratorMetadata,
   SourceFileImportsMap,
 } from '../interfaces/generator.interface';
-import * as path from 'node:path';
 
 export function findCtxOutProperty(type: Type): string | undefined {
   const typeText = type.getText();
@@ -17,7 +16,7 @@ export function generateProcedureString(
 ): string {
   const { name, decorators } = procedure;
   const decorator = decorators.find(
-    (d) => d.name === 'Mutation' || d.name === 'Query',
+    (decorator) => decorator.name === 'Mutation' || decorator.name === 'Query',
   );
 
   if (!decorator) {
@@ -31,6 +30,51 @@ export function generateProcedureString(
   return `${name}: publicProcedure${decoratorArgumentsArray}.${decorator.name.toLowerCase()}(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any )`;
 }
 
+/**
+ * https://github.com/dsherret/ts-morph/issues/327
+ * Note that if the module resolution of the compiler is Classic then it won't resolve those implicit index.ts module specifiers.
+ * So for example, if the moduleResolution compiler option isn't explicitly set then setting the module
+ * compiler option to anything but ModuleKind.CommonJS will cause the module resolution kind to resolve to Classic.
+ * Additionally, if moduleResolution and the module compiler option isn't set,
+ * then a script target of ES2015 and above will also use Classic module resolution.
+ */
+function resolveBarrelFileImport(
+  barrelSourceFile: SourceFile,
+  name: string,
+  project: Project,
+): SourceFile | undefined {
+  // Traverse through export declarations to find the actual source of the named import
+  for (const exportDeclaration of barrelSourceFile.getExportDeclarations()) {
+    const exportedSourceFile = exportDeclaration.getModuleSpecifierSourceFile();
+    if (exportedSourceFile == null) continue;
+
+    // Check if the named export is explicitly re-exported
+    const namedExports = exportDeclaration.getNamedExports();
+    if (namedExports.length > 0) {
+      const matchingExport = namedExports.find((e) => e.getName() === name);
+      if (matchingExport) {
+        return exportedSourceFile;
+      }
+    } else {
+      // Handle `export * from ...` case: recursively resolve the export
+      const schemaVariable = exportedSourceFile.getVariableDeclaration(name);
+      if (schemaVariable) {
+        return exportedSourceFile;
+      } else {
+        // Continue resolving if it's another barrel file
+        const baseSourceFile = resolveBarrelFileImport(
+          exportedSourceFile,
+          name,
+          project,
+        );
+        if (baseSourceFile) return baseSourceFile;
+      }
+    }
+  }
+
+  return undefined;
+}
+
 function buildSourceFileImportsMap(
   sourceFile: SourceFile,
   project: Project,
@@ -42,22 +86,30 @@ function buildSourceFileImportsMap(
     const namedImports = importDeclaration.getNamedImports();
     for (const namedImport of namedImports) {
       const name = namedImport.getName();
-      const moduleSpecifier = importDeclaration.getModuleSpecifierValue();
-      const resolvedPath = path.resolve(
-        path.dirname(sourceFile.getFilePath()),
-        moduleSpecifier + '.ts',
-      );
       const importedSourceFile =
-        project.addSourceFileAtPathIfExists(resolvedPath);
-      if (!importedSourceFile) continue;
+        importDeclaration.getModuleSpecifierSourceFile();
 
-      const schemaVariable = importedSourceFile.getVariableDeclaration(name);
-      if (schemaVariable) {
+      if (importedSourceFile == null) {
+        continue;
+      }
+
+      const resolvedSourceFile =
+        importedSourceFile.getFilePath().endsWith('index.ts') &&
+        importedSourceFile.getVariableDeclaration(name) == null
+          ? resolveBarrelFileImport(importedSourceFile, name, project)
+          : importedSourceFile;
+
+      if (resolvedSourceFile == null) {
+        continue;
+      }
+
+      const schemaVariable = resolvedSourceFile.getVariableDeclaration(name);
+      if (schemaVariable != null) {
         const initializer = schemaVariable.getInitializer();
         if (initializer) {
           sourceFileImportsMap.set(name, {
             initializer,
-            sourceFile: importedSourceFile,
+            sourceFile: resolvedSourceFile,
           });
         }
       }

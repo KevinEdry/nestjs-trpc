@@ -1,5 +1,9 @@
 # Changelog
 
+## <small>1.3.2 (2024-09-28)</small>
+
+* fix: fixed zod schema functionality to respect local import maps ([981046f](https://github.com/KevinEdry/nestjs-trpc/commit/981046f))
+
 ## <small>1.3.1 (2024-09-28)</small>
 
 * fix: updated release it config file ([0fe1fb6](https://github.com/KevinEdry/nestjs-trpc/commit/0fe1fb6))

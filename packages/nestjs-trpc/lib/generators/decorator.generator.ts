@@ -1,11 +1,7 @@
-import { Decorator, SourceFile, Project } from 'ts-morph';
-import {
-  DecoratorGeneratorMetadata,
-  SourceFileImportsMap,
-} from '../interfaces/generator.interface';
+import { Decorator, Project, SourceFile } from 'ts-morph';
+import { DecoratorGeneratorMetadata } from '../interfaces/generator.interface';
 import { getDecoratorPropertyValue } from '../utils/file.util';
 import { ConsoleLogger, Inject, Injectable } from '@nestjs/common';
-import * as path from 'node:path';
 
 @Injectable()
 export class DecoratorGenerator {
@@ -17,12 +13,7 @@ export class DecoratorGenerator {
     sourceFile: SourceFile,
     project: Project,
   ): Array<DecoratorGeneratorMetadata> {
-    const sourceFileImportsMap = this.buildSourceFileImportsMap(
-      sourceFile,
-      project,
-    );
-
-    const decoratorsArray =  decorators.reduce<DecoratorGeneratorMetadata[]>(
+    return decorators.reduce<DecoratorGeneratorMetadata[]>(
       (array, decorator) => {
         const decoratorName = decorator.getName();
 
@@ -31,13 +22,13 @@ export class DecoratorGenerator {
             decorator,
             'input',
             sourceFile,
-            sourceFileImportsMap,
+            project,
           );
           const output = getDecoratorPropertyValue(
             decorator,
             'output',
             sourceFile,
-            sourceFileImportsMap,
+            project,
           );
 
           array.push({
@@ -57,43 +48,5 @@ export class DecoratorGenerator {
       },
       [],
     );
-    
-    return decoratorsArray;
-  }
-
-  private buildSourceFileImportsMap(
-    sourceFile: SourceFile,
-    project: Project,
-  ): Map<string, SourceFileImportsMap> {
-    const sourceFileImportsMap = new Map<string, SourceFileImportsMap>();
-    const importDeclarations = sourceFile.getImportDeclarations();
-
-    for (const importDeclaration of importDeclarations) {
-      const namedImports = importDeclaration.getNamedImports();
-      for (const namedImport of namedImports) {
-        const name = namedImport.getName();
-        const moduleSpecifier = importDeclaration.getModuleSpecifierValue();
-        const resolvedPath = path.resolve(
-          path.dirname(sourceFile.getFilePath()),
-          moduleSpecifier + '.ts',
-        );
-        const importedSourceFile =
-          project.addSourceFileAtPathIfExists(resolvedPath);
-        if (!importedSourceFile) continue;
-
-        const schemaVariable = importedSourceFile.getVariableDeclaration(name);
-        if (schemaVariable) {
-          const initializer = schemaVariable.getInitializer();
-          if (initializer) {
-            sourceFileImportsMap.set(name, {
-              initializer,
-              sourceFile: importedSourceFile,
-            });
-          }
-        }
-      }
-    }
-
-    return sourceFileImportsMap;
   }
 }

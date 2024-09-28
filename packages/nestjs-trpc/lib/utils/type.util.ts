@@ -1,8 +1,9 @@
-import { Node, SourceFile, Type } from 'ts-morph';
+import { Node, Project, SourceFile, Type } from 'ts-morph';
 import {
   ProcedureGeneratorMetadata,
   SourceFileImportsMap,
 } from '../interfaces/generator.interface';
+import * as path from 'node:path';
 
 export function findCtxOutProperty(type: Type): string | undefined {
   const typeText = type.getText();
@@ -30,12 +31,49 @@ export function generateProcedureString(
   return `${name}: publicProcedure${decoratorArgumentsArray}.${decorator.name.toLowerCase()}(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any )`;
 }
 
+function buildSourceFileImportsMap(
+  sourceFile: SourceFile,
+  project: Project,
+): Map<string, SourceFileImportsMap> {
+  const sourceFileImportsMap = new Map<string, SourceFileImportsMap>();
+  const importDeclarations = sourceFile.getImportDeclarations();
+
+  for (const importDeclaration of importDeclarations) {
+    const namedImports = importDeclaration.getNamedImports();
+    for (const namedImport of namedImports) {
+      const name = namedImport.getName();
+      const moduleSpecifier = importDeclaration.getModuleSpecifierValue();
+      const resolvedPath = path.resolve(
+        path.dirname(sourceFile.getFilePath()),
+        moduleSpecifier + '.ts',
+      );
+      const importedSourceFile =
+        project.addSourceFileAtPathIfExists(resolvedPath);
+      if (!importedSourceFile) continue;
+
+      const schemaVariable = importedSourceFile.getVariableDeclaration(name);
+      if (schemaVariable) {
+        const initializer = schemaVariable.getInitializer();
+        if (initializer) {
+          sourceFileImportsMap.set(name, {
+            initializer,
+            sourceFile: importedSourceFile,
+          });
+        }
+      }
+    }
+  }
+
+  return sourceFileImportsMap;
+}
+
 export function flattenZodSchema(
   node: Node,
-  importsMap: Map<string, SourceFileImportsMap>,
   sourceFile: SourceFile,
+  project: Project,
   schema: string,
 ): string {
+  const importsMap = buildSourceFileImportsMap(sourceFile, project);
   if (Node.isIdentifier(node)) {
     const identifierName = node.getText();
     const identifierDeclaration =
@@ -47,8 +85,8 @@ export function flattenZodSchema(
       if (identifierInitializer != null) {
         const identifierSchema = flattenZodSchema(
           identifierInitializer,
-          importsMap,
           sourceFile,
+          project,
           identifierInitializer.getText(),
         );
 
@@ -61,8 +99,8 @@ export function flattenZodSchema(
         const { initializer } = importedIdentifier;
         const identifierSchema = flattenZodSchema(
           initializer,
-          importsMap,
           importedIdentifier.sourceFile,
+          project,
           initializer.getText(),
         );
 
@@ -80,8 +118,8 @@ export function flattenZodSchema(
             propertyText,
             flattenZodSchema(
               propertyInitializer,
-              importsMap,
               sourceFile,
+              project,
               propertyText,
             ),
           );
@@ -93,7 +131,7 @@ export function flattenZodSchema(
       const elementText = element.getText();
       schema = schema.replace(
         elementText,
-        flattenZodSchema(element, importsMap, sourceFile, elementText),
+        flattenZodSchema(element, sourceFile, project, elementText),
       );
     }
   } else if (Node.isCallExpression(node)) {
@@ -104,8 +142,8 @@ export function flattenZodSchema(
     ) {
       const baseSchema = flattenZodSchema(
         expression,
-        importsMap,
         sourceFile,
+        project,
         expression.getText(),
       );
       const propertyName = expression.getName();
@@ -118,14 +156,14 @@ export function flattenZodSchema(
       const argText = arg.getText();
       schema = schema.replace(
         argText,
-        flattenZodSchema(arg, importsMap, sourceFile, argText),
+        flattenZodSchema(arg, sourceFile, project, argText),
       );
     }
   } else if (Node.isPropertyAccessExpression(node)) {
     schema = flattenZodSchema(
       node.getExpression(),
-      importsMap,
       sourceFile,
+      project,
       node.getExpression().getText(),
     );
   }

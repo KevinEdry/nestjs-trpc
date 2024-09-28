@@ -15,6 +15,7 @@
       "@release-it/conventional-changelog": {
         "infile": "CHANGELOG.md",
         "header": "# Changelog",
+        "ignoreRecommendedBump": true,
         "preset": {
           "name": "conventionalcommits",
           "types": [

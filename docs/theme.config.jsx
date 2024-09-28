@@ -13,7 +13,7 @@ export default {
   banner: {
     key: '1.0-release',
     text: (
-      <a href="https://nextra.site" target="_blank">
+      <a href="https://github.com/KevinEdry/nestjs-trpc/releases" target="_blank">
         🎉 NestJS tRPC 1.0 is released. Read more →
       </a>
     ),

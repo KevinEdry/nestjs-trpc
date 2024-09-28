@@ -1,7 +1,7 @@
 import { Footer } from './components/Footer';
 
 export default {
-  logo: <div className={"md:nx-inline-flex nx-gap-2 nx-items-center nx-font-bold"}><img src={'/logo.png'} width={40} /> NestJS tRPC</div>,
+  logo: <div className={"md:nx-inline-flex nx-gap-2 nx-items-center nx-font-bold"}><img src={'/logo.png'} alt={'nestjs-trpc logo'} width={40} /> NestJS tRPC</div>,
   primaryHue: 200,
   primarySaturation: 100,
   project: {
@@ -20,7 +20,7 @@ export default {
     dismissible: true
   },
   chat: {
-    link: 'https://github.com/kevinedry/nestjs-chat',
+    link: 'https://discord.gg/trpc-867764511159091230',
   },
   docsRepositoryBase: 'https://github.com/KevinEdry/nestjs-trpc',
   sidebar: {

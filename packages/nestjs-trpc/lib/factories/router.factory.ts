@@ -63,7 +63,10 @@ export class RouterFactory {
     return { name, instance, alias: router.alias, middlewares };
   }
 
-  serializeRoutes(router: TRPCRouter, procedure: TRPCPublicProcedure): Record<string, any> {
+  serializeRoutes(
+    router: TRPCRouter,
+    procedure: TRPCPublicProcedure,
+  ): Record<string, any> {
     const routers = this.getRouters();
     const routerSchema = Object.create({});
 
@@ -92,7 +95,6 @@ export class RouterFactory {
 
       // TODO: To get this working with `trpc` v11, we need to remove the `router()` method from here.
       routerSchema[camelCasedRouterName] = router(routerProcedures);
-
     });
 
     return routerSchema;

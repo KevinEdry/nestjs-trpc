@@ -1,5 +1,10 @@
 # Changelog
 
+## <small>1.3.1 (2024-09-28)</small>
+
+* fix: updated release it config file ([0fe1fb6](https://github.com/KevinEdry/nestjs-trpc/commit/0fe1fb6))
+* fix: zod now currently flattens composite types ([029bf3a](https://github.com/KevinEdry/nestjs-trpc/commit/029bf3a))
+
 ## 1.3.0 (2024-08-26)
 
 ## 1.2.0 (2024-08-26)

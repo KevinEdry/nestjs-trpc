@@ -1,6 +1,12 @@
-import { SourceFile, StructureKind, VariableDeclarationKind, Expression, SyntaxKind, Node, Decorator } from 'ts-morph';
-import * as path from 'node:path';
-import { SourceFileImportsMap } from '../interfaces/generator.interface';
+import {
+  SourceFile,
+  StructureKind,
+  VariableDeclarationKind,
+  Expression,
+  SyntaxKind,
+  Decorator,
+  Project,
+} from 'ts-morph';
 import { flattenZodSchema } from './type.util';
 
 export function generateStaticDeclaration(sourceFile: SourceFile): void {
@@ -27,7 +33,9 @@ export function generateStaticDeclaration(sourceFile: SourceFile): void {
   ]);
 }
 
-export async function saveOrOverrideFile(sourceFile: SourceFile): Promise<void> {
+export async function saveOrOverrideFile(
+  sourceFile: SourceFile,
+): Promise<void> {
   sourceFile.formatText({ indentSize: 2 });
   await sourceFile.save();
 }
@@ -36,21 +44,28 @@ export function getDecoratorPropertyValue(
   decorator: Decorator,
   propertyName: string,
   sourceFile: SourceFile,
-  importsMap: Map<string, SourceFileImportsMap>,
+  project: Project,
 ): string | null {
   const args = decorator.getArguments();
 
   for (const arg of args) {
     if (arg.getKind() === SyntaxKind.ObjectLiteralExpression) {
       const properties = (arg as any).getProperties();
-      const property = properties.find((p: any) => p.getName() === propertyName);
+      const property = properties.find(
+        (p: any) => p.getName() === propertyName,
+      );
 
       if (!property) {
         return null;
       }
 
       const propertyInitializer: Expression = property.getInitializer();
-      return flattenZodSchema(propertyInitializer, importsMap, sourceFile, propertyInitializer.getText());
+      return flattenZodSchema(
+        propertyInitializer,
+        sourceFile,
+        project,
+        propertyInitializer.getText(),
+      );
     }
   }
 

@@ -1,10 +1,11 @@
 {
   "compilerOptions": {
-    "composite": true,
+    "composite": false,
     "module": "commonjs",
     "declaration": true,
     "declarationMap": true,
     "noImplicitAny": false,
+    "incremental": false,
     "importHelpers": true,
     "removeComments": false,
     "noLib": false,

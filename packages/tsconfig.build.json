@@ -2,6 +2,7 @@
   "compilerOptions": {
     "module": "commonjs",
     "declaration": true,
+    "incremental": false,
     "declarationMap": true,
     "noImplicitAny": false,
     "importHelpers": true,

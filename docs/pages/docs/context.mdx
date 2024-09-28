@@ -54,7 +54,7 @@ Setting up the context can be done in 3 steps, defining the context class, regis
   ### Including in options
   Lastly we need to pass the context class to the `context` option in our `TRPCModule` import definition.
 
-  ```typescript {8} filename="app.module.ts" copy
+  ```typescript {9} filename="app.module.ts" copy
   import { Module } from '@nestjs/common';
   import { TRPCModule } from 'nestjs-trpc';
   import { AppContext } from 'app.context';
@@ -62,7 +62,7 @@ Setting up the context can be done in 3 steps, defining the context class, regis
   @Module({
     imports: [
       TRPCModule.forRoot({
-        authoSchemaFile: "/src/@generated",
+        autoSchemaFile: "/src/@generated",
         context: AppContext,
       }),
     ],

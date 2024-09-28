@@ -1,5 +1,10 @@
 # Changelog
 
+## <small>1.3.3 (2024-09-28)</small>
+
+* fix: updated import map to handle barrel files ([bc974ca](https://github.com/KevinEdry/nestjs-trpc/commit/bc974ca))
+* fix: updated peer dependencies version ([5be3ac9](https://github.com/KevinEdry/nestjs-trpc/commit/5be3ac9))
+
 ## <small>1.3.2 (2024-09-28)</small>
 
 * fix: fixed zod schema functionality to respect local import maps ([981046f](https://github.com/KevinEdry/nestjs-trpc/commit/981046f))

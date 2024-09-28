@@ -19,7 +19,7 @@
 </div>
 
 ## Introduction
-**NestJS RPC** is a library designed to integrate the capabilities of tRPC into the NestJS framework. It aims to provide native support for decorators and implement an opinionated approach that aligns with NestJS conventions.
+**NestJS tRPC** is a library designed to integrate the capabilities of tRPC into the NestJS framework. It aims to provide native support for decorators and implement an opinionated approach that aligns with NestJS conventions.
 
 ## Features
 - ✅&nbsp; Supports most tRPC features out of the box with more to come.
@@ -84,7 +84,7 @@ class UserRouter {
 
 ## All contributors
 
-> tRPC is developed by [Kevin Edry](https://twitter.com/KevinEdry), which taken a huge inspiration from both NestJS and tRPC inner workings.
+> NestJS tRPC is developed by [Kevin Edry](https://twitter.com/KevinEdry), which taken a huge inspiration from both NestJS and tRPC inner workings.
 
 <a href="https://github.com/KevinEdry/nestjs-trpc/graphs/contributors">
   <p align="center">

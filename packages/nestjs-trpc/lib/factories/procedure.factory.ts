@@ -1,33 +1,35 @@
 import { ConsoleLogger, Inject, Injectable, Type } from '@nestjs/common';
 import { MetadataScanner, ModuleRef } from '@nestjs/core';
 import {
-  PROCEDURE_METADATA_KEY,
-  PROCEDURE_TYPE_KEY,
   MIDDLEWARE_KEY,
+  PROCEDURE_METADATA_KEY,
   PROCEDURE_PARAM_METADATA_KEY,
+  PROCEDURE_TYPE_KEY,
 } from '../trpc.constants';
 import {
   ProcedureFactoryMetadata,
+  ProcedureImplementation,
   ProcedureParamDecorator,
   ProcedureParamDecoratorType,
   TRPCPublicProcedure,
-  ProcedureImplementation,
 } from '../interfaces/factory.interface';
-import { TRPCMiddleware, ProcedureOptions } from '../interfaces';
+import { ProcedureOptions, TRPCMiddleware } from '../interfaces';
 import type { Class } from 'type-fest';
+import { ProcedureType } from '../trpc.enum';
 
 @Injectable()
 export class ProcedureFactory {
   @Inject(ConsoleLogger)
   private readonly consoleLogger!: ConsoleLogger;
-  
+
   @Inject(MetadataScanner)
   private readonly metadataScanner!: MetadataScanner;
 
   constructor(private moduleRef: ModuleRef) {}
-  
+
   getProcedures(
     instance: unknown,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     prototype: Record<string, Function>,
   ): Array<ProcedureFactoryMetadata> {
     return this.metadataScanner.scanFromPrototype(instance, prototype, (name) =>
@@ -44,6 +46,7 @@ export class ProcedureFactory {
 
   private extractProcedureMetadata(
     name: string,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     prototype: Record<string, Function>,
   ): ProcedureFactoryMetadata {
     const callback = prototype[name] as ProcedureImplementation;
@@ -126,7 +129,7 @@ export class ProcedureFactory {
   ): TRPCPublicProcedure {
     const customProcedureInstance = this.moduleRef.get(def, { strict: false });
     if (typeof customProcedureInstance.use === 'function') {
-      //@ts-ignore
+      //@ts-expect-error this is expected since the type is correct.
       return procedure.use((opts) => customProcedureInstance.use(opts));
     }
     return procedure;
@@ -136,10 +139,10 @@ export class ProcedureFactory {
     opts: ProcedureOptions,
     params: Array<ProcedureParamDecorator> | undefined,
   ): Array<undefined | unknown> {
-    if(params == null) {
+    if (params == null) {
       return [];
     }
-    const args = new Array(Math.max(...params.map((val) => val.index)) + 1)
+    return new Array(Math.max(...params.map((val) => val.index)) + 1)
       .fill(undefined)
       .map((_val, idx) => {
         const param = params.find((param) => param.index === idx);
@@ -147,16 +150,15 @@ export class ProcedureFactory {
           return undefined;
         }
         if (param.type === ProcedureParamDecoratorType.Input) {
-          //@ts-ignore
-          return param.key != null ? opts[param.type]?.[param.key] : opts[param.type];
+          return param['key'] != null
+            ? opts[param.type]?.[param['key']]
+            : opts[param.type];
         }
         if (param.type === ProcedureParamDecoratorType.Options) {
           return opts;
         }
         return opts[param.type];
       });
-
-    return args;
   }
 
   private createSerializedProcedure(
@@ -181,10 +183,8 @@ export class ProcedureFactory {
       );
     };
 
-    return type === 'mutation'
-      ? //@ts-ignore
-        procedureWithOutput.mutation(procedureInvocation)
-      : //@ts-ignore
-        procedureWithOutput.query(procedureInvocation);
+    return type === ProcedureType.Mutation
+      ? procedureWithOutput.mutation(procedureInvocation as any)
+      : procedureWithOutput.query(procedureInvocation as any);
   }
 }

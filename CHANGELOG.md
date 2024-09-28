@@ -1,5 +1,13 @@
 # Changelog
 
+## <small>1.3.4 (2024-09-28)</small>
+
+* fix: eslint and prettier fixes ([b7a0550](https://github.com/KevinEdry/nestjs-trpc/commit/b7a0550))
+* fix: fixed mutation mapping issue ([dd10672](https://github.com/KevinEdry/nestjs-trpc/commit/dd10672))
+* docs: edited banner link ([7f75467](https://github.com/KevinEdry/nestjs-trpc/commit/7f75467))
+* docs: update documentation to include discord server link ([4965bf4](https://github.com/KevinEdry/nestjs-trpc/commit/4965bf4))
+* docs: updated context docs ([e0ddf4c](https://github.com/KevinEdry/nestjs-trpc/commit/e0ddf4c))
+
 ## <small>1.3.3 (2024-09-28)</small>
 
 * fix: updated import map to handle barrel files ([bc974ca](https://github.com/KevinEdry/nestjs-trpc/commit/bc974ca))

@@ -37,7 +37,7 @@ export class TRPCDriver<
 
     const app = httpAdapter.getInstance<ExpressApplication>();
 
-    //@ts-ignore Ignoring typescript here since it's the same type, yet it still isn't able to infer it.
+    //@ts-expect-error Ignoring typescript here since it's the same type, yet it still isn't able to infer it.
     const { procedure, router } = initTRPC.context().create({
       ...(options.transformer != null
         ? { transformer: options.transformer }
@@ -57,7 +57,6 @@ export class TRPCDriver<
             strict: false,
           })
         : null;
-
 
     app.use(
       options.basePath ?? '/trpc',

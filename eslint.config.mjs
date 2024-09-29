@@ -15,7 +15,14 @@ const compat = new FlatCompat({
 });
 
 export default [{
-    ignores: ["wpackages/**/tests/**/*"],
+    ignores: [
+        "packages/**/tests/**",
+        "examples",
+        "dist",
+        "node_modules",
+        ".pnp.cjs",
+        ".pnp.loader.mjs"
+    ],
 }, ...compat.extends(
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",

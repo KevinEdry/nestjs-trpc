@@ -18,6 +18,7 @@ import { DecoratorGenerator } from './generators/decorator.generator';
 import { RouterGenerator } from './generators/router.generator';
 import { MiddlewareGenerator } from './generators/middleware.generator';
 import { ContextGenerator } from './generators/context.generator';
+import { AppRouterHost } from './app-router.host';
 
 @Module({
   imports: [],
@@ -34,8 +35,9 @@ import { ContextGenerator } from './generators/context.generator';
     ContextGenerator,
     RouterGenerator,
     TRPCGenerator,
+    AppRouterHost,
   ],
-  exports: [],
+  exports: [AppRouterHost],
 })
 export class TRPCModule implements OnModuleInit {
   @Inject(TRPC_MODULE_OPTIONS)
@@ -49,6 +51,9 @@ export class TRPCModule implements OnModuleInit {
 
   @Inject(TRPCDriver)
   private readonly trpcDriver!: TRPCDriver;
+
+  @Inject(AppRouterHost)
+  private readonly appRouterHost!: AppRouterHost;
 
   static forRoot<TOptions extends Record<string, any> = TRPCModuleOptions>(
     options: TOptions = {} as TOptions,
@@ -67,9 +72,12 @@ export class TRPCModule implements OnModuleInit {
 
     this.consoleLogger.setContext(LOGGER_CONTEXT);
     await this.trpcDriver.start(this.options);
-    this.consoleLogger.log(
-      'Server has been initialized successfully.',
-      'TRPC Server',
-    );
+
+    if (this.appRouterHost.appRouter != null) {
+      this.consoleLogger.log(
+        'Server has been initialized successfully.',
+        'TRPC Server',
+      );
+    }
   }
 }

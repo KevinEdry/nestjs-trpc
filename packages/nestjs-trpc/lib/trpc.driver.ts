@@ -1,12 +1,12 @@
 import { ConsoleLogger, Inject, Injectable, Type } from '@nestjs/common';
-import { ApplicationConfig, HttpAdapterHost, ModuleRef } from '@nestjs/core';
+import { HttpAdapterHost, ModuleRef } from '@nestjs/core';
 import type { Application as ExpressApplication } from 'express';
 import { TRPCContext, TRPCModuleOptions } from './interfaces';
 import { AnyRouter, initTRPC } from '@trpc/server';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { TRPCFactory } from './factories/trpc.factory';
 import { TRPCGenerator } from './generators/trpc.generator';
-import { Class } from 'type-fest';
+import { AppRouterHost } from './app-router.host';
 
 @Injectable()
 export class TRPCDriver<
@@ -23,6 +23,9 @@ export class TRPCDriver<
 
   @Inject(ConsoleLogger)
   protected readonly consoleLogger!: ConsoleLogger;
+
+  @Inject(AppRouterHost)
+  protected readonly appRouterHost!: AppRouterHost;
 
   constructor(private moduleRef: ModuleRef) {}
 
@@ -49,6 +52,8 @@ export class TRPCDriver<
       router,
       procedure,
     );
+
+    this.appRouterHost.appRouter = appRouter;
 
     const contextClass = options.context;
     const contextInstance =

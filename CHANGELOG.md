@@ -1,5 +1,12 @@
 # Changelog
 
+## <small>1.3.5 (2024-09-29)</small>
+
+* docs: added integrations documentation ([9393962](https://github.com/KevinEdry/nestjs-trpc/commit/9393962))
+* fix: added ignore pattern for eslint ([6a985fc](https://github.com/KevinEdry/nestjs-trpc/commit/6a985fc))
+* feat: added trpc panel integration example ([20c28ef](https://github.com/KevinEdry/nestjs-trpc/commit/20c28ef))
+* feat: exposed the runtime trpc app-router ([a405eee](https://github.com/KevinEdry/nestjs-trpc/commit/a405eee))
+
 ## <small>1.3.4 (2024-09-28)</small>
 
 * fix: eslint and prettier fixes ([b7a0550](https://github.com/KevinEdry/nestjs-trpc/commit/b7a0550))

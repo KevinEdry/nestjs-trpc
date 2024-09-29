@@ -19,9 +19,11 @@
 </div>
 
 ## Introduction
+
 **NestJS tRPC** is a library designed to integrate the capabilities of tRPC into the NestJS framework. It aims to provide native support for decorators and implement an opinionated approach that aligns with NestJS conventions.
 
 ## Features
+
 - ✅&nbsp; Supports most tRPC features out of the box with more to come.
 - 🧙‍&nbsp; Full static typesafety & autocompletion on the client, for inputs, outputs, and errors.
 - 🙀&nbsp; Implements the Nestjs opinionated approach to how tRPC works.
@@ -33,20 +35,22 @@
 ## Quickstart
 
 ### Installation
+
 To install **NestJS tRPC** with your preferred package manager, you can use any of the following commands:
 
 ```shell
 # npm
-npm install trpc-nestjs
+npm install trpc-nestjs zod
 
 # pnpm
-pnpm add trpc-nestjs
+pnpm add trpc-nestjs zod
 
 # yarn
-yarn add trpc-nestjs
+yarn add trpc-nestjs zod
 ```
 
 ## How to use
+
 Here's a brief example demonstrating how to use the decorators available in **NestJS tRPC**:
 
 ```typescript
@@ -54,6 +58,7 @@ Here's a brief example demonstrating how to use the decorators available in **Ne
 import { Router, Query, Procedure } from 'trpc-nestjs';
 import { UserService } from './user.service';
 import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
 
 const userSchema = z.object({
   name: z.string(),
@@ -63,18 +68,16 @@ const userSchema = z.object({
 @Router()
 class UserRouter {
   constructor(
-    @Inject(UserService) private readonly userService: UserService
-  ) {
-  }
+    private readonly userService: UserService
+  ) {}
 
   @Procedure(ProtectedProcedure)
   @Query({ output: z.array(userSchema) })
   async getUsers() {
     try {
-      const users = await this.userService.getUsers();
-      return users;
-    } catch (e: unknown) {
-      throw new TRPCError("An error has occured when trying to get users.", "INTERNAL_SERVER_ERROR", e)
+      return this.userService.getUsers();
+    } catch (error: unknown) {
+      throw new TRPCError("An error has occured when trying to get users.", "INTERNAL_SERVER_ERROR", error)
     }
   }
 }

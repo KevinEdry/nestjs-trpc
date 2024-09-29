@@ -1,0 +1,104 @@
+---
+title: "Integrations"
+---
+
+import { Callout, Steps, Tabs } from 'nextra-theme-docs';
+
+# Integrations
+
+### Accessing the AppRouter
+In some circumstances ,for example end-to-end tests or integrating with other `trpc` plugins, you may want to get a reference to the generated appRouter object. In end-to-end tests, you can then run queries using the appRouter object directly without using any HTTP listeners.
+
+You can access the generated appRouter using the `AppRouterHost` class:
+
+```typescript
+const { appRouter } = app.get(AppRouterHost);
+```
+<Callout>
+You must call the `AppRouterHost.appRouter{:tsx}` getter after the application has been initialized (after the `onModuleInit` hook has been triggered by either the `app.listen(){:tsx}` or `app.init(){:tsx}` method).
+</Callout>
+
+With the runtime appRouter object, you can integrate with virtually any trpc-specific library, this includes [trpc-panel](https://github.com/iway1/trpc-panel), [trpc-openapi](https://github.com/jlalmes/trpc-openapi), [trpc-playground](https://github.com/sachinraja/trpc-playground) and more.
+
+### Integrating with `trpc-panel`
+Here is a short example of how to integrate [trpc-panel](https://github.com/iway1/trpc-panel), while this is a specific integration, the techniques used here can be applied to any of the trpc-specific libraries you wish to include. <br/>
+If you still run into issues, please open a [new issue](https://github.com/KevinEdry/nestjs-trpc/issues/new) or contact us via Discord.
+
+<Steps>
+  ### Installation
+  To install `trpc-panel` with your preferred package manager, you can use any of the following commands:
+  <Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+    <Tabs.Tab>
+      ```bash copy
+      npm install trpc-panel
+      ```
+    </Tabs.Tab>
+    <Tabs.Tab>
+      ```bash copy
+      pnpm add trpc-panel
+      ```
+    </Tabs.Tab>
+    <Tabs.Tab>
+      ```bash copy
+      yarn add trpc-panel
+      ```
+     </Tabs.Tab>
+    <Tabs.Tab>
+      ```bash copy
+      bun install trpc-panel
+      ```
+     </Tabs.Tab>
+  </Tabs>
+
+  ### Creating the Panel Controller
+  As per the `trpc-panel` [docs](https://github.com/iway1/trpc-panel?tab=readme-ov-file#quick-start) we need to serve the panel, using the `renderTrpcPanel` method for every method on route `/panel`.
+
+  ```typescript {8, 14-16} filename="trpc-panel.controller.ts" copy
+  import { All, Controller, Inject, OnModuleInit } from '@nestjs/common';
+  import { renderTrpcPanel } from 'trpc-panel';
+  import { AnyRouter } from '@trpc/server';
+  import { AppRouterHost } from 'nestjs-trpc';
+
+  @Controller()
+  export class TrpcPanelController implements OnModuleInit {
+    private appRouter!: AnyRouter;
+
+    constructor(
+      @Inject(AppRouterHost) private readonly appRouterHost: AppRouterHost,
+    ) {}
+
+    onModuleInit() {
+      this.appRouter = this.appRouterHost.appRouter;
+    }
+
+    @All('/panel')
+    panel(): string {
+      return renderTrpcPanel(this.appRouter, {
+        url: 'http://localhost:8080/trpc',
+      });
+    }
+  }
+  ```
+  <Callout>
+    As you can see in the example above, we are using `onModuleInit` lifecycle method to make sure the appRouter is initialized and available.
+  </Callout>
+
+  ### Register the Controller
+  In order to apply the new Controller routes, we need to register it in the `app.module.ts` file.
+
+  ```typescript /TrpcPanelController/ filename="app.module.ts" copy
+  @Module({
+    imports: [
+      TRPCModule.forRoot({
+        autoSchemaFile: './src/@generated',
+        context: AppContext,
+      }),
+    ],
+    controllers: [TrpcPanelController],
+    providers: [],
+  })
+  export class AppModule {}
+  ```
+</Steps>
+
+After you register the controller, you can run your NestJS app, and `trpc-panel` should be acceptable from https://localhost:8080/panel.

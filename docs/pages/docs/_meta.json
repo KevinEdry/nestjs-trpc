@@ -26,6 +26,7 @@
   "context": "Context",
   "dependency-injection": "Dependency Injection",
   "client": "Client Usage",
+  "integrations": "Integrations",
 
   "-- appendix": {
     "type": "separator",

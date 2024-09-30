@@ -1,4 +1,3 @@
-import type { CreateExpressContextOptions } from '@trpc/server/adapters/express';
 import { RootConfigTypes } from '@trpc/server/dist/core/internals/config';
 import { ErrorFormatter } from '@trpc/server/dist/error/formatter';
 import { TRPCErrorShape } from '@trpc/server/dist/rpc';
@@ -21,7 +20,7 @@ export interface TRPCModuleOptions {
   basePath?: string;
 
   /**
-   * The exposed trpc options when creating a route with `createExpressMiddleware`.
+   * The exposed trpc options when creating a route with either `createExpressMiddleware` or `createFastifyMiddleware`.
    * If not provided, the adapter will use a default createContext.
    * @link https://nestjs-trpc.io/docs/context
    */

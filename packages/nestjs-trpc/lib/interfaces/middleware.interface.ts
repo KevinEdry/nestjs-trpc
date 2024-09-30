@@ -1,9 +1,5 @@
-import type {
-  ProcedureType,
-  ProcedureParams,
-} from '@trpc/server';
+import type { ProcedureType, ProcedureParams } from '@trpc/server';
 import type { MiddlewareResult } from '@trpc/server/dist/core/middleware';
-
 
 export type MiddlewareResponse =
   | Promise<MiddlewareResult<ProcedureParams>>

@@ -19,6 +19,7 @@ import { RouterGenerator } from './generators/router.generator';
 import { MiddlewareGenerator } from './generators/middleware.generator';
 import { ContextGenerator } from './generators/context.generator';
 import { AppRouterHost } from './app-router.host';
+import { ExpressDriver, FastifyDriver } from './drivers';
 
 @Module({
   imports: [],
@@ -36,6 +37,8 @@ import { AppRouterHost } from './app-router.host';
     RouterGenerator,
     TRPCGenerator,
     AppRouterHost,
+    FastifyDriver,
+    ExpressDriver,
   ],
   exports: [AppRouterHost],
 })
@@ -69,13 +72,14 @@ export class TRPCModule implements OnModuleInit {
     if (!httpAdapter) {
       return;
     }
-
     this.consoleLogger.setContext(LOGGER_CONTEXT);
+
     await this.trpcDriver.start(this.options);
 
+    const platformName = httpAdapter.getType();
     if (this.appRouterHost.appRouter != null) {
       this.consoleLogger.log(
-        'Server has been initialized successfully.',
+        `Server has been initialized successfully using the ${platformName} driver.`,
         'TRPC Server',
       );
     }

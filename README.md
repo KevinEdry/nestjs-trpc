@@ -40,13 +40,13 @@ To install **NestJS tRPC** with your preferred package manager, you can use any 
 
 ```shell
 # npm
-npm install trpc-nestjs zod
+npm install trpc-nestjs zod @trpc/server
 
 # pnpm
-pnpm add trpc-nestjs zod
+pnpm add trpc-nestjs zod @trpc/server
 
 # yarn
-yarn add trpc-nestjs zod
+yarn add trpc-nestjs zod @trpc/server
 ```
 
 ## How to use
@@ -55,8 +55,10 @@ Here's a brief example demonstrating how to use the decorators available in **Ne
 
 ```typescript
 // users.router.ts
-import { Router, Query, Procedure } from 'trpc-nestjs';
+import { Inject } from '@nestjs/common';
+import { Router, Query, Middlewares } from 'trpc-nestjs';
 import { UserService } from './user.service';
+import { ProtectedMiddleware } from './protected.middleware';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
@@ -68,16 +70,20 @@ const userSchema = z.object({
 @Router()
 class UserRouter {
   constructor(
-    private readonly userService: UserService
+    @Inject(UserService) private readonly userService: UserService
   ) {}
 
-  @Procedure(ProtectedProcedure)
+  @Middlewares(ProtectedMiddleware)
   @Query({ output: z.array(userSchema) })
   async getUsers() {
     try {
       return this.userService.getUsers();
     } catch (error: unknown) {
-      throw new TRPCError("An error has occured when trying to get users.", "INTERNAL_SERVER_ERROR", error)
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "An error has occured when trying to get users.",
+        cause: error
+      })
     }
   }
 }

@@ -1,0 +1,43 @@
+{
+  "name": "example-nestjs-fastify",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./src/main.ts",
+  "scripts": {
+    "build": "nest build",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "start": "nest start",
+    "start:dev": "nest start --watch --preserveWatchOutput",
+    "start:debug": "nest start --debug --watch --preserveWatchOutput",
+    "start:prod": "node dist/main"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@nestjs/common": "10.4.1",
+    "@nestjs/config": "^3.0.0",
+    "@nestjs/core": "10.4.1",
+    "@nestjs/platform-fastify": "^10.4.4",
+    "@trpc/server": "^10.33.0",
+    "fastify": "^5.0.0",
+    "nestjs-trpc": "workspace:*",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.2.0",
+    "zod": "^3.21.4"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "10.4.4",
+    "@nestjs/schematics": "^10.1.2",
+    "@swc/cli": "^0.4.0",
+    "@swc/core": "^1.7.18",
+    "@types/node": "^22.5.0",
+    "chokidar": "^3.6.0",
+    "trpc-panel": "^1.3.4",
+    "ts-morph": "^23.0.0",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0",
+    "tslib": "^2.5.0",
+    "typescript": "^5.0.3"
+  }
+}

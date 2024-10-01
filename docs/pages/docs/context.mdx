@@ -25,14 +25,14 @@ Setting up the context can be done in 3 steps, defining the context class, regis
   To define a new context, we need to create a class that implements `TRPCContext` and it's method `create(){:tsx}`.
   ```typescript filename="app.context.ts" copy
   import { Inject, Injectable } from '@nestjs/common';
-  import { ExpressContextOptions, TRPCContext } from 'nestjs-trpc';
+  import { ContextOptions, TRPCContext } from 'nestjs-trpc';
   import { InnerContext } from './inner.context';
 
   @Injectable()
   export class AppContext implements TRPCContext {
     constructor(@Inject(InnerContext) private readonly innerContext: InnerContext){}
 
-    async create(opts: ExpressContextOptions): Promise<Record<string, unknown>> {
+    async create(opts: ContextOptions): Promise<Record<string, unknown>> {
       const contextInner = await this.innerContext.create(opts);
       return {
         ...contextInner,
@@ -80,11 +80,11 @@ You can import this type and use throughout your middlewares and procedures from
   <Tabs.Tab>
   ```typescript filename="app.context.ts" copy
   import { Injectable } from '@nestjs/common';
-  import { ExpressContextOptions, TRPCContext } from 'nestjs-trpc';
+  import { ContextOptions, TRPCContext } from 'nestjs-trpc';
 
   @Injectable()
   export class AppContext implements TRPCContext {
-    create(opts: ExpressContextOptions): Record<string, unknown> {
+    create(opts: ContextOptions): Record<string, unknown> {
       return {
         isContextApplied: true,
       };

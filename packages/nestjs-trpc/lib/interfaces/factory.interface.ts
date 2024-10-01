@@ -1,16 +1,10 @@
 import type {
   ProcedureRouterRecord,
   AnyRouter,
-  AnyRootConfig,
   ProcedureBuilder,
-  RootConfig,
-  DataTransformerOptions,
-  unsetMarker,
   ProcedureType,
-  Router,
   ProcedureParams,
 } from '@trpc/server';
-import type { RouterDef } from '@trpc/server/dist/core/router';
 import type { ZodSchema, ZodType, ZodTypeDef } from 'zod';
 import type { TRPCMiddleware } from './middleware.interface';
 import type { Class } from 'type-fest';
@@ -78,15 +72,5 @@ export interface RoutersFactoryMetadata {
 export type TRPCRouter = <TProcRouterRecord extends ProcedureRouterRecord>(
   procedures: TProcRouterRecord,
 ) => AnyRouter;
-
-export type TRPCMergeRoutes = <TRouters extends AnyRouter[]>(
-  ...routerList_0: TRouters
-) => Router<
-  RouterDef<
-    AnyRootConfig,
-    {},
-    { queries: {}; mutations: {}; subscriptions: {} }
-  >
->;
 
 export type TRPCPublicProcedure = ProcedureBuilder<ProcedureParams>;

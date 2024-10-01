@@ -1,0 +1,16 @@
+{
+  "language": "ts",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "src",
+  "compilerOptions": {
+    "deleteOutDir": true
+  },
+  "watchOptions": {
+    "watchExclude": [
+      "src/@generated/**/*",
+      "src/@generated/*",
+      "**/@generated/**/*",
+      "**/*.spec.ts"
+    ]
+  }
+}

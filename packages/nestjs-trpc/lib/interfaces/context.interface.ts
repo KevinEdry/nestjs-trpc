@@ -1,9 +1,12 @@
 import type { CreateExpressContextOptions } from '@trpc/server/adapters/express';
+import type { CreateFastifyContextOptions } from '@trpc/server/adapters/fastify';
 
-export type ExpressContextOptions = CreateExpressContextOptions;
+export type ContextOptions =
+  | CreateExpressContextOptions
+  | CreateFastifyContextOptions;
 
 export interface TRPCContext {
   create(
-    opts: ExpressContextOptions,
+    opts: ContextOptions,
   ): Record<string, unknown> | Promise<Record<string, unknown>>;
 }

@@ -40,7 +40,7 @@
 - ⚡️&nbsp; Same client-side DX - We generate the AppRouter on the fly.
 - 🔋&nbsp; Examples are available in the ./examples folder.
 - 📦&nbsp; Out of the box support for **Dependency Injection** within the routes and procedures.
-- 👀&nbsp; Native support for `express`, and `zod` with more drivers to come!
+- 👀&nbsp; Native support for `express`, `fastify`, and `zod` with more drivers to come!
 
 ## Quickstart
 

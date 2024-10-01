@@ -82,7 +82,7 @@ Here is and example for a router, and the generated output:
 </Tabs>
 
 The generated AppRouter is **only used for type inference**, thats why you don't see any logic within `.query(){:tsx}` method and why we have a `'PLACEHOLDER_DO_NOT_REMOVE' as any{:tsx}` as the logic just to keep typescript happy. 
-Your router business logic is then executed during run-time with vanilla trpc and the selected driver (`express` or `fastify`) based on your configurations.
+Your router business logic is then executed during run-time with vanilla trpc and the selected driver (either `express` or `fastify`) based on your configurations.
 
 <Callout>
     If you notice the generated `AppRouter` takes into concideration the `@Router(alias?: string){:tsx}` alias, and it hoists the original `ZodSchema` even if imported from a different file (which wasn't easy to make work 😅).

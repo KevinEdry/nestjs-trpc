@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.4.0 (2024-10-01)
+
+* docs: updated readme and docs to include fastify ([7eb1428](https://github.com/KevinEdry/nestjs-trpc/commit/7eb1428))
+* docs(README): add missing peer dependency and fix error handling ([c2601ee](https://github.com/KevinEdry/nestjs-trpc/commit/c2601ee))
+* docs(README): fix typos ([7e35bcf](https://github.com/KevinEdry/nestjs-trpc/commit/7e35bcf))
+* docs(README): format code and add missing import ([d36d8d3](https://github.com/KevinEdry/nestjs-trpc/commit/d36d8d3))
+* feat: added fastify example ([e55899b](https://github.com/KevinEdry/nestjs-trpc/commit/e55899b))
+* feat: added fastify support ([e554ff1](https://github.com/KevinEdry/nestjs-trpc/commit/e554ff1))
+* chore(husky/commit-msg): remove deprecated code ([d769ec9](https://github.com/KevinEdry/nestjs-trpc/commit/d769ec9))
+* style(examples/nextjs-trpc): fix code formatting ([a40e4aa](https://github.com/KevinEdry/nestjs-trpc/commit/a40e4aa))
+* fix: documentations typos ([2ab18c2](https://github.com/KevinEdry/nestjs-trpc/commit/2ab18c2))
+
 ## <small>1.3.5 (2024-09-29)</small>
 
 * docs: added integrations documentation ([9393962](https://github.com/KevinEdry/nestjs-trpc/commit/9393962))

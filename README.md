@@ -29,9 +29,11 @@
 </div>
 
 ## Introduction
-**NestJS RPC** is a library designed to integrate the capabilities of tRPC into the NestJS framework. It aims to provide native support for decorators and implement an opinionated approach that aligns with NestJS conventions.
+
+**NestJS tRPC** is a library designed to integrate the capabilities of tRPC into the NestJS framework. It aims to provide native support for decorators and implement an opinionated approach that aligns with NestJS conventions.
 
 ## Features
+
 - ✅&nbsp; Supports most tRPC features out of the box with more to come.
 - 🧙‍&nbsp; Full static typesafety & autocompletion on the client, for inputs, outputs, and errors.
 - 🙀&nbsp; Implements the Nestjs opinionated approach to how tRPC works.
@@ -43,27 +45,32 @@
 ## Quickstart
 
 ### Installation
+
 To install **NestJS tRPC** with your preferred package manager, you can use any of the following commands:
 
 ```shell
 # npm
-npm install trpc-nestjs
+npm install trpc-nestjs zod @trpc/server
 
 # pnpm
-pnpm add trpc-nestjs
+pnpm add trpc-nestjs zod @trpc/server
 
 # yarn
-yarn add trpc-nestjs
+yarn add trpc-nestjs zod @trpc/server
 ```
 
 ## How to use
+
 Here's a brief example demonstrating how to use the decorators available in **NestJS tRPC**:
 
 ```typescript
 // users.router.ts
-import { Router, Query, Procedure } from 'trpc-nestjs';
+import { Inject } from '@nestjs/common';
+import { Router, Query, Middlewares } from 'trpc-nestjs';
 import { UserService } from './user.service';
+import { ProtectedMiddleware } from './protected.middleware';
 import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
 
 const userSchema = z.object({
   name: z.string(),
@@ -74,17 +81,19 @@ const userSchema = z.object({
 class UserRouter {
   constructor(
     @Inject(UserService) private readonly userService: UserService
-  ) {
-  }
+  ) {}
 
-  @Procedure(ProtectedProcedure)
+  @Middlewares(ProtectedMiddleware)
   @Query({ output: z.array(userSchema) })
   async getUsers() {
     try {
-      const users = await this.userService.getUsers();
-      return users;
-    } catch (e: unknown) {
-      throw new TRPCError("An error has occured when trying to get users.", "INTERNAL_SERVER_ERROR", e)
+      return this.userService.getUsers();
+    } catch (error: unknown) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "An error has occured when trying to get users.",
+        cause: error
+      })
     }
   }
 }
@@ -94,7 +103,7 @@ class UserRouter {
 
 ## All contributors
 
-> tRPC is developed by [Kevin Edry](https://twitter.com/KevinEdry), which taken a huge inspiration from both NestJS and tRPC inner workings.
+> NestJS tRPC is developed by [Kevin Edry](https://twitter.com/KevinEdry), which taken a huge inspiration from both NestJS and tRPC inner workings.
 
 <a href="https://github.com/KevinEdry/nestjs-trpc/graphs/contributors">
   <p align="center">

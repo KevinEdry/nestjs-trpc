@@ -58,7 +58,7 @@ import { TRPCModule } from 'nestjs-trpc';
 export class AppModule {}
 ```
 
-The `forRoot()` method takes an options object as an argument. These options are passed through to the underlying express driver. For example, if you want to disable the schema file generation (when deploying to production), you can omit the `autoSchemaFile` option.
+The `forRoot()` method takes an options object as an argument. These options are passed through to the underlying `express` or `fastify` driver. For example, if you want to disable the schema file generation (when deploying to production), you can omit the `autoSchemaFile` option.
 
 ### Start your NestJS server. You should be good to go! 🎉
 

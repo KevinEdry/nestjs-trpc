@@ -15,15 +15,18 @@ import { PROCEDURE_PARAM_METADATA_KEY } from '../trpc.constants';
  */
 export function Input(key?: string): ParameterDecorator {
   return (
-    target: Object,
+    target: object,
     propertyKey: string | symbol | undefined,
     parameterIndex: number,
   ) => {
     if (propertyKey != null && typeof parameterIndex === 'number') {
       const existingParams: Array<ProcedureParamDecorator> =
-        Reflect.getMetadata(PROCEDURE_PARAM_METADATA_KEY, target, propertyKey) ||
-        [];
-  
+        Reflect.getMetadata(
+          PROCEDURE_PARAM_METADATA_KEY,
+          target,
+          propertyKey,
+        ) || [];
+
       const procedureParamMetadata: ProcedureParamDecorator = {
         type: ProcedureParamDecoratorType.Input,
         index: parameterIndex,

@@ -50,13 +50,13 @@ To install **NestJS tRPC** with your preferred package manager, you can use any 
 
 ```shell
 # npm
-npm install trpc-nestjs zod @trpc/server
+npm install nestjs-trpc zod @trpc/server
 
 # pnpm
-pnpm add trpc-nestjs zod @trpc/server
+pnpm add nestjs-trpc zod @trpc/server
 
 # yarn
-yarn add trpc-nestjs zod @trpc/server
+yarn add nestjs-trpc zod @trpc/server
 ```
 
 ## How to use
@@ -66,7 +66,7 @@ Here's a brief example demonstrating how to use the decorators available in **Ne
 ```typescript
 // users.router.ts
 import { Inject } from '@nestjs/common';
-import { Router, Query, Middlewares } from 'trpc-nestjs';
+import { Router, Query, Middlewares } from 'nestjs-trpc';
 import { UserService } from './user.service';
 import { ProtectedMiddleware } from './protected.middleware';
 import { TRPCError } from '@trpc/server';

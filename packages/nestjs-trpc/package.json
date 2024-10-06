@@ -3,7 +3,7 @@
   "version": "1.4.0",
   "homepage": "https://nestjs-trpc.io",
   "main": "./dist/index.js",
-  "types": "./lib/index.ts",
+  "types": "./dist/index.d.ts",
   "license": "MIT",
   "files": [
     "dist"
@@ -67,7 +67,6 @@
     "zod": "^3.14.4"
   },
   "dependencies": {
-    "func-loc": "^0.1.16",
     "lodash": "^4.17.21",
     "ts-morph": "22.0.0",
     "tslib": "^2.5.0"

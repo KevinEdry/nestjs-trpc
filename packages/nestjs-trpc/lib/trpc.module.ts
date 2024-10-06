@@ -1,6 +1,6 @@
 import { ConsoleLogger, Inject, Module } from '@nestjs/common';
 import { DynamicModule, OnModuleInit } from '@nestjs/common/interfaces';
-import { HttpAdapterHost, MetadataScanner } from '@nestjs/core';
+import { HttpAdapterHost } from '@nestjs/core';
 
 import {
   LOGGER_CONTEXT,
@@ -10,52 +10,23 @@ import {
 
 import { TRPCModuleOptions } from './interfaces';
 import { TRPCDriver } from './trpc.driver';
-import { TRPCFactory } from './factories/trpc.factory';
-import { RouterFactory } from './factories/router.factory';
-import { ProcedureFactory } from './factories/procedure.factory';
-import { MiddlewareFactory } from './factories/middleware.factory';
-import { TRPCGenerator } from './generators/trpc.generator';
-import { DecoratorGenerator } from './generators/decorator.generator';
-import { RouterGenerator } from './generators/router.generator';
-import { MiddlewareGenerator } from './generators/middleware.generator';
-import { ContextGenerator } from './generators/context.generator';
 import { AppRouterHost } from './app-router.host';
 import { ExpressDriver, FastifyDriver } from './drivers';
-import { StaticGenerator } from './generators/static.generator';
 import { FileScanner } from './scanners/file.scanner';
-import { ProcedureGenerator } from './generators/procedure.generator';
-import { ImportsScanner } from './scanners/imports.scanner';
+import { GeneratorModule } from './generators/generator.module';
+import { FactoryModule } from './factories/factory.module';
+import { ScannerModule } from './scanners/scanner.module';
 
 @Module({
-  imports: [],
+  imports: [FactoryModule, ScannerModule],
   providers: [
     // NestJS Providers
     ConsoleLogger,
-    MetadataScanner,
 
     // Drivers
     TRPCDriver,
     FastifyDriver,
     ExpressDriver,
-
-    // Factories
-    TRPCFactory,
-    RouterFactory,
-    ProcedureFactory,
-    MiddlewareFactory,
-
-    // Generators
-    TRPCGenerator,
-    RouterGenerator,
-    ProcedureGenerator,
-    DecoratorGenerator,
-    MiddlewareGenerator,
-    ContextGenerator,
-    StaticGenerator,
-
-    // Scanners
-    FileScanner,
-    ImportsScanner,
 
     // Exports
     AppRouterHost,
@@ -80,13 +51,20 @@ export class TRPCModule implements OnModuleInit {
 
   static forRoot(options: TRPCModuleOptions = {}): DynamicModule {
     const fileScanner = new FileScanner();
+    const callerFilePath = fileScanner.getCallerFilePath();
     return {
       module: TRPCModule,
+      imports: [
+        GeneratorModule.forRoot({
+          outputDirPath: options.autoSchemaFile,
+          rootModuleFilePath: callerFilePath,
+        }),
+      ],
       providers: [
         { provide: TRPC_MODULE_OPTIONS, useValue: options },
         {
           provide: TRPC_MODULE_CALLER_FILE_PATH,
-          useValue: fileScanner.getCallerFilePath(),
+          useValue: callerFilePath,
         },
       ],
     };

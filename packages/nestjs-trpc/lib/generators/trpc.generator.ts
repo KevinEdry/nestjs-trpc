@@ -5,7 +5,7 @@ import {
   Injectable,
   OnModuleInit,
 } from '@nestjs/common';
-import { Project, CompilerOptions, ScriptTarget, ModuleKind } from 'ts-morph';
+import { Project, SourceFile } from 'ts-morph';
 import { saveOrOverrideFile } from '../utils/ts-morph.util';
 import { RouterGenerator } from './router.generator';
 import { SchemaImports, TRPCContext } from '../interfaces';
@@ -19,17 +19,25 @@ import { TRPC_MODULE_CALLER_FILE_PATH } from '../trpc.constants';
 import { SourceFileImportsMap } from '../interfaces/generator.interface';
 import { StaticGenerator } from './static.generator';
 import { ImportsScanner } from '../scanners/imports.scanner';
+import {
+  TYPESCRIPT_APP_ROUTER_SOURCE_FILE,
+  TYPESCRIPT_PROJECT,
+} from './generator.constants';
 
 @Injectable()
 export class TRPCGenerator implements OnModuleInit {
-  private project!: Project;
   private rootModuleImportsMap!: Map<string, SourceFileImportsMap>;
-  private readonly APP_ROUTER_OUTPUT_FILE = 'server.ts';
   private readonly HELPER_TYPES_OUTPUT_FILE = 'index.ts';
   private readonly HELPER_TYPES_OUTPUT_PATH = path.join(__dirname, 'types');
 
   @Inject(TRPC_MODULE_CALLER_FILE_PATH)
   private readonly moduleCallerFilePath!: string;
+
+  @Inject(TYPESCRIPT_PROJECT)
+  private readonly project!: Project;
+
+  @Inject(TYPESCRIPT_APP_ROUTER_SOURCE_FILE)
+  private readonly appRouterSourceFile!: SourceFile;
 
   @Inject(ConsoleLogger)
   private readonly consoleLogger!: ConsoleLogger;
@@ -59,17 +67,6 @@ export class TRPCGenerator implements OnModuleInit {
   private readonly importsScanner!: ImportsScanner;
 
   onModuleInit() {
-    const defaultCompilerOptions: CompilerOptions = {
-      target: ScriptTarget.ES2019,
-      module: ModuleKind.CommonJS,
-      emitDecoratorMetadata: true,
-      experimentalDecorators: true,
-      allowJs: true,
-      checkJs: true,
-      esModuleInterop: true,
-    };
-
-    this.project = new Project({ compilerOptions: defaultCompilerOptions });
     this.rootModuleImportsMap = this.buildRootImportsMap();
   }
 
@@ -90,20 +87,14 @@ export class TRPCGenerator implements OnModuleInit {
         return { name, path, alias, instance: { ...route }, procedures };
       });
 
-      const appRouterSourceFile = this.project.createSourceFile(
-        path.resolve(outputDirPath, this.APP_ROUTER_OUTPUT_FILE),
-        undefined,
-        { overwrite: true },
-      );
-
-      this.staticGenerator.generateStaticDeclaration(appRouterSourceFile);
+      this.staticGenerator.generateStaticDeclaration(this.appRouterSourceFile);
 
       if (schemaImports != null && schemaImports.length > 0) {
-        const schemaImportNames = schemaImports.map(
+        const schemaImportNames: Array<string> = schemaImports.map(
           (schemaImport) => (schemaImport as any).name,
         );
         this.staticGenerator.addSchemaImports(
-          appRouterSourceFile,
+          this.appRouterSourceFile,
           schemaImportNames,
           this.rootModuleImportsMap,
         );
@@ -119,15 +110,15 @@ export class TRPCGenerator implements OnModuleInit {
           routersMetadata,
         );
 
-      appRouterSourceFile.addStatements(/* ts */ `
+      this.appRouterSourceFile.addStatements(/* ts */ `
         const appRouter = t.router({${routersStringDeclarations}});
         export type AppRouter = typeof appRouter;
       `);
 
-      await saveOrOverrideFile(appRouterSourceFile);
+      await saveOrOverrideFile(this.appRouterSourceFile);
 
       this.consoleLogger.log(
-        `AppRouter has been updated successfully at "${outputDirPath}/${this.APP_ROUTER_OUTPUT_FILE}".`,
+        `AppRouter has been updated successfully at "${this.appRouterSourceFile.getFilePath()}".`,
         'TRPC Generator',
       );
     } catch (error: unknown) {

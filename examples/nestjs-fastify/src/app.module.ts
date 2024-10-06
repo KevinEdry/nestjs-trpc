@@ -6,10 +6,13 @@ import { ProtectedMiddleware } from './protected.middleware';
 import { AppContext } from './app.context';
 import { TrpcPanelController } from './trpc-panel.controller';
 
+import { createPaginatedResponseSchema } from './user.schema';
+
 @Module({
   imports: [
     TRPCModule.forRoot({
       autoSchemaFile: './src/@generated',
+      schemaFileImports: [createPaginatedResponseSchema],
       context: AppContext,
     }),
   ],

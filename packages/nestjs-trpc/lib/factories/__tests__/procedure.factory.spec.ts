@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ProcedureFactory } from '../procedure.factory';
 import { ConsoleLogger } from '@nestjs/common';
 import { MetadataScanner, ModuleRef } from '@nestjs/core';
-import { PROCEDURE_METADATA_KEY, PROCEDURE_TYPE_KEY, MIDDLEWARE_KEY, PROCEDURE_PARAM_METADATA_KEY } from '../../trpc.constants';
 import { z } from 'zod';
 import { ProcedureBuilder, TRPCError, initTRPC } from '@trpc/server';
 import { ProcedureFactoryMetadata, ProcedureParamDecoratorType } from '../../interfaces/factory.interface';

@@ -97,7 +97,10 @@ export class TRPCDriver<
     }
 
     if (options.autoSchemaFile != null) {
-      await this.trpcGenerator.generateSchemaFile(options.autoSchemaFile);
+      await this.trpcGenerator.generateSchemaFile(
+        options.autoSchemaFile,
+        options.schemaFileImports,
+      );
       await this.trpcGenerator.generateHelpersFile(options.context);
     } else {
       this.consoleLogger.log(

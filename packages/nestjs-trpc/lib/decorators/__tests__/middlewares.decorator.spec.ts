@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { Middlewares } from '../middlewares.decorator';
-import { MIDDLEWARE_KEY } from '../../trpc.constants';
+import { MIDDLEWARES_KEY } from '../../trpc.constants';
 import { MiddlewareOptions, MiddlewareResponse, TRPCMiddleware } from '../../interfaces';
 
 describe('Middlewares Decorator', () => {
@@ -10,7 +10,7 @@ describe('Middlewares Decorator', () => {
     @Middlewares(mockMiddleware)
     class TestClass {}
 
-    const metadata = Reflect.getMetadata(MIDDLEWARE_KEY, TestClass);
+    const metadata = Reflect.getMetadata(MIDDLEWARES_KEY, TestClass);
     expect(metadata).toBe(mockMiddleware);
   });
 
@@ -20,7 +20,7 @@ describe('Middlewares Decorator', () => {
       testMethod() {}
     }
 
-    const metadata = Reflect.getMetadata(MIDDLEWARE_KEY, TestClass.prototype.testMethod);
+    const metadata = Reflect.getMetadata(MIDDLEWARES_KEY, TestClass.prototype.testMethod);
     expect(metadata).toBe(mockMiddleware);
   });
 
@@ -50,7 +50,7 @@ describe('Middlewares Decorator', () => {
     @Middlewares(MiddlewareWithUse)
     class TestClass {}
 
-    const metadata = Reflect.getMetadata(MIDDLEWARE_KEY, TestClass);
+    const metadata = Reflect.getMetadata(MIDDLEWARES_KEY, TestClass);
     expect(metadata).toBe(MiddlewareWithUse);
   });
 });

@@ -1,34 +1,56 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Class } from 'type-fest';
+import { Class, Constructor } from 'type-fest';
 import { TRPCMiddleware } from '../interfaces';
 import { RouterFactory } from './router.factory';
 import { ProcedureFactory } from './procedure.factory';
 
+interface MiddlewareMetadata {
+  path: string;
+  instance: Class<TRPCMiddleware> | Constructor<TRPCMiddleware>;
+}
+
 @Injectable()
 export class MiddlewareFactory {
-  @Inject(RouterFactory) 
+  @Inject(RouterFactory)
   private readonly routerFactory!: RouterFactory;
 
   @Inject(ProcedureFactory)
   private readonly procedureFactory!: ProcedureFactory;
 
-  getMiddlewares(): Array<Class<TRPCMiddleware>> {
+  getMiddlewares(): Array<MiddlewareMetadata> {
     const routers = this.routerFactory.getRouters();
 
-    const middlewares = routers.flatMap((route) => {
-      const { instance } = route;
+    const middlewaresMetadata = routers.flatMap((router) => {
+      const { instance, middlewares, path } = router;
       const prototype = Object.getPrototypeOf(instance);
       const procedures = this.procedureFactory.getProcedures(
         instance,
         prototype,
       );
 
-      return procedures.flatMap((procedure) => {
-        return procedure.middlewares != null ? procedure.middlewares : []
+      const procedureMiddleware = procedures.flatMap((procedure) => {
+        return procedure.middlewares != null ? procedure.middlewares : [];
       });
+
+      return [...middlewares, ...procedureMiddleware].map((middleware) => ({
+        path,
+        instance: middleware,
+      }));
     });
 
-    // Returns a unique middleware array since we need to generate types only one time.
-    return [...new Set(middlewares)];
+    // Return a unique array of middlewares based on both path and instances
+    return middlewaresMetadata.reduce<MiddlewareMetadata[]>((acc, current) => {
+      // Check if the combination of path and instances is already in the accumulator
+      const exists = acc.some(
+        (item) =>
+          //TODO Check if it is possible to filter out unique based on instances.
+          item.path === current.path && item.instance === current.instance,
+      );
+
+      // If not, add to the accumulator
+      if (!exists) acc.push(current);
+
+      return acc;
+    }, []);
   }
 }

@@ -2,7 +2,7 @@ import { ConsoleLogger, Inject, Injectable } from '@nestjs/common';
 import { ModulesContainer } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import { camelCase } from 'lodash';
-import { MIDDLEWARE_KEY, ROUTER_METADATA_KEY } from '../trpc.constants';
+import { MIDDLEWARES_KEY, ROUTER_METADATA_KEY } from '../trpc.constants';
 import {
   RouterInstance,
   TRPCPublicProcedure,
@@ -10,6 +10,7 @@ import {
 } from '../interfaces/factory.interface';
 import { TRPCMiddleware } from '../interfaces';
 import { ProcedureFactory } from './procedure.factory';
+import { Class, Constructor } from 'type-fest';
 
 @Injectable()
 export class RouterFactory {
@@ -55,12 +56,17 @@ export class RouterFactory {
       return null;
     }
 
-    const middlewares: TRPCMiddleware = Reflect.getMetadata(
-      MIDDLEWARE_KEY,
-      instance.constructor,
-    );
+    const middlewares: Array<
+      Class<TRPCMiddleware> | Constructor<TRPCMiddleware>
+    > = Reflect.getMetadata(MIDDLEWARES_KEY, instance.constructor) || [];
 
-    return { name, instance, alias: router.alias, middlewares };
+    return {
+      name,
+      instance,
+      path: router.path,
+      alias: router.alias,
+      middlewares: middlewares,
+    };
   }
 
   serializeRoutes(

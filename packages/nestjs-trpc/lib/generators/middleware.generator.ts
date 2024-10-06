@@ -12,11 +12,11 @@ import {
 import { Injectable } from '@nestjs/common';
 import { TRPCMiddleware } from '../interfaces';
 import type { Class } from 'type-fest';
-import { locate } from 'func-loc';
 
 @Injectable()
 export class MiddlewareGenerator {
   public async getMiddlewareInterface(
+    routerFilePath: string,
     middleware: Class<TRPCMiddleware>,
     project: Project,
   ): Promise<{
@@ -34,13 +34,7 @@ export class MiddlewareGenerator {
       return null;
     }
 
-    const contextFileLocation = await locate(middlewareInstance.use, {
-      sourceMap: true,
-    });
-
-    const contextSourceFile = project.addSourceFileAtPath(
-      contextFileLocation.path,
-    );
+    const contextSourceFile = project.addSourceFileAtPath(routerFilePath);
 
     const classDeclaration = this.getClassDeclaration(
       contextSourceFile,
@@ -124,7 +118,7 @@ export class MiddlewareGenerator {
     if (type.isObject()) {
       type.getProperties().forEach((prop) => {
         const propValueDeclaration = prop.getValueDeclaration();
-        if(propValueDeclaration != null) {
+        if (propValueDeclaration != null) {
           properties.push({
             name: prop.getName(),
             type: prop.getTypeAtLocation(propValueDeclaration).getText(),

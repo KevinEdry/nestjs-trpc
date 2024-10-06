@@ -3,7 +3,7 @@ import { RouterFactory } from '../router.factory';
 import { ConsoleLogger } from '@nestjs/common';
 import { ModulesContainer } from '@nestjs/core';
 import { ProcedureFactory } from '../procedure.factory';
-import { ROUTER_METADATA_KEY, MIDDLEWARE_KEY, PROCEDURE_TYPE_KEY, PROCEDURE_METADATA_KEY } from '../../trpc.constants';
+import { ROUTER_METADATA_KEY, MIDDLEWARES_KEY, PROCEDURE_TYPE_KEY, PROCEDURE_METADATA_KEY } from '../../trpc.constants';
 import { z } from 'zod';
 import { initTRPC, TRPCError } from '@trpc/server';
 import { TRPCMiddleware } from '../../interfaces';
@@ -77,8 +77,8 @@ describe('RouterFactory', () => {
           input: z.object({ userId: z.string() }),
           output: userSchema,
         })
-        @Reflect.metadata(MIDDLEWARE_KEY, ProtectedMiddleware)
-        async getUserById(userId: string, ctx: any, opts: any): Promise<any> {
+        @Reflect.metadata(MIDDLEWARES_KEY, ProtectedMiddleware)
+        async getUserById(userId: string, ctx: any, _opts: any): Promise<any> {
           const user = await this.userService.getUser(userId);
           if (ctx.ben) {
             throw new TRPCError({
@@ -148,7 +148,7 @@ describe('RouterFactory', () => {
       class UserRouter {
         constructor(private readonly userService: UserService) {}
 
-        async getUserById(userId: string, ctx: any, opts: any): Promise<any> {
+        async getUserById(userId: string, ctx: any, _opts: any): Promise<any> {
           const user = await this.userService.getUser(userId);
           if (ctx.ben) {
             throw new TRPCError({

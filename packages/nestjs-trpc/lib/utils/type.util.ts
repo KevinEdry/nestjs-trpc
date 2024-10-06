@@ -75,7 +75,7 @@ function resolveBarrelFileImport(
   return undefined;
 }
 
-function buildSourceFileImportsMap(
+export function buildSourceFileImportsMap(
   sourceFile: SourceFile,
   project: Project,
 ): Map<string, SourceFileImportsMap> {
@@ -95,7 +95,7 @@ function buildSourceFileImportsMap(
 
       const resolvedSourceFile =
         importedSourceFile.getFilePath().endsWith('index.ts') &&
-        importedSourceFile.getVariableDeclaration(name) == null
+        !importedSourceFile.getVariableDeclaration(name)
           ? resolveBarrelFileImport(importedSourceFile, name, project)
           : importedSourceFile;
 
@@ -103,15 +103,23 @@ function buildSourceFileImportsMap(
         continue;
       }
 
-      const schemaVariable = resolvedSourceFile.getVariableDeclaration(name);
-      if (schemaVariable != null) {
-        const initializer = schemaVariable.getInitializer();
-        if (initializer) {
-          sourceFileImportsMap.set(name, {
-            initializer,
-            sourceFile: resolvedSourceFile,
-          });
-        }
+      // Generalized logic to handle various kinds of declarations
+      const declaration =
+        resolvedSourceFile.getVariableDeclaration(name) ||
+        resolvedSourceFile.getClass(name) ||
+        resolvedSourceFile.getInterface(name) ||
+        resolvedSourceFile.getEnum(name) ||
+        resolvedSourceFile.getFunction(name);
+
+      if (declaration != null) {
+        const initializer =
+          'getInitializer' in declaration
+            ? declaration.getInitializer()
+            : declaration;
+        sourceFileImportsMap.set(name, {
+          initializer: initializer ?? declaration,
+          sourceFile: resolvedSourceFile,
+        });
       }
     }
   }

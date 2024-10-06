@@ -7,24 +7,32 @@ import {
 } from '@nestjs/common';
 import { Project, CompilerOptions, ScriptTarget, ModuleKind } from 'ts-morph';
 import {
+  addSchemaImports,
   generateStaticDeclaration,
   saveOrOverrideFile,
 } from '../utils/file.util';
 import { RouterGenerator } from './router.generator';
-import { TRPCContext } from '../interfaces';
+import { SchemaImports, TRPCContext } from '../interfaces';
 import { MiddlewareGenerator } from './middleware.generator';
 import type { Class } from 'type-fest';
 import { ContextGenerator } from './context.generator';
 import { RouterFactory } from '../factories/router.factory';
 import { MiddlewareFactory } from '../factories/middleware.factory';
 import { ProcedureFactory } from '../factories/procedure.factory';
+import { TRPC_MODULE_CALLER_FILE_PATH } from '../trpc.constants';
+import { buildSourceFileImportsMap } from '../utils/type.util';
+import { SourceFileImportsMap } from '../interfaces/generator.interface';
 
 @Injectable()
 export class TRPCGenerator implements OnModuleInit {
   private project!: Project;
+  private rootModuleImportsMap!: Map<string, SourceFileImportsMap>;
   private readonly APP_ROUTER_OUTPUT_FILE = 'server.ts';
   private readonly HELPER_TYPES_OUTPUT_FILE = 'index.ts';
   private readonly HELPER_TYPES_OUTPUT_PATH = path.join(__dirname, 'types');
+
+  @Inject(TRPC_MODULE_CALLER_FILE_PATH)
+  private readonly moduleCallerFilePath!: string;
 
   @Inject(ConsoleLogger)
   private readonly consoleLogger!: ConsoleLogger;
@@ -53,24 +61,30 @@ export class TRPCGenerator implements OnModuleInit {
       module: ModuleKind.CommonJS,
       emitDecoratorMetadata: true,
       experimentalDecorators: true,
+      allowJs: true,
+      checkJs: true,
       esModuleInterop: true,
     };
 
     this.project = new Project({ compilerOptions: defaultCompilerOptions });
+    this.rootModuleImportsMap = this.buildRootImportsMap();
   }
 
-  public async generateSchemaFile(outputDirPath: string): Promise<void> {
+  public async generateSchemaFile(
+    outputDirPath: string,
+    schemaImports?: Array<SchemaImports> | undefined,
+  ): Promise<void> {
     try {
       const routers = this.routerFactory.getRouters();
       const mappedRoutesAndProcedures = routers.map((route) => {
-        const { instance, name, alias } = route;
+        const { instance, name, alias, path } = route;
         const prototype = Object.getPrototypeOf(instance);
         const procedures = this.procedureFactory.getProcedures(
           instance,
           prototype,
         );
 
-        return { name, alias, instance: { ...route }, procedures };
+        return { name, path, alias, instance: { ...route }, procedures };
       });
 
       const appRouterSourceFile = this.project.createSourceFile(
@@ -81,10 +95,19 @@ export class TRPCGenerator implements OnModuleInit {
 
       generateStaticDeclaration(appRouterSourceFile);
 
-      const routersMetadata = await this.serializerHandler.serializeRouters(
+      if (schemaImports != null && schemaImports.length > 0) {
+        addSchemaImports(
+          appRouterSourceFile,
+          schemaImports.map((schemaImport) => (schemaImport as any).name),
+          this.rootModuleImportsMap,
+        );
+      }
+
+      const routersMetadata = this.serializerHandler.serializeRouters(
         mappedRoutesAndProcedures,
         this.project,
       );
+
       const routersStringDeclarations =
         this.serializerHandler.generateRoutersStringFromMetadata(
           routersMetadata,
@@ -101,8 +124,8 @@ export class TRPCGenerator implements OnModuleInit {
         `AppRouter has been updated successfully at "${outputDirPath}/${this.APP_ROUTER_OUTPUT_FILE}".`,
         'TRPC Generator',
       );
-    } catch (e: unknown) {
-      this.consoleLogger.warn('TRPC Generator encountered an error.', e);
+    } catch (error: unknown) {
+      this.consoleLogger.warn('TRPC Generator encountered an error.', error);
     }
   }
 
@@ -121,9 +144,15 @@ export class TRPCGenerator implements OnModuleInit {
       );
 
       if (context != null) {
+        const contextImport = this.rootModuleImportsMap.get(context.name);
+
+        if (contextImport == null) {
+          throw new Error('Could not find context import declaration.');
+        }
+
         const contextType = await this.contextHandler.getContextInterface(
+          contextImport.sourceFile,
           context,
-          this.project,
         );
 
         helperTypesSourceFile.addTypeAlias({
@@ -136,7 +165,8 @@ export class TRPCGenerator implements OnModuleInit {
       for (const middleware of middlewares) {
         const middlewareInterface =
           await this.middlewareHandler.getMiddlewareInterface(
-            middleware,
+            middleware.path,
+            middleware.instance,
             this.project,
           );
 
@@ -159,5 +189,17 @@ export class TRPCGenerator implements OnModuleInit {
     } catch (e: unknown) {
       this.consoleLogger.warn('TRPC Generator encountered an error.', e);
     }
+  }
+
+  private buildRootImportsMap(): Map<string, SourceFileImportsMap> {
+    const rootModuleSourceFile = this.project.addSourceFileAtPathIfExists(
+      this.moduleCallerFilePath,
+    );
+
+    if (rootModuleSourceFile == null) {
+      throw new Error('Could not access root module file.');
+    }
+
+    return buildSourceFileImportsMap(rootModuleSourceFile, this.project);
   }
 }

@@ -2,7 +2,11 @@ import { ConsoleLogger, Inject, Module } from '@nestjs/common';
 import { DynamicModule, OnModuleInit } from '@nestjs/common/interfaces';
 import { HttpAdapterHost, MetadataScanner } from '@nestjs/core';
 
-import { LOGGER_CONTEXT, TRPC_MODULE_OPTIONS } from './trpc.constants';
+import {
+  LOGGER_CONTEXT,
+  TRPC_MODULE_CALLER_FILE_PATH,
+  TRPC_MODULE_OPTIONS,
+} from './trpc.constants';
 
 import { TRPCModuleOptions } from './interfaces';
 
@@ -20,6 +24,7 @@ import { MiddlewareGenerator } from './generators/middleware.generator';
 import { ContextGenerator } from './generators/context.generator';
 import { AppRouterHost } from './app-router.host';
 import { ExpressDriver, FastifyDriver } from './drivers';
+import { getCallerFilePath } from './utils/path.utils';
 
 @Module({
   imports: [],
@@ -58,12 +63,16 @@ export class TRPCModule implements OnModuleInit {
   @Inject(AppRouterHost)
   private readonly appRouterHost!: AppRouterHost;
 
-  static forRoot<TOptions extends Record<string, any> = TRPCModuleOptions>(
-    options: TOptions = {} as TOptions,
-  ): DynamicModule {
+  static forRoot(options: TRPCModuleOptions = {}): DynamicModule {
     return {
       module: TRPCModule,
-      providers: [{ provide: TRPC_MODULE_OPTIONS, useValue: options }],
+      providers: [
+        { provide: TRPC_MODULE_OPTIONS, useValue: options },
+        {
+          provide: TRPC_MODULE_CALLER_FILE_PATH,
+          useValue: getCallerFilePath(),
+        },
+      ],
     };
   }
 
@@ -72,6 +81,7 @@ export class TRPCModule implements OnModuleInit {
     if (!httpAdapter) {
       return;
     }
+
     this.consoleLogger.setContext(LOGGER_CONTEXT);
 
     await this.trpcDriver.start(this.options);

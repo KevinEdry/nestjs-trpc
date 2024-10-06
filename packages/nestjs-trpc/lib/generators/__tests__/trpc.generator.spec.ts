@@ -8,12 +8,12 @@ import { RouterFactory } from '../../factories/router.factory';
 import { MiddlewareFactory } from '../../factories/middleware.factory';
 import { ProcedureFactory } from '../../factories/procedure.factory';
 import { Project, SourceFile } from 'ts-morph';
-import * as fileUtil from '../../utils/file.util';
+import * as fileUtil from '../../utils/ts-morph.util';
 import { ProcedureFactoryMetadata } from '../../interfaces/factory.interface';
 import { MiddlewareOptions, MiddlewareResponse, TRPCContext, TRPCMiddleware } from '../../interfaces';
 import { CreateExpressContextOptions } from '@trpc/server/adapters/express';
 
-jest.mock('../../utils/file.util');
+jest.mock('../../utils/ts-morph.util');
 
 describe('TRPCGenerator', () => {
   let trpcGenerator: TRPCGenerator;

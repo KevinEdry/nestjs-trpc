@@ -8,14 +8,17 @@ import {
   ProcedureFactoryMetadata,
 } from '../interfaces/factory.interface';
 import { DecoratorGenerator } from './decorator.generator';
-import { generateProcedureString } from '../utils/type.util';
 import { Inject, Injectable } from '@nestjs/common';
 import { camelCase } from 'lodash';
+import { ProcedureGenerator } from './procedure.generator';
 
 @Injectable()
 export class RouterGenerator {
   @Inject(DecoratorGenerator)
   private readonly decoratorHandler!: DecoratorGenerator;
+
+  @Inject(ProcedureGenerator)
+  private readonly procedureGenerator!: ProcedureGenerator;
 
   public serializeRouters(
     routers: Array<RoutersFactoryMetadata>,
@@ -86,7 +89,7 @@ export class RouterGenerator {
       .map((router) => {
         const { name, procedures, alias } = router;
         return `${alias ?? camelCase(name)}: t.router({ ${procedures
-          .map(generateProcedureString)
+          .map(this.procedureGenerator.generateProcedureString)
           .join(',\n')} })`;
       })
       .join(',\n');

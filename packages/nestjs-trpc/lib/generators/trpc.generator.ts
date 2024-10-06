@@ -6,11 +6,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { Project, CompilerOptions, ScriptTarget, ModuleKind } from 'ts-morph';
-import {
-  addSchemaImports,
-  generateStaticDeclaration,
-  saveOrOverrideFile,
-} from '../utils/file.util';
+import { saveOrOverrideFile } from '../utils/ts-morph.util';
 import { RouterGenerator } from './router.generator';
 import { SchemaImports, TRPCContext } from '../interfaces';
 import { MiddlewareGenerator } from './middleware.generator';
@@ -20,8 +16,9 @@ import { RouterFactory } from '../factories/router.factory';
 import { MiddlewareFactory } from '../factories/middleware.factory';
 import { ProcedureFactory } from '../factories/procedure.factory';
 import { TRPC_MODULE_CALLER_FILE_PATH } from '../trpc.constants';
-import { buildSourceFileImportsMap } from '../utils/type.util';
 import { SourceFileImportsMap } from '../interfaces/generator.interface';
+import { StaticGenerator } from './static.generator';
+import { ImportsScanner } from '../scanners/imports.scanner';
 
 @Injectable()
 export class TRPCGenerator implements OnModuleInit {
@@ -36,6 +33,9 @@ export class TRPCGenerator implements OnModuleInit {
 
   @Inject(ConsoleLogger)
   private readonly consoleLogger!: ConsoleLogger;
+
+  @Inject(StaticGenerator)
+  private readonly staticGenerator!: StaticGenerator;
 
   @Inject(MiddlewareGenerator)
   private readonly middlewareHandler!: MiddlewareGenerator;
@@ -54,6 +54,9 @@ export class TRPCGenerator implements OnModuleInit {
 
   @Inject(MiddlewareFactory)
   private readonly middlewareFactory!: MiddlewareFactory;
+
+  @Inject(ImportsScanner)
+  private readonly importsScanner!: ImportsScanner;
 
   onModuleInit() {
     const defaultCompilerOptions: CompilerOptions = {
@@ -93,12 +96,15 @@ export class TRPCGenerator implements OnModuleInit {
         { overwrite: true },
       );
 
-      generateStaticDeclaration(appRouterSourceFile);
+      this.staticGenerator.generateStaticDeclaration(appRouterSourceFile);
 
       if (schemaImports != null && schemaImports.length > 0) {
-        addSchemaImports(
+        const schemaImportNames = schemaImports.map(
+          (schemaImport) => (schemaImport as any).name,
+        );
+        this.staticGenerator.addSchemaImports(
           appRouterSourceFile,
-          schemaImports.map((schemaImport) => (schemaImport as any).name),
+          schemaImportNames,
           this.rootModuleImportsMap,
         );
       }
@@ -200,6 +206,9 @@ export class TRPCGenerator implements OnModuleInit {
       throw new Error('Could not access root module file.');
     }
 
-    return buildSourceFileImportsMap(rootModuleSourceFile, this.project);
+    return this.importsScanner.buildSourceFileImportsMap(
+      rootModuleSourceFile,
+      this.project,
+    );
   }
 }

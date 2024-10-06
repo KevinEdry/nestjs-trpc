@@ -9,14 +9,11 @@ import {
 } from './trpc.constants';
 
 import { TRPCModuleOptions } from './interfaces';
-
 import { TRPCDriver } from './trpc.driver';
-
 import { TRPCFactory } from './factories/trpc.factory';
 import { RouterFactory } from './factories/router.factory';
 import { ProcedureFactory } from './factories/procedure.factory';
 import { MiddlewareFactory } from './factories/middleware.factory';
-
 import { TRPCGenerator } from './generators/trpc.generator';
 import { DecoratorGenerator } from './generators/decorator.generator';
 import { RouterGenerator } from './generators/router.generator';
@@ -24,26 +21,44 @@ import { MiddlewareGenerator } from './generators/middleware.generator';
 import { ContextGenerator } from './generators/context.generator';
 import { AppRouterHost } from './app-router.host';
 import { ExpressDriver, FastifyDriver } from './drivers';
-import { getCallerFilePath } from './utils/path.utils';
+import { StaticGenerator } from './generators/static.generator';
+import { FileScanner } from './scanners/file.scanner';
+import { ProcedureGenerator } from './generators/procedure.generator';
+import { ImportsScanner } from './scanners/imports.scanner';
 
 @Module({
   imports: [],
   providers: [
+    // NestJS Providers
     ConsoleLogger,
-    TRPCDriver,
-    TRPCFactory,
     MetadataScanner,
+
+    // Drivers
+    TRPCDriver,
+    FastifyDriver,
+    ExpressDriver,
+
+    // Factories
+    TRPCFactory,
     RouterFactory,
     ProcedureFactory,
     MiddlewareFactory,
+
+    // Generators
+    TRPCGenerator,
+    RouterGenerator,
+    ProcedureGenerator,
     DecoratorGenerator,
     MiddlewareGenerator,
     ContextGenerator,
-    RouterGenerator,
-    TRPCGenerator,
+    StaticGenerator,
+
+    // Scanners
+    FileScanner,
+    ImportsScanner,
+
+    // Exports
     AppRouterHost,
-    FastifyDriver,
-    ExpressDriver,
   ],
   exports: [AppRouterHost],
 })
@@ -64,13 +79,14 @@ export class TRPCModule implements OnModuleInit {
   private readonly appRouterHost!: AppRouterHost;
 
   static forRoot(options: TRPCModuleOptions = {}): DynamicModule {
+    const fileScanner = new FileScanner();
     return {
       module: TRPCModule,
       providers: [
         { provide: TRPC_MODULE_OPTIONS, useValue: options },
         {
           provide: TRPC_MODULE_CALLER_FILE_PATH,
-          useValue: getCallerFilePath(),
+          useValue: fileScanner.getCallerFilePath(),
         },
       ],
     };

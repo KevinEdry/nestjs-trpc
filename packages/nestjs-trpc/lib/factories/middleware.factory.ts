@@ -3,6 +3,7 @@ import { Class, Constructor } from 'type-fest';
 import { TRPCMiddleware } from '../interfaces';
 import { RouterFactory } from './router.factory';
 import { ProcedureFactory } from './procedure.factory';
+import { isEqual, uniqWith } from 'lodash';
 
 interface MiddlewareMetadata {
   path: string;
@@ -39,18 +40,6 @@ export class MiddlewareFactory {
     });
 
     // Return a unique array of middlewares based on both path and instances
-    return middlewaresMetadata.reduce<MiddlewareMetadata[]>((acc, current) => {
-      // Check if the combination of path and instances is already in the accumulator
-      const exists = acc.some(
-        (item) =>
-          //TODO Check if it is possible to filter out unique based on instances.
-          item.path === current.path && item.instance === current.instance,
-      );
-
-      // If not, add to the accumulator
-      if (!exists) acc.push(current);
-
-      return acc;
-    }, []);
+    return uniqWith(middlewaresMetadata, isEqual);
   }
 }

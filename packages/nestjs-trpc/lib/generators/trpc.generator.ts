@@ -23,6 +23,7 @@ import {
   TYPESCRIPT_APP_ROUTER_SOURCE_FILE,
   TYPESCRIPT_PROJECT,
 } from './generator.constants';
+import * as process from 'node:process';
 
 @Injectable()
 export class TRPCGenerator implements OnModuleInit {
@@ -118,7 +119,7 @@ export class TRPCGenerator implements OnModuleInit {
       await saveOrOverrideFile(this.appRouterSourceFile);
 
       this.consoleLogger.log(
-        `AppRouter has been updated successfully at "${this.appRouterSourceFile.getFilePath()}".`,
+        `AppRouter has been updated successfully at "./${path.relative(process.cwd(), this.appRouterSourceFile.getFilePath())}".`,
         'TRPC Generator',
       );
     } catch (error: unknown) {

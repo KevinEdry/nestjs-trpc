@@ -1,7 +1,7 @@
 // file: file.util.spec.ts
 
-import { Project, SourceFile, Decorator, SyntaxKind } from 'ts-morph';
-import { generateStaticDeclaration, saveOrOverrideFile, getDecoratorPropertyValue } from '../file.util';
+import { Project, SourceFile } from 'ts-morph';
+import { generateStaticDeclaration, saveOrOverrideFile, getDecoratorPropertyValue } from '../ts-morph.util';
 import { SourceFileImportsMap } from '../../interfaces/generator.interface';
 import * as typeUtil from '../type.util';
 

@@ -36,11 +36,13 @@
   "trpc-docs": {
     "title": "⇲ tRPC Documentation",
     "href": "https://trpc.io/docs",
+    "rel": "nofollow",
     "newWindow": true
   },
   "nestjs-docs": {
     "title": "⇲ NestJS Documentation",
     "href": "https://docs.nestjs.com",
+    "rel": "nofollow",
     "newWindow": true
   },
   "docs": {
@@ -51,6 +53,7 @@
     "title": "Contact ↗",
     "type": "page",
     "href": "https://twitter.com/KevinEdry",
+    "rel": "nofollow",
     "newWindow": true
   }
 }

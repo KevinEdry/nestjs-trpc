@@ -1,5 +1,5 @@
 ---
-title: "Middlewares"
+title: "NestJS-tRPC Documentation - Middlewares"
 ---
 
 import { Callout, Cards, Card, Tabs, Steps } from 'nextra/components'
@@ -9,7 +9,13 @@ import TrpcIcon from '../../public/icons/trpc.svg';
 # Middlewares
 
 With this adapter you can create procedure middlewares, 
-those middlewares then can be added to a router class method by the `@Middlewares(){:tsx}` decorator.<br/>
+those middlewares then can be added to a router class to set them globally to all procedures in the router or the class method for a specific procedure, by the `@Middlewares(){:tsx}` decorator.
+The middleware decorator accepts multiple middlewares and will execute them in order, for example:
+```ts
+@Middlewares(LoggingMiddleware, AuthMiddleware)
+```
+`LoggingMiddleware` will execute first, and then `AuthMiddleware` afterward.  <br/>
+When you set the `@Middlewares()` decorator for both the router and the procedure, the router will execute first and then if there aren't any duplicates, the procedure middlewares will follow after. <br/>
 The tRPC concept of middlewares is comparable to how `Guards` and `Middlewares` work in NestJS.
 
 <Callout>
@@ -84,9 +90,10 @@ We do this by editing our module file and adding the middleware to the `provider
 
 ### Applying middleware
 To use the middleware in your procedure instead of the default `publicProcedure`, pass the class to the `@Middlewares(){:tsx}` method decorator.
-```typescript {16} filename="dogs.router.ts" copy showLineNumbers
+```typescript {17} filename="dogs.router.ts" copy showLineNumbers
 import { DatabaseService } from "./database.service.ts";
 import { LoggedMiddleware } from "./logged.middleware.ts";
+import { AuthMiddleware } from "./auth.middleware.ts";
 import { Router, Query, Middlewares } from 'nestjs-trpc';
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
@@ -100,7 +107,7 @@ const dogsSchema = z.object({
 export class DogsRouter {
   constructor(@Inject(DatabaseService) private databaseService: DatabaseService){}
 
-  @Middlewares(LoggedMiddleware)
+  @Middlewares(LoggedMiddleware, AuthMiddleware)
   @Query({ output: z.array(dogSchema) })
   async findAll(): string {
     const dogs = await this.databaseService.dogs.findMany();

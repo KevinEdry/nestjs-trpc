@@ -3,11 +3,19 @@ import { ProcedureGeneratorMetadata } from '../interfaces/generator.interface';
 import { ProcedureType } from '../trpc.enum';
 import { Project, SourceFile, Node } from 'ts-morph';
 import { ImportsScanner } from '../scanners/imports.scanner';
+import { StaticGenerator } from './static.generator';
+import { TYPESCRIPT_APP_ROUTER_SOURCE_FILE } from './generator.constants';
 
 @Injectable()
 export class ProcedureGenerator {
   @Inject(ImportsScanner)
   private readonly importsScanner!: ImportsScanner;
+
+  @Inject(StaticGenerator)
+  private readonly staticGenerator!: StaticGenerator;
+
+  @Inject(TYPESCRIPT_APP_ROUTER_SOURCE_FILE)
+  private readonly appRouterSourceFile!: SourceFile;
 
   public generateProcedureString(
     procedure: ProcedureGeneratorMetadata,
@@ -116,6 +124,12 @@ export class ProcedureGenerator {
         schema = schema.replace(
           expression.getText(),
           `${baseSchema}.${propertyName}`,
+        );
+      } else if (!expression.getText().startsWith('z')) {
+        this.staticGenerator.addSchemaImports(
+          this.appRouterSourceFile,
+          [expression.getText()],
+          importsMap,
         );
       }
 

@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.5.0 (2024-10-06)
+
+* chore(nestjs-trpc): refactored util files and functions ([fbf794a](https://github.com/KevinEdry/nestjs-trpc/commit/fbf794a))
+* chore(nestjs-trpc): removed unused test file ([40265bf](https://github.com/KevinEdry/nestjs-trpc/commit/40265bf))
+* chore(packages/nestjs-trpc): copied readme to package folder ([417d2a5](https://github.com/KevinEdry/nestjs-trpc/commit/417d2a5))
+* fix(docs): fixed uncategorized rel keys ([f671e18](https://github.com/KevinEdry/nestjs-trpc/commit/f671e18))
+* fix(docs): refined documentation text ([b834b61](https://github.com/KevinEdry/nestjs-trpc/commit/b834b61))
+* fix(examples): updated fastify example to show multi middleware example ([69aed1d](https://github.com/KevinEdry/nestjs-trpc/commit/69aed1d))
+* fix(nestjs-trpc): filtered out non unique middlewares ([1452111](https://github.com/KevinEdry/nestjs-trpc/commit/1452111))
+* fix(nestjs-trpc): updated generator log to include relative path ([485057b](https://github.com/KevinEdry/nestjs-trpc/commit/485057b))
+* feat: prettier and lint fixes ([0762c9b](https://github.com/KevinEdry/nestjs-trpc/commit/0762c9b))
+* feat(docs): updated docs ([7f1b861](https://github.com/KevinEdry/nestjs-trpc/commit/7f1b861))
+* feat(examples): updated fastify example to show auto imports functionality ([dab8997](https://github.com/KevinEdry/nestjs-trpc/commit/dab8997))
+* feat(fastify): added schema imports example ([167d962](https://github.com/KevinEdry/nestjs-trpc/commit/167d962))
+* feat(nestjs-trpc): auto import call expressions ([fddd23f](https://github.com/KevinEdry/nestjs-trpc/commit/fddd23f))
+* feat(nestjs-trpc): removed unused packages ([2d21409](https://github.com/KevinEdry/nestjs-trpc/commit/2d21409))
+* feat(nestjs-trpc): update file resolution scanning functionality ([aa9612b](https://github.com/KevinEdry/nestjs-trpc/commit/aa9612b))
+* Update README.md ([d8a08b6](https://github.com/KevinEdry/nestjs-trpc/commit/d8a08b6))
+
 ## 1.4.0 (2024-10-01)
 
 * docs: updated readme and docs to include fastify ([7eb1428](https://github.com/KevinEdry/nestjs-trpc/commit/7eb1428))

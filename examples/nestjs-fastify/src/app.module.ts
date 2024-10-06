@@ -5,6 +5,7 @@ import { UserService } from './user.service';
 import { ProtectedMiddleware } from './protected.middleware';
 import { AppContext } from './app.context';
 import { TrpcPanelController } from './trpc-panel.controller';
+import { LoggingMiddleware } from './logging.middleware';
 
 @Module({
   imports: [
@@ -14,6 +15,12 @@ import { TrpcPanelController } from './trpc-panel.controller';
     }),
   ],
   controllers: [TrpcPanelController],
-  providers: [UserRouter, AppContext, UserService, ProtectedMiddleware],
+  providers: [
+    UserRouter,
+    AppContext,
+    UserService,
+    ProtectedMiddleware,
+    LoggingMiddleware,
+  ],
 })
 export class AppModule {}

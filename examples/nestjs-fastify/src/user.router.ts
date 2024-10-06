@@ -12,15 +12,17 @@ import { UserService } from './user.service';
 import { ProtectedMiddleware } from './protected.middleware';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { User, userSchema, createPaginatedResponseSchema } from './user.schema';
+import { User, userSchema } from './user.schema';
+import { LoggingMiddleware } from './logging.middleware';
 
+@Middlewares(LoggingMiddleware)
 @Router({ alias: 'users' })
 export class UserRouter {
   constructor(@Inject(UserService) private readonly userService: UserService) {}
 
   @Query({
     input: z.object({ userId: z.string() }),
-    output: createPaginatedResponseSchema(userSchema),
+    output: userSchema,
   })
   @Middlewares(ProtectedMiddleware)
   async getUserById(

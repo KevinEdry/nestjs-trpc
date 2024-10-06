@@ -1,4 +1,12 @@
-import { Expression, SourceFile } from 'ts-morph';
+import {
+  ClassDeclaration,
+  EnumDeclaration,
+  Expression,
+  FunctionDeclaration,
+  InterfaceDeclaration,
+  SourceFile,
+  VariableDeclaration,
+} from 'ts-morph';
 
 export interface RouterGeneratorMetadata {
   name: string;
@@ -20,6 +28,12 @@ export interface DecoratorGeneratorMetadata {
 }
 
 export interface SourceFileImportsMap {
-  initializer: Expression;
+  initializer:
+    | Expression
+    | ClassDeclaration
+    | InterfaceDeclaration
+    | EnumDeclaration
+    | VariableDeclaration
+    | FunctionDeclaration;
   sourceFile: SourceFile;
 }

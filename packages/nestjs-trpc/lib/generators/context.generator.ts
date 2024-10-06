@@ -1,6 +1,5 @@
 import {
   ClassDeclaration,
-  Project,
   MethodDeclaration,
   Type,
   SyntaxKind,
@@ -9,13 +8,12 @@ import {
 import { Injectable } from '@nestjs/common';
 import type { TRPCContext } from '../interfaces';
 import type { Class } from 'type-fest';
-import { locate } from 'func-loc';
 
 @Injectable()
 export class ContextGenerator {
   public async getContextInterface(
+    sourceFile: SourceFile,
     context: Class<TRPCContext>,
-    project: Project,
   ): Promise<string | null> {
     const className = context?.name;
     if (!className) {
@@ -28,18 +26,7 @@ export class ContextGenerator {
       return null;
     }
 
-    const contextFileLocation = await locate(contextInstance.create, {
-      sourceMap: true,
-    });
-
-    const contextSourceFile = project.addSourceFileAtPath(
-      contextFileLocation.path,
-    );
-
-    const classDeclaration = this.getClassDeclaration(
-      contextSourceFile,
-      context.name,
-    );
+    const classDeclaration = this.getClassDeclaration(sourceFile, context.name);
 
     if (!classDeclaration) {
       return null;

@@ -1,4 +1,3 @@
-import { locate } from 'func-loc';
 import { Project } from 'ts-morph';
 import {
   RouterGeneratorMetadata,
@@ -18,42 +17,39 @@ export class RouterGenerator {
   @Inject(DecoratorGenerator)
   private readonly decoratorHandler!: DecoratorGenerator;
 
-  public async serializeRouters(
-    routers: RoutersFactoryMetadata[],
+  public serializeRouters(
+    routers: Array<RoutersFactoryMetadata>,
     project: Project,
-  ): Promise<RouterGeneratorMetadata[]> {
-    return await Promise.all(
-      routers.map(async (router) => {
-        const proceduresMetadata = await Promise.all(
-          router.procedures.map(async (procedure) =>
-            await this.serializeRouterProcedures(procedure, router.name, project),
-          ),
-        );
+  ): Array<RouterGeneratorMetadata> {
+    return routers.map((router) => {
+      const proceduresMetadata = router.procedures.map((procedure) =>
+        this.serializeRouterProcedures(
+          router.path,
+          procedure,
+          router.name,
+          project,
+        ),
+      );
 
-        return {
-          name: router.name,
-          alias: router.alias,
-          procedures: proceduresMetadata,
-        };
-      }),
-    );
+      return {
+        name: router.name,
+        alias: router.alias,
+        procedures: proceduresMetadata,
+      };
+    });
   }
 
-  private async serializeRouterProcedures(
+  private serializeRouterProcedures(
+    routerFilePath: string,
     procedure: ProcedureFactoryMetadata,
     routerName: string,
     project: Project,
-  ): Promise<ProcedureGeneratorMetadata> {
-    const location = await locate(procedure.implementation, {
-      sourceMap: true,
-    });
-    const sourceFile = project.addSourceFileAtPath(location.path);
+  ): ProcedureGeneratorMetadata {
+    const sourceFile = project.addSourceFileAtPath(routerFilePath);
     const classDeclaration = sourceFile.getClass(routerName);
 
     if (!classDeclaration) {
-      throw new Error(
-        `Could not find router ${routerName} class declaration.`,
-      );
+      throw new Error(`Could not find router ${routerName} class declaration.`);
     }
 
     const methodDeclaration = classDeclaration.getMethod(procedure.name);
@@ -70,11 +66,12 @@ export class RouterGenerator {
       );
     }
 
-    const serializedDecorators = this.decoratorHandler.serializeProcedureDecorators(
-      decorators,
-      sourceFile,
-      project,
-    );
+    const serializedDecorators =
+      this.decoratorHandler.serializeProcedureDecorators(
+        decorators,
+        sourceFile,
+        project,
+      );
 
     return {
       name: procedure.name,

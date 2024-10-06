@@ -6,8 +6,11 @@ import {
   SyntaxKind,
   Decorator,
   Project,
+  ImportDeclarationStructure,
 } from 'ts-morph';
 import { flattenZodSchema } from './type.util';
+import { SourceFileImportsMap } from '../interfaces/generator.interface';
+import * as path from 'node:path';
 
 export function generateStaticDeclaration(sourceFile: SourceFile): void {
   sourceFile.addImportDeclaration({
@@ -31,6 +34,37 @@ export function generateStaticDeclaration(sourceFile: SourceFile): void {
       declarations: [{ name: 'publicProcedure', initializer: 't.procedure' }],
     },
   ]);
+}
+
+export function addSchemaImports(
+  sourceFile: SourceFile,
+  schemaImportNames: Array<string>,
+  importsMap: Map<string, SourceFileImportsMap>,
+): void {
+  const importDeclarations: ImportDeclarationStructure[] = [];
+
+  for (const schemaImportName of schemaImportNames) {
+    for (const [importMapKey, importMapMetadata] of importsMap.entries()) {
+      if (schemaImportName == null || importMapKey !== schemaImportName) {
+        continue;
+      }
+
+      const relativePath = path.relative(
+        path.dirname(sourceFile.getFilePath()),
+        importMapMetadata.sourceFile.getFilePath().replace(/\.ts$/, ''),
+      );
+
+      importDeclarations.push({
+        kind: StructureKind.ImportDeclaration,
+        moduleSpecifier: relativePath.startsWith('.')
+          ? relativePath
+          : `./${relativePath}`,
+        namedImports: [schemaImportName],
+      });
+    }
+  }
+
+  sourceFile.addImportDeclarations(importDeclarations);
 }
 
 export async function saveOrOverrideFile(

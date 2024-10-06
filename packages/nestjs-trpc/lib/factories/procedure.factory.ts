@@ -1,7 +1,7 @@
-import { ConsoleLogger, Inject, Injectable, Type } from '@nestjs/common';
+import { ConsoleLogger, Inject, Injectable } from '@nestjs/common';
 import { MetadataScanner, ModuleRef } from '@nestjs/core';
 import {
-  MIDDLEWARE_KEY,
+  MIDDLEWARES_KEY,
   PROCEDURE_METADATA_KEY,
   PROCEDURE_PARAM_METADATA_KEY,
   PROCEDURE_TYPE_KEY,
@@ -14,7 +14,7 @@ import {
   TRPCPublicProcedure,
 } from '../interfaces/factory.interface';
 import { ProcedureOptions, TRPCMiddleware } from '../interfaces';
-import type { Class } from 'type-fest';
+import type { Class, Constructor } from 'type-fest';
 import { ProcedureType } from '../trpc.enum';
 
 @Injectable()
@@ -28,11 +28,12 @@ export class ProcedureFactory {
   constructor(private moduleRef: ModuleRef) {}
 
   getProcedures(
-    instance: unknown,
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-    prototype: Record<string, Function>,
+    instance: any,
+    prototype: Record<string, (...args: Array<unknown>) => unknown>,
   ): Array<ProcedureFactoryMetadata> {
-    return this.metadataScanner.scanFromPrototype(instance, prototype, (name) =>
+    const methodNames = this.metadataScanner.getAllMethodNames(instance);
+
+    return methodNames.map((name) =>
       this.extractProcedureMetadata(name, prototype),
     );
   }
@@ -46,16 +47,16 @@ export class ProcedureFactory {
 
   private extractProcedureMetadata(
     name: string,
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-    prototype: Record<string, Function>,
+    prototype: Record<string, ProcedureImplementation>,
   ): ProcedureFactoryMetadata {
-    const callback = prototype[name] as ProcedureImplementation;
+    const callback = prototype[name];
+
     const type = Reflect.getMetadata(PROCEDURE_TYPE_KEY, callback);
     const metadata = Reflect.getMetadata(PROCEDURE_METADATA_KEY, callback);
-    const middlewares: Class<TRPCMiddleware> = Reflect.getMetadata(
-      MIDDLEWARE_KEY,
-      callback,
-    );
+
+    const middlewares: Array<
+      Class<TRPCMiddleware> | Constructor<TRPCMiddleware>
+    > = Reflect.getMetadata(MIDDLEWARES_KEY, callback) || [];
 
     return {
       input: metadata?.input,
@@ -73,17 +74,20 @@ export class ProcedureFactory {
     instance: any,
     camelCasedRouterName: string,
     procedureBuilder: TRPCPublicProcedure,
-    routerMiddlewares: TRPCMiddleware | undefined,
+    routerMiddlewares: Array<
+      Constructor<TRPCMiddleware> | Class<TRPCMiddleware>
+    >,
   ): Record<string, any> {
     const serializedProcedures = Object.create({});
 
     for (const procedure of procedures) {
       const { input, output, type, middlewares, name, params } = procedure;
-      const procedureInstance = this.createProcedureInstance(
-        procedureBuilder,
-        middlewares,
-        routerMiddlewares,
-      );
+
+      // TODO: Handle duplicate classes or instances
+      const procedureInstance = this.createProcedureInstance(procedureBuilder, [
+        ...routerMiddlewares,
+        ...middlewares,
+      ]);
       const routerInstance = this.moduleRef.get(instance.constructor, {
         strict: false,
       });
@@ -108,29 +112,17 @@ export class ProcedureFactory {
   }
 
   private createProcedureInstance(
-    procedureBuilder: TRPCPublicProcedure,
-    procedureDef: TRPCMiddleware | Type<TRPCMiddleware> | undefined,
-    routeProcedureDef: TRPCMiddleware | Type<TRPCMiddleware> | undefined,
-  ): TRPCPublicProcedure {
-    if (typeof procedureDef === 'function') {
-      return this.createCustomProcedureInstance(procedureBuilder, procedureDef);
-    } else if (typeof routeProcedureDef === 'function') {
-      return this.createCustomProcedureInstance(
-        procedureBuilder,
-        routeProcedureDef,
-      );
-    }
-    return procedureBuilder;
-  }
-
-  private createCustomProcedureInstance(
     procedure: TRPCPublicProcedure,
-    def: Type<TRPCMiddleware>,
+    middlewares: Array<Constructor<TRPCMiddleware> | Class<TRPCMiddleware>>,
   ): TRPCPublicProcedure {
-    const customProcedureInstance = this.moduleRef.get(def, { strict: false });
-    if (typeof customProcedureInstance.use === 'function') {
-      //@ts-expect-error this is expected since the type is correct.
-      return procedure.use((opts) => customProcedureInstance.use(opts));
+    for (const middleware of middlewares) {
+      const customProcedureInstance = this.moduleRef.get(middleware, {
+        strict: false,
+      });
+      if (typeof customProcedureInstance.use === 'function') {
+        //@ts-expect-error this is expected since the type is correct.
+        procedure = procedure.use((opts) => customProcedureInstance.use(opts));
+      }
     }
     return procedure;
   }

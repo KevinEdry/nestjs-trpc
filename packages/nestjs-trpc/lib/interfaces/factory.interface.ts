@@ -7,7 +7,7 @@ import type {
 } from '@trpc/server';
 import type { ZodSchema, ZodType, ZodTypeDef } from 'zod';
 import type { TRPCMiddleware } from './middleware.interface';
-import type { Class } from 'type-fest';
+import type { Class, Constructor } from 'type-fest';
 
 export enum ProcedureParamDecoratorType {
   Options = 'options',
@@ -44,7 +44,7 @@ export interface ProcedureFactoryMetadata {
   type: ProcedureType;
   input: ZodSchema | undefined;
   output: ZodSchema | undefined;
-  middlewares?: Class<TRPCMiddleware>;
+  middlewares: Array<Constructor<TRPCMiddleware> | Class<TRPCMiddleware>>;
   name: string;
   implementation: ProcedureImplementation;
   params: Array<ProcedureParamDecorator> | undefined;
@@ -57,13 +57,15 @@ export interface CustomProcedureFactoryMetadata {
 
 export interface RouterInstance {
   name: string;
+  path: string;
   instance: unknown;
+  middlewares: Array<Class<TRPCMiddleware> | Constructor<TRPCMiddleware>>;
   alias?: string;
-  middlewares?: TRPCMiddleware;
 }
 
 export interface RoutersFactoryMetadata {
   name: string;
+  path: string;
   alias?: string;
   instance: RouterInstance;
   procedures: Array<ProcedureFactoryMetadata>;

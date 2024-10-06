@@ -1,5 +1,6 @@
-import { MIDDLEWARE_KEY } from '../trpc.constants';
-import { TRPCMiddleware } from '../interfaces';
+import type { Class, Constructor } from 'type-fest';
+import type { TRPCMiddleware } from '../interfaces';
+import { MIDDLEWARES_KEY } from '../trpc.constants';
 import { isFunction } from 'lodash';
 import { validateEach } from '../utils/validate-each.util';
 
@@ -15,7 +16,7 @@ import { validateEach } from '../utils/validate-each.util';
  * When `@Middlewares` is used at the individual handler level, the middleware
  * will apply only to that specific method.
  *
- * @param middleware a single middleware instance or class, or a list of middleware instances
+ * @param middlewares a single middleware instance or class, or a list of comma seperated middleware instances
  * or classes.
  *
  * @see [Middlewares](https://nestjs-trpc.io/docs/middlewares)
@@ -23,15 +24,15 @@ import { validateEach } from '../utils/validate-each.util';
  * @publicApi
  */
 export function Middlewares(
-  middleware?: TRPCMiddleware | Function,
+  ...middlewares: Array<Class<TRPCMiddleware> | Constructor<TRPCMiddleware>>
 ): MethodDecorator & ClassDecorator {
   return (
     target: any,
     key?: string | symbol,
     descriptor?: TypedPropertyDescriptor<any>,
   ) => {
-    const isMiddlewareValid = <T extends Function | Record<string, any>>(
-      middleware: T,
+    const isMiddlewareValid = (
+      middleware: Constructor<TRPCMiddleware> | Record<string, unknown>,
     ) =>
       middleware &&
       (isFunction(middleware) ||
@@ -40,22 +41,26 @@ export function Middlewares(
     if (descriptor) {
       validateEach(
         target.constructor,
-        [middleware],
+        middlewares,
         isMiddlewareValid,
         '@Middlewares',
         'middleware',
       );
-      Reflect.defineMetadata(MIDDLEWARE_KEY, middleware, descriptor.value);
+      Reflect.defineMetadata(
+        MIDDLEWARES_KEY,
+        [...middlewares],
+        descriptor.value,
+      );
       return descriptor;
     }
     validateEach(
       target.constructor,
-      [middleware],
+      middlewares,
       isMiddlewareValid,
       '@Middlewares',
       'middleware',
     );
-    Reflect.defineMetadata(MIDDLEWARE_KEY, middleware, target);
+    Reflect.defineMetadata(MIDDLEWARES_KEY, [...middlewares], target);
     return target;
   };
 }

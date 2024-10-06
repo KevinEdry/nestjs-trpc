@@ -12,7 +12,7 @@ import { UserService } from './user.service';
 import { ProtectedMiddleware } from './protected.middleware';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { User, userSchema } from './user.schema';
+import { User, userSchema, createPaginatedResponseSchema } from './user.schema';
 
 @Router({ alias: 'users' })
 export class UserRouter {
@@ -20,7 +20,7 @@ export class UserRouter {
 
   @Query({
     input: z.object({ userId: z.string() }),
-    output: userSchema,
+    output: createPaginatedResponseSchema(userSchema),
   })
   @Middlewares(ProtectedMiddleware)
   async getUserById(

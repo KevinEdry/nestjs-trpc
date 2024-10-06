@@ -1,5 +1,5 @@
 ---
-title: "Client Usage"
+title: "NestJS-tRPC Documentation - Client Usage"
 ---
 
 import { Cards, Card, Callout, Tabs } from 'nextra/components';
@@ -84,6 +84,9 @@ Here is and example for a router, and the generated output:
 The generated AppRouter is **only used for type inference**, thats why you don't see any logic within `.query(){:tsx}` method and why we have a `'PLACEHOLDER_DO_NOT_REMOVE' as any{:tsx}` as the logic just to keep typescript happy. 
 Your router business logic is then executed during run-time with vanilla trpc and the selected driver (either `express` or `fastify`) based on your configurations.
 
+If we couldn't flatten the either the input or output zod schema when generating the AppRouter, we will try to import the missing dependencies from the relative path. <br/>
+If we are unsuccesful, we let you specify the missing import via the `schemaFileImports` option for the `TRPCModule`. The adapter will take those imports, and will include them in the generated AppRouter.
+
 <Callout>
     If you notice the generated `AppRouter` takes into concideration the `@Router(alias?: string){:tsx}` alias, and it hoists the original `ZodSchema` even if imported from a different file (which wasn't easy to make work 😅).
 </Callout>
@@ -95,7 +98,7 @@ Your router business logic is then executed during run-time with vanilla trpc an
 A client knows the procedures that are available in your API, and their inputs and outputs. It uses this information to give you autocomplete on your queries and mutations, correctly type the returned data, and show errors if you are writing requests that don't match the shape of your backend.
 
 <Cards>
-    <Card icon={<TrpcIcon width={50} height={50}/>} title={"React Query Integration"} href={"https://trpc.io/docs/client/react"} arrow/>
-    <Card icon={<TrpcIcon width={50} height={50}/>} title={"Next.js Integration"} href={"https://trpc.io/docs/client/nextjs"} arrow/>
-    <Card icon={<TrpcIcon width={50} height={50}/>} title={"tRPC Client"} href={"https://trpc.io/docs/client/vanilla"} arrow/>
+    <Card icon={<TrpcIcon width={50} height={50}/>} title={"React Query Integration"} href={"https://trpc.io/docs/client/react"} rel={"nofollow"} arrow/>
+    <Card icon={<TrpcIcon width={50} height={50}/>} title={"Next.js Integration"} href={"https://trpc.io/docs/client/nextjs"} rel={"nofollow"} arrow/>
+    <Card icon={<TrpcIcon width={50} height={50}/>} title={"tRPC Client"} href={"https://trpc.io/docs/client/vanilla"} rel={"nofollow"} arrow/>
 </Cards>

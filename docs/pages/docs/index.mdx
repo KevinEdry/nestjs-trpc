@@ -1,3 +1,8 @@
+---
+title: "NestJS-tRPC Documentation - Installation Guide"
+---
+
+
 import { Callout, Tabs, Steps } from 'nextra/components';
 import Link from 'next/link';
 import Table from '../../components/Table';
@@ -10,7 +15,7 @@ This document will guide you through the installation and setting up of **NestJS
   If you don't have a NestJS project setup yet, please visit our
   <Link href="/docs/nestjs" className="underline">NestJS Quickstart Guide</Link>
   or check out the official
-  <Link href="https://docs.nestjs.com" target={'_blank'} className="underline">NestJS documentation</Link>.
+  <Link href="https://docs.nestjs.com" target={'_blank'} rel={"nofollow"} className="underline">NestJS documentation</Link>.
 </Callout>
 
 <Steps>
@@ -88,6 +93,11 @@ const trpcOptions: TRPCModuleOptions = {
   <Table.Row>
     <Table.Cell icon>`autoSchemaFile`</Table.Cell>
     <Table.Cell>`string`</Table.Cell>
+    <Table.Cell>-</Table.Cell>
+  </Table.Row>
+  <Table.Row>
+    <Table.Cell icon>`schemaFileImports`</Table.Cell>
+    <Table.Cell>`Array<Function | Object | ZodAny>`</Table.Cell>
     <Table.Cell>-</Table.Cell>
   </Table.Row>
   <Table.Row>

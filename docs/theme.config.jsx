@@ -35,8 +35,7 @@ export default {
   },
   useNextSeoProps() {
     return {
-      defaultTitle: "NestJS tRPC Documentation",
-      titleTemplate: "NestJS tRPC Guide Documents - %s",
+      defaultTitle: "NestJS-tRPC: Bringing type-safety to NestJS",
       additionalLinkTags: [
         {
           rel: "apple-touch-icon",
@@ -53,8 +52,19 @@ export default {
           sizes: `${size}x${size}`,
           href: `/favicon/favicon-${size}x${size}.png`
         })),
+        {
+          rel: "canonical",
+          href: "https://nestjs-trpc.io/"
+        }
       ],
       additionalMetaTags: [
+        {
+          name: "viewport",
+          content: "width=device-width, initial-scale=1.0"
+        },
+        {
+          charset: "utf-8",
+        },
         {
           property: "og:image",
           content: "/og.jpg"
@@ -65,19 +75,23 @@ export default {
         },
         {
           property: "og:title",
-          content: "NestJS tRPC Adapter Documentation",
+          content: "NestJS-tRPC: Bringing type-safety to NestJS",
         },
         {
           property: "og:description",
-          content: "NestJS Helper Libraries"
+          content: "NestJS tRPC is a library designed to integrate the capabilities of tRPC into the NestJS framework. It aims to provide native support for decorators and implement an opinionated approach that aligns with NestJS conventions."
+        },
+        {
+          property: "description",
+          content: "NestJS tRPC is a library designed to integrate the capabilities of tRPC into the NestJS framework. It aims to provide native support for decorators and implement an opinionated approach that aligns with NestJS conventions."
         },
         {
           property: "og:site_name",
-          content: "NestJS tRPC Documentation"
+          content: "NestJS-tRPC: Bringing type-safety to NestJS"
         },
         {
           property: "og:url",
-          content: "https://nestjs-trpc.io"
+          content: "https://nestjs-trpc.io/"
         },
         {
           name: "twitter:card",
@@ -89,11 +103,11 @@ export default {
         },
         {
           name: "twitter:title",
-          content: "NestJS tRPC Documentation"
+          content: "NestJS-tRPC: Bringing type-safety to NestJS"
         },
         {
           name: "twitter:description",
-          content: "NestJS tRPC Adapter Documentation"
+          content: "NestJS-tRPC: Bringing type-safety to NestJS"
         },
         {
           name: "twitter:site",

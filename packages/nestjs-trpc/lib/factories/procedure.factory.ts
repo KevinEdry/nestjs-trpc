@@ -16,6 +16,7 @@ import {
 import { ProcedureOptions, TRPCMiddleware } from '../interfaces';
 import type { Class, Constructor } from 'type-fest';
 import { ProcedureType } from '../trpc.enum';
+import { uniqWith, isEqual } from 'lodash';
 
 @Injectable()
 export class ProcedureFactory {
@@ -83,11 +84,14 @@ export class ProcedureFactory {
     for (const procedure of procedures) {
       const { input, output, type, middlewares, name, params } = procedure;
 
-      // TODO: Handle duplicate classes or instances
-      const procedureInstance = this.createProcedureInstance(procedureBuilder, [
-        ...routerMiddlewares,
-        ...middlewares,
-      ]);
+      const uniqueMiddlewares = uniqWith(
+        [...routerMiddlewares, ...middlewares],
+        isEqual,
+      );
+      const procedureInstance = this.createProcedureInstance(
+        procedureBuilder,
+        uniqueMiddlewares,
+      );
       const routerInstance = this.moduleRef.get(instance.constructor, {
         strict: false,
       });

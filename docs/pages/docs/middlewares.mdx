@@ -9,14 +9,15 @@ import TrpcIcon from '../../public/icons/trpc.svg';
 # Middlewares
 
 With this adapter you can create procedure middlewares, 
-those middlewares then can be added to a router class to set them globally to all procedures in the router or the class method for a specific procedure, by the `@Middlewares(){:tsx}` decorator.
-The middleware decorator accepts multiple middlewares and will execute them in order, for example:
+These middlewares can be added to a router class, either globally for all procedures in that router or individually to specific procedures using the `@Middlewares(){:tsx}` decorator.
+
+The `@Middlewares(){:tsx}` decorator accepts multiple middlewares, executing them in the provided order. For instance:
 ```ts
 @Middlewares(LoggingMiddleware, AuthMiddleware)
 ```
-`LoggingMiddleware` will execute first, and then `AuthMiddleware` afterward.  <br/>
-When you set the `@Middlewares()` decorator for both the router and the procedure, the router will execute first and then if there aren't any duplicates, the procedure middlewares will follow after. <br/>
-The tRPC concept of middlewares is comparable to how `Guards` and `Middlewares` work in NestJS.
+In this example, `LoggingMiddleware` runs first, followed by `AuthMiddleware`.  <br/>
+If both the router and the procedure have middlewares defined via `@Middlewares(){:tsx}`, the router-level middlewares will execute first, followed by the procedure-level middlewares, provided there are no duplicates.<br/>
+This middleware approach in tRPC is similar to the `Guards` and `Middlewares` concept found in NestJS.
 
 <Callout>
   If you are not sure about the basic concepts of NestJS or tRPC middlewares, you can dive into those concepts in their official documentation.

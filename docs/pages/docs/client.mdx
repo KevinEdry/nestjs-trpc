@@ -81,11 +81,9 @@ Here is and example for a router, and the generated output:
   </Tabs.Tab>
 </Tabs>
 
-The generated AppRouter is **only used for type inference**, thats why you don't see any logic within `.query(){:tsx}` method and why we have a `'PLACEHOLDER_DO_NOT_REMOVE' as any{:tsx}` as the logic just to keep typescript happy. 
-Your router business logic is then executed during run-time with vanilla trpc and the selected driver (either `express` or `fastify`) based on your configurations.
+The generated `AppRouter` is used purely for type inference, which is why there’s no logic inside the `.query()` method. The placeholder value `'PLACEHOLDER_DO_NOT_REMOVE' as any` is used to satisfy TypeScript. Your router's actual business logic is executed at runtime using vanilla tRPC and your chosen driver (either Express or Fastify) based on your configuration.
 
-If we couldn't flatten the either the input or output zod schema when generating the AppRouter, we will try to import the missing dependencies from the relative path. <br/>
-If we are unsuccesful, we let you specify the missing import via the `schemaFileImports` option for the `TRPCModule`. The adapter will take those imports, and will include them in the generated AppRouter.
+If the input or output Zod schema couldn't be flattened when generating the `AppRouter`, we attempt to import the missing dependencies using their relative paths. If that fails, you can specify the missing imports using the `schemaFileImports` option in the `TRPCModule`. The adapter will include these imports in the generated `AppRouter`.
 
 <Callout>
     If you notice the generated `AppRouter` takes into concideration the `@Router(alias?: string){:tsx}` alias, and it hoists the original `ZodSchema` even if imported from a different file (which wasn't easy to make work 😅).

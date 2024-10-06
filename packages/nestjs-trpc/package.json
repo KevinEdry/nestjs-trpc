@@ -16,8 +16,8 @@
     }
   },
   "scripts": {
-    "build": "tsc --project tsconfig.build.json",
-    "start:dev": "tsc --project tsconfig.build.json --watch --preserveWatchOutput",
+    "build": "rm -rf dist && tsc --project tsconfig.build.json",
+    "start:dev": "tsc --project tsconfig.json --watch --preserveWatchOutput",
     "debug:dev": "ts-node --inspect-brk lib/index.ts",
     "clean": "tsc -b --clean",
     "test": "TS_JEST_DISABLE_VER_CHECKER=true jest --no-watchman --coverage"
@@ -27,7 +27,11 @@
     "trpc",
     "adapter",
     "nest",
-    "express"
+    "express",
+    "fastify",
+    "api",
+    "typescript",
+    "types"
   ],
   "author": {
     "name": "Kevin Edry",

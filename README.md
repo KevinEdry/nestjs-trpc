@@ -19,7 +19,7 @@
   </a>
   <br />
   <figure>
-    <img src="https://assets.trpc.io/www/v10/v10-dark-landscape.gif" alt="Demo" />
+    <img src="https://i.imgur.com/bttfbmF.gif" alt="Demo" />
     <figcaption>
       <p align="center">
         The client above is <strong>not</strong> importing any code from the server, only its type declarations.

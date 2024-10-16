@@ -72,7 +72,6 @@ export class TRPCGenerator implements OnModuleInit {
   }
 
   public async generateSchemaFile(
-    outputDirPath: string,
     schemaImports?: Array<SchemaImports> | undefined,
   ): Promise<void> {
     try {

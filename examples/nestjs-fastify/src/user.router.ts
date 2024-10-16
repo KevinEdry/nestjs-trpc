@@ -2,7 +2,7 @@ import { Inject } from '@nestjs/common';
 import {
   Router,
   Query,
-  Middlewares,
+  UseMiddlewares,
   Input,
   Ctx,
   Options,
@@ -15,7 +15,7 @@ import { TRPCError } from '@trpc/server';
 import { User, userSchema } from './user.schema';
 import { LoggingMiddleware } from './logging.middleware';
 
-@Middlewares(LoggingMiddleware)
+@UseMiddlewares(LoggingMiddleware)
 @Router({ alias: 'users' })
 export class UserRouter {
   constructor(@Inject(UserService) private readonly userService: UserService) {}
@@ -24,7 +24,7 @@ export class UserRouter {
     input: z.object({ userId: z.string() }),
     output: userSchema,
   })
-  @Middlewares(ProtectedMiddleware)
+  @UseMiddlewares(ProtectedMiddleware)
   async getUserById(
     @Input('userId') userId: string,
     @Ctx() ctx: object,

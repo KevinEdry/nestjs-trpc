@@ -1,13 +1,13 @@
 import 'reflect-metadata';
-import { Middlewares } from '../middlewares.decorator';
+import { UseMiddlewares } from '../middlewares.decorator';
 import { MIDDLEWARES_KEY } from '../../trpc.constants';
 import { MiddlewareOptions, MiddlewareResponse, TRPCMiddleware } from '../../interfaces';
 
-describe('Middlewares Decorator', () => {
+describe('UseMiddlewares Decorator', () => {
   const mockMiddleware = () => ({});
 
   it('should add metadata to the class', () => {
-    @Middlewares(mockMiddleware)
+    @UseMiddlewares(mockMiddleware)
     class TestClass {}
 
     const metadata = Reflect.getMetadata(MIDDLEWARES_KEY, TestClass);
@@ -16,7 +16,7 @@ describe('Middlewares Decorator', () => {
 
   it('should add metadata to the method', () => {
     class TestClass {
-      @Middlewares(mockMiddleware)
+      @UseMiddlewares(mockMiddleware)
       testMethod() {}
     }
 
@@ -26,7 +26,7 @@ describe('Middlewares Decorator', () => {
 
   it('should throw an error for invalid middleware on class', () => {
     expect(() => {
-      @Middlewares({} as any)
+      @UseMiddlewares({} as any)
       class TestClass {}
     }).toThrow();
   });
@@ -34,7 +34,7 @@ describe('Middlewares Decorator', () => {
   it('should throw an error for invalid middleware on method', () => {
     expect(() => {
       class TestClass {
-        @Middlewares({} as any)
+        @UseMiddlewares({} as any)
         testMethod() {}
       }
     }).toThrow();
@@ -47,7 +47,7 @@ describe('Middlewares Decorator', () => {
         }
     }
 
-    @Middlewares(MiddlewareWithUse)
+    @UseMiddlewares(MiddlewareWithUse)
     class TestClass {}
 
     const metadata = Reflect.getMetadata(MIDDLEWARES_KEY, TestClass);

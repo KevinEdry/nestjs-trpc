@@ -66,7 +66,7 @@ Here's a brief example demonstrating how to use the decorators available in **Ne
 ```typescript
 // users.router.ts
 import { Inject } from '@nestjs/common';
-import { Router, Query, Middlewares } from 'nestjs-trpc';
+import { Router, Query, UseMiddlewares } from 'nestjs-trpc';
 import { UserService } from './user.service';
 import { ProtectedMiddleware } from './protected.middleware';
 import { TRPCError } from '@trpc/server';
@@ -83,7 +83,7 @@ class UserRouter {
     @Inject(UserService) private readonly userService: UserService
   ) {}
 
-  @Middlewares(ProtectedMiddleware)
+  @UseMiddlewares(ProtectedMiddleware)
   @Query({ output: z.array(userSchema) })
   async getUsers() {
     try {

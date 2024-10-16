@@ -12,7 +12,7 @@ describe('DecoratorGenerator', () => {
   beforeEach(async () => {
     project = new Project();
     sourceFile = project.createSourceFile("test.ts", `
-      import { Query, Mutation, Middlewares } from '@nestjs/common';
+      import { Query, Mutation, UseMiddlewares } from '@nestjs/common';
       
       class TestClass {
         @Query()
@@ -21,7 +21,7 @@ describe('DecoratorGenerator', () => {
         @Mutation()
         mutationMethod() {}
 
-        @Middlewares()
+        @UseMiddlewares()
         middlewareMethod() {}
 
         @UnsupportedDecorator()
@@ -76,9 +76,9 @@ describe('DecoratorGenerator', () => {
       expect(result).toEqual([{ name: 'Mutation', arguments: {} }]);
     });
 
-    it('should ignore Middlewares decorator', () => {
+    it('should ignore UseMiddlewares decorator', () => {
       const middlewareMethod = sourceFile.getClass('TestClass')!.getMethod('middlewareMethod')!;
-      const middlewaresDecorator = middlewareMethod.getDecorator('Middlewares')!;
+      const middlewaresDecorator = middlewareMethod.getDecorator('UseMiddlewares')!;
 
       const result = decoratorGenerator.serializeProcedureDecorators(
         [middlewaresDecorator],

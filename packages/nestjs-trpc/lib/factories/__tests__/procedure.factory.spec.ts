@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { ProcedureBuilder, TRPCError, initTRPC } from '@trpc/server';
 import { ProcedureFactoryMetadata, ProcedureParamDecoratorType } from '../../interfaces/factory.interface';
 import { TRPCMiddleware } from '../../interfaces';
-import { Ctx, Input, Middlewares, Options, Query } from '../../decorators';
+import { Ctx, Input, UseMiddlewares, Options, Query } from '../../decorators';
 import { ProcedureType } from '../../trpc.enum';
 
 describe('ProcedureFactory', () => {
@@ -18,6 +18,7 @@ describe('ProcedureFactory', () => {
       providers: [
         ProcedureFactory,
         {
+          provide: ConsoleLogger,
           provide: ConsoleLogger,
           useValue: {
             log: jest.fn(),
@@ -68,7 +69,7 @@ describe('ProcedureFactory', () => {
           input: z.object({ userId: z.string() }),
           output: userSchema
         })
-        @Middlewares(ProtectedMiddleware)
+        @UseMiddlewares(ProtectedMiddleware)
         async getUserById(@Input("userId") userId: string, @Ctx() ctx: any, @Options() opts: any): Promise<any> {
           const user = await this.userService.getUser(userId);
           if (ctx.ben) {

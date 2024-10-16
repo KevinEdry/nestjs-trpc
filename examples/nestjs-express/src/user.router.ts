@@ -2,7 +2,7 @@ import { Inject } from '@nestjs/common';
 import {
   Router,
   Query,
-  Middlewares,
+  UseMiddlewares,
   Input,
   Ctx,
   Options,
@@ -22,7 +22,7 @@ export class UserRouter {
     input: z.object({ userId: z.string() }),
     output: userSchema,
   })
-  @Middlewares(ProtectedMiddleware)
+  @UseMiddlewares(ProtectedMiddleware)
   async getUserById(
     @Input('userId') userId: string,
     @Ctx() ctx: object,

@@ -2,11 +2,7 @@ import { ConsoleLogger, Inject, Module } from '@nestjs/common';
 import { DynamicModule, OnModuleInit } from '@nestjs/common/interfaces';
 import { HttpAdapterHost } from '@nestjs/core';
 
-import {
-  LOGGER_CONTEXT,
-  TRPC_MODULE_CALLER_FILE_PATH,
-  TRPC_MODULE_OPTIONS,
-} from './trpc.constants';
+import { LOGGER_CONTEXT, TRPC_MODULE_OPTIONS } from './trpc.constants';
 
 import { TRPCModuleOptions } from './interfaces';
 import { TRPCDriver } from './trpc.driver';
@@ -50,23 +46,25 @@ export class TRPCModule implements OnModuleInit {
   private readonly appRouterHost!: AppRouterHost;
 
   static forRoot(options: TRPCModuleOptions = {}): DynamicModule {
-    const fileScanner = new FileScanner();
-    const callerFilePath = fileScanner.getCallerFilePath();
-    return {
-      module: TRPCModule,
-      imports: [
+    const imports: Array<DynamicModule> = [];
+
+    if (options.autoSchemaFile != null) {
+      const fileScanner = new FileScanner();
+      const callerFilePath = fileScanner.getCallerFilePath();
+      imports.push(
         GeneratorModule.forRoot({
           outputDirPath: options.autoSchemaFile,
           rootModuleFilePath: callerFilePath,
+          schemaFileImports: options.schemaFileImports,
+          context: options.context,
         }),
-      ],
-      providers: [
-        { provide: TRPC_MODULE_OPTIONS, useValue: options },
-        {
-          provide: TRPC_MODULE_CALLER_FILE_PATH,
-          useValue: callerFilePath,
-        },
-      ],
+      );
+    }
+
+    return {
+      module: TRPCModule,
+      imports,
+      providers: [{ provide: TRPC_MODULE_OPTIONS, useValue: options }],
     };
   }
 

@@ -1,4 +1,4 @@
-import { ConsoleLogger, Module } from '@nestjs/common';
+import { ConsoleLogger, Inject, Module, OnModuleInit } from '@nestjs/common';
 import { DynamicModule } from '@nestjs/common/interfaces';
 import { MetadataScanner } from '@nestjs/core';
 import { CompilerOptions, ModuleKind, Project, ScriptTarget } from 'ts-morph';
@@ -14,10 +14,14 @@ import {
   TYPESCRIPT_APP_ROUTER_SOURCE_FILE,
   TYPESCRIPT_PROJECT,
 } from './generator.constants';
-import * as path from 'node:path';
-import { TRPC_MODULE_CALLER_FILE_PATH } from '../trpc.constants';
+import {
+  TRPC_GENERATOR_OPTIONS,
+  TRPC_MODULE_CALLER_FILE_PATH,
+} from '../trpc.constants';
 import { FactoryModule } from '../factories/factory.module';
 import { ScannerModule } from '../scanners/scanner.module';
+import * as path from 'node:path';
+import { GeneratorModuleOptions } from './generator.interface';
 
 @Module({
   imports: [FactoryModule, ScannerModule],
@@ -37,11 +41,14 @@ import { ScannerModule } from '../scanners/scanner.module';
   ],
   exports: [TRPCGenerator],
 })
-export class GeneratorModule {
-  static forRoot(options: {
-    outputDirPath?: string;
-    rootModuleFilePath: string;
-  }): DynamicModule {
+export class GeneratorModule implements OnModuleInit {
+  @Inject(TRPCGenerator)
+  private readonly trpcGenerator!: TRPCGenerator;
+
+  @Inject(TRPC_GENERATOR_OPTIONS)
+  private readonly options!: GeneratorModuleOptions;
+
+  static forRoot(options: GeneratorModuleOptions): DynamicModule {
     const defaultCompilerOptions: CompilerOptions = {
       target: ScriptTarget.ES2019,
       module: ModuleKind.CommonJS,
@@ -55,7 +62,7 @@ export class GeneratorModule {
 
     const appRouterSourceFile = project.createSourceFile(
       path.resolve(options.outputDirPath ?? './', 'server.ts'),
-      undefined,
+      () => {},
       { overwrite: true },
     );
 
@@ -71,7 +78,13 @@ export class GeneratorModule {
           provide: TYPESCRIPT_APP_ROUTER_SOURCE_FILE,
           useValue: appRouterSourceFile,
         },
+        { provide: TRPC_GENERATOR_OPTIONS, useValue: options },
       ],
     };
+  }
+
+  async onModuleInit() {
+    await this.trpcGenerator.generateSchemaFile(this.options.schemaFileImports);
+    await this.trpcGenerator.generateHelpersFile(this.options.context);
   }
 }

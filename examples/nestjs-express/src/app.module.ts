@@ -9,7 +9,8 @@ import { TrpcPanelController } from './trpc-panel.controller';
 @Module({
   imports: [
     TRPCModule.forRoot({
-      autoSchemaFile: './src/@generated',
+      autoSchemaFile:
+        process.env.NODE_ENV === 'production' ? undefined : './src/@generated',
       context: AppContext,
     }),
   ],

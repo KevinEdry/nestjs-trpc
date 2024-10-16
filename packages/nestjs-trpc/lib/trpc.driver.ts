@@ -5,7 +5,6 @@ import type { FastifyInstance as FastifyApplication } from 'fastify';
 import { TRPCContext, TRPCModuleOptions } from './interfaces';
 import { AnyRouter, initTRPC } from '@trpc/server';
 import { TRPCFactory } from './factories/trpc.factory';
-import { TRPCGenerator } from './generators/trpc.generator';
 import { AppRouterHost } from './app-router.host';
 import { ExpressDriver, FastifyDriver } from './drivers';
 
@@ -39,9 +38,6 @@ export class TRPCDriver<
 
   @Inject(TRPCFactory)
   protected readonly trpcFactory!: TRPCFactory;
-
-  @Inject(TRPCGenerator)
-  protected readonly trpcGenerator!: TRPCGenerator;
 
   @Inject(ConsoleLogger)
   protected readonly consoleLogger!: ConsoleLogger;
@@ -94,19 +90,6 @@ export class TRPCDriver<
       await this.fastifyDriver.start(options, app, appRouter, contextInstance);
     } else {
       throw new Error(`Unsupported http adapter: ${platformName}`);
-    }
-
-    if (options.autoSchemaFile != null) {
-      await this.trpcGenerator.generateSchemaFile(
-        options.autoSchemaFile,
-        options.schemaFileImports,
-      );
-      await this.trpcGenerator.generateHelpersFile(options.context);
-    } else {
-      this.consoleLogger.log(
-        'Skipping appRouter types generation - `autoSchemaFile` was not provided.',
-        'TRPC Driver',
-      );
     }
   }
 }

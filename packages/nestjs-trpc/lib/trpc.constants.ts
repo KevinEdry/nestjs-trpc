@@ -1,5 +1,6 @@
 export const TRPC_MODULE_OPTIONS = 'TrpcModuleOptions';
 
+export const TRPC_GENERATOR_OPTIONS = 'TrpcGenderOptions';
 export const TRPC_MODULE_CALLER_FILE_PATH = 'TrpcModuleCallerFilePath';
 
 export const ROUTER_METADATA_KEY = Symbol('trpc:router_type');

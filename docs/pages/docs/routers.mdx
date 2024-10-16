@@ -116,10 +116,10 @@ tRPC procedures may define validation logic for their input and/or output, and v
 We can pass those schemas directly to the decorator as shown above.<br/>For me information on how tRPC procedure validation works, check their <Link href={"https://trpc.io/docs/server/validators"} className="underline" target="_blank">official documentation page</Link>.
 
 ##### Middlewares
-By default every route will be assigned the `publicProcedure` base, but it is possible to use custom middlewares instead our router via the `@Middlewares()` decorator.
+By default every route will be assigned the `publicProcedure` base, but it is possible to use custom middlewares instead our router via the `@UseMiddlewares()` decorator.
 <Table columns={["Decorator", "Output"]}>
   <Table.Row>
-    <Table.Cell>`@Middlewares(middleware: TRPCMiddleware)`</Table.Cell>
+    <Table.Cell>`@UseMiddlewares(middleware: TRPCMiddleware)`</Table.Cell>
     <Table.Cell>`middleware.query()`</Table.Cell>
   </Table.Row>
 </Table>
@@ -160,7 +160,7 @@ which are available out of the box. Below is a list of the provided decorators a
 Below is an example of a UserRouter completed with most of the features and decorators mentioned above.
 ```typescript filename="user.router.ts" copy
 import { Inject } from '@nestjs/common';
-import { Router, Query, Middlewares, Input } from 'nestjs-trpc';
+import { Router, Query, UseMiddlewares, Input } from 'nestjs-trpc';
 import { UserService } from './user.service';
 import { ProtectedMiddleware } from './protected.middleware';
 import { z } from 'zod';
@@ -182,7 +182,7 @@ export class UserRouter {
     input: z.object({ userId: z.string() }),
     output: userSchema,
   })
-  @Middlewares(ProtectedMiddleware)
+  @UseMiddlewares(ProtectedMiddleware)
   async getUserById(@Input('userId') userId: string): Promise<User> {
     const user = await this.userService.getUser(userId);
 

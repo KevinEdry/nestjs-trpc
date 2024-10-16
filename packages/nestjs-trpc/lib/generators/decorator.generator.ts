@@ -47,7 +47,7 @@ export class DecoratorGenerator {
               ...(output ? { output } : {}),
             },
           });
-        } else if (decoratorName === 'Middlewares') {
+        } else if (decoratorName === 'UseMiddlewares') {
           return array;
         } else {
           this.consoleLogger.warn(`Decorator ${decoratorName}, not supported.`);

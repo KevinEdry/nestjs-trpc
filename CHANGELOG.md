@@ -1,5 +1,11 @@
 # Changelog
 
+## <small>1.5.1 (2024-10-16)</small>
+
+* chore(packages/nestjs-trpc): updated nestjs to not require generation dependencies in prod ([2546753](https://github.com/KevinEdry/nestjs-trpc/commit/2546753))
+* chore(packages/nestjs-trpc): updated tsconfig and build step ([6102784](https://github.com/KevinEdry/nestjs-trpc/commit/6102784))
+* docs(README): change demo gif ([921b512](https://github.com/KevinEdry/nestjs-trpc/commit/921b512))
+
 ## 1.5.0 (2024-10-06)
 
 * chore(nestjs-trpc): refactored util files and functions ([fbf794a](https://github.com/KevinEdry/nestjs-trpc/commit/fbf794a))

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { SourceMapping } from '../interfaces/scanner.interface';
+
 /**
  * For this specific file, using a static reference is desirable since `getCallerFilePath` uses a stack-trace to figure out the caller.
  * If this clas is injected through dependency injection, that stack-trace will vary!
@@ -32,14 +33,7 @@ export class FileScanner {
   }
 
   private normalizePath(p: string): string {
-    let pathName = path.resolve(p.replace(/\\/g, '/'));
-
-    // Windows drive letter must be prefixed with a slash
-    if (pathName[0] !== '/') {
-      pathName = `/${pathName}`;
-    }
-
-    return pathName;
+    return path.resolve(p.replace(/\\/g, '/'));
   }
 
   private getPlatformPath(path: string): string {

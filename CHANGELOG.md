@@ -1,5 +1,9 @@
 # Changelog
 
+## <small>1.5.2 (2024-10-20)</small>
+
+* chore(packages/nestjs-trpc): removed prefixed slash for windows ([d0a73a4](https://github.com/KevinEdry/nestjs-trpc/commit/d0a73a4))
+
 ## <small>1.5.1 (2024-10-16)</small>
 
 * chore(packages/nestjs-trpc): updated nestjs to not require generation dependencies in prod ([2546753](https://github.com/KevinEdry/nestjs-trpc/commit/2546753))

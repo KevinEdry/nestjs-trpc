@@ -9,18 +9,18 @@ import TrpcIcon from '../../public/icons/trpc.svg';
 # Middlewares
 
 With this adapter you can create procedure middlewares, 
-These middlewares can be added to a router class, either globally for all procedures in that router or individually to specific procedures using the `@Middlewares(){:tsx}` decorator.
+These middlewares can be added to a router class, either globally for all procedures in that router or individually to specific procedures using the `@UseMiddlewares(){:tsx}` decorator.
 
-The `@Middlewares(){:tsx}` decorator accepts multiple middlewares, executing them in the provided order. For instance:
+The `@UseMiddlewares(){:tsx}` decorator accepts multiple middlewares, executing them in the provided order. For instance:
 ```ts
-@Middlewares(LoggingMiddleware, AuthMiddleware)
+@UseMiddlewares(LoggingMiddleware, AuthMiddleware)
 ```
 In this example, `LoggingMiddleware` runs first, followed by `AuthMiddleware`.  <br/>
-If both the router and the procedure have middlewares defined via `@Middlewares(){:tsx}`, the router-level middlewares will execute first, followed by the procedure-level middlewares, provided there are no duplicates.<br/>
+If both the router and the procedure have middlewares defined via `@UseMiddlewares(){:tsx}`, the router-level middlewares will execute first, followed by the procedure-level middlewares, provided there are no duplicates.<br/>
 This middleware approach in tRPC is similar to the `Guards` and `Middlewares` concept found in NestJS.
 
 <Callout>
-  If you are not sure about the basic concepts of NestJS or tRPC middlewares, you can dive into those concepts in their official documentation.
+  If you are not sure about the basic **concepts** of NestJS or tRPC middlewares, you can dive into those concepts in their official documentation.
 </Callout>
 <div className={"w-full router-cards"}>
   <Cards>
@@ -90,12 +90,12 @@ Similar to NestJS providers, we need to register the middleware with Nest so tha
 We do this by editing our module file and adding the middleware to the `providers` array of the `@Module(){:tsx}` decorator.
 
 ### Applying middleware
-To use the middleware in your procedure instead of the default `publicProcedure`, pass the class to the `@Middlewares(){:tsx}` method decorator.
+To use the middleware in your procedure instead of the default `publicProcedure`, pass the class to the `@UseMiddlewares(){:tsx}` method decorator.
 ```typescript {17} filename="dogs.router.ts" copy showLineNumbers
 import { DatabaseService } from "./database.service.ts";
 import { LoggedMiddleware } from "./logged.middleware.ts";
 import { AuthMiddleware } from "./auth.middleware.ts";
-import { Router, Query, Middlewares } from 'nestjs-trpc';
+import { Router, Query, UseMiddlewares } from 'nestjs-trpc';
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 
@@ -108,7 +108,7 @@ const dogsSchema = z.object({
 export class DogsRouter {
   constructor(@Inject(DatabaseService) private databaseService: DatabaseService){}
 
-  @Middlewares(LoggedMiddleware, AuthMiddleware)
+  @UseMiddlewares(LoggedMiddleware, AuthMiddleware)
   @Query({ output: z.array(dogSchema) })
   async findAll(): string {
     const dogs = await this.databaseService.dogs.findMany();
@@ -132,7 +132,7 @@ Then you can import those types and use throughout your procedures from `nestjs-
 import type { AuthMiddlewareContext } from 'nestjs-trpc/types';
 import { UserService } from "./user.service.ts";
 import { AuthMiddleware } from "./auth.middleware.ts";
-import { Router, Query, Middlewares } from 'nestjs-trpc';
+import { Router, Query, UseMiddlewares } from 'nestjs-trpc';
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 
@@ -146,7 +146,7 @@ const userSchema = z.object({
 export class UserRouter {
   constructor(@Inject(UserService) private userService: UserService){}
 
-  @Middlewares(AuthMiddleware)
+  @UseMiddlewares(AuthMiddleware)
   @Query({ output: userSchema })
   async getUserProfile(@Context() ctx: AuthMiddlewareContext): string {
     const { userId } = ctx.auth;
@@ -201,4 +201,4 @@ export interface AuthMiddlewareContext extends Context {
 </Tabs>
 
 #### Dependency injection
-Middlewares fully supports Dependency Injection. Just as with NestJS middlewares and guards, they are able to inject dependencies that are available within the same module. As usual, this is done through the `constructor`.
+UseMiddlewares fully supports Dependency Injection. Just as with NestJS middlewares and guards, they are able to inject dependencies that are available within the same module. As usual, this is done through the `constructor`.

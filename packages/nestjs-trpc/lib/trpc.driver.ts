@@ -59,7 +59,7 @@ export class TRPCDriver<
       ...(options.transformer != null
         ? { transformer: options.transformer }
         : {}),
-      ...(options.errorShape != null ? { errorShape: options.errorShape } : {}),
+      ...(options.errorShape != null ? { errorFormatter: options.errorShape } : {}),
     });
 
     const appRouter: AnyRouter = this.trpcFactory.serializeAppRoutes(

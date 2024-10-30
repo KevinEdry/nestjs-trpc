@@ -1,5 +1,7 @@
 # Changelog
 
+## <small>1.6.1 (2024-10-30)</small>
+
 ## 1.6.0 (2024-10-30)
 
 * chore(nestjs-trpc): remove pnp from source control ([1d92ef9](https://github.com/KevinEdry/nestjs-trpc/commit/1d92ef9))

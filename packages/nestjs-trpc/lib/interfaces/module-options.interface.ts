@@ -45,7 +45,7 @@ export interface TRPCModuleOptions {
    * Use custom error formatting
    * @link https://trpc.io/docs/error-formatting
    */
-  errorShape?: ErrorFormatter<
+  errorFormatter?: ErrorFormatter<
     RootConfigTypes['ctx'],
     TRPCErrorShape<number> & { [key: string]: any }
   >;

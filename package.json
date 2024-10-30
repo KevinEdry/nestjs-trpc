@@ -1,6 +1,6 @@
 {
   "name": "nestjs-trpc-workspace",
-  "version": "1.5.2",
+  "version": "1.6.0",
   "homepage": "https://nestjs-trpc.io",
   "private": true,
   "scripts": {

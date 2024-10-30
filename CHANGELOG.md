@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.6.0 (2024-10-30)
+
+* chore(nestjs-trpc): remove pnp from source control ([1d92ef9](https://github.com/KevinEdry/nestjs-trpc/commit/1d92ef9))
+* chore(nestjs-trpc): updated gitignore ([e2ee7c6](https://github.com/KevinEdry/nestjs-trpc/commit/e2ee7c6))
+* Change interface to also say `errorFormatter` ([eef64f3](https://github.com/KevinEdry/nestjs-trpc/commit/eef64f3))
+* Use `errorFormatter` instead of `errorShape` ([673a651](https://github.com/KevinEdry/nestjs-trpc/commit/673a651))
+* refactor(decorators/middlewares): rename to `UseMiddlewares` and mark old one as deprecated ([5073129](https://github.com/KevinEdry/nestjs-trpc/commit/5073129))
+* refactor(decorators/middlewares): rename to `UseMiddlewares` and mark old one as deprecated ([6930001](https://github.com/KevinEdry/nestjs-trpc/commit/6930001))
+
 ## <small>1.5.2 (2024-10-20)</small>
 
 * chore(packages/nestjs-trpc): removed prefixed slash for windows ([d0a73a4](https://github.com/KevinEdry/nestjs-trpc/commit/d0a73a4))

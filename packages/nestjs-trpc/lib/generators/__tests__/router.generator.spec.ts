@@ -2,12 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RouterGenerator } from '../router.generator';
 import { DecoratorGenerator } from '../decorator.generator';
 import { Project, SourceFile } from 'ts-morph';
-import { RoutersFactoryMetadata, } from '../../interfaces/factory.interface';
-import {
-  DecoratorGeneratorMetadata,
-  ProcedureGeneratorMetadata,
-  RouterGeneratorMetadata,
-} from '../../interfaces/generator.interface';
+import { RoutersFactoryMetadata } from '../../interfaces/factory.interface';
+import { DecoratorGeneratorMetadata, RouterGeneratorMetadata } from '../../interfaces/generator.interface';
 import { Query, Mutation } from '../../decorators';
 import { z } from 'zod';
 import { ProcedureGenerator } from '../procedure.generator';
@@ -175,6 +171,45 @@ describe('RouterGenerator', () => {
         'test: t.router({ ' +
         'testQuery: publicProcedure.query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any ),\n' +
         'testMutation: publicProcedure.mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any ) ' +
+        '})'
+      );
+    });
+
+    it.only('should generate merged router string from metadata', () => {
+      const mockRouterMetadata: Array<RouterGeneratorMetadata> = [
+        {
+          name: 'TestRouter',
+          alias: 'test',
+          procedures: [
+            {
+              name: 'testQuery',
+              decorators: [{ name: 'Query', arguments: {} }],
+            },
+            {
+              name: 'testMutation',
+              decorators: [{ name: 'Mutation', arguments: {} }],
+            },
+          ],
+        },
+        {
+          name: 'TestRouter',
+          alias: 'test',
+          procedures: [
+            {
+              name: 'testQueryExtended',
+              decorators: [{ name: 'Query', arguments: {} }],
+            },
+          ],
+        },
+      ];
+
+      const result = routerGenerator.generateRoutersStringFromMetadata(mockRouterMetadata);
+
+      expect(result).toBe(
+        'test: t.router({ ' +
+        'testQuery: publicProcedure.query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any ),\n' +
+        'testMutation: publicProcedure.mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any ),\n ' +
+        'testQueryExtended: publicProcedure.query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any ) ' +
         '})'
       );
     });

@@ -27,9 +27,12 @@ export class FileScanner {
     }
     const sourceMap = this.getSourceMapFromJSPath(jsFilePath);
 
-    return this.normalizePath(
-      path.resolve(jsFilePath, '..', sourceMap.sources[0]),
-    );
+    if (typeof Bun !== "undefined") {
+      return jsFilePath
+    } else {
+      const sourceMap = this.getSourceMapFromJSPath(jsFilePath);
+      return this.normalizePath(path.resolve(jsFilePath, '..', sourceMap.sources[0]));
+     }
   }
 
   private normalizePath(p: string): string {

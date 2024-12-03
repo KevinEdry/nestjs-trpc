@@ -5,7 +5,7 @@ import { SourceMapping } from '../interfaces/scanner.interface';
 
 /**
  * For this specific file, using a static reference is desirable since `getCallerFilePath` uses a stack-trace to figure out the caller.
- * If this clas is injected through dependency injection, that stack-trace will vary!
+ * If this class is injected through dependency injection, that stack-trace will vary!
  */
 @Injectable()
 export class FileScanner {
@@ -19,47 +19,74 @@ export class FileScanner {
     Error.prepareStackTrace = originalPrepareStackTrace;
 
     const caller = stack[skip];
-
     const jsFilePath = caller?.getFileName();
 
     if (jsFilePath == null) {
       throw new Error(`Could not find caller file: ${caller}`);
     }
-    const sourceMap = this.getSourceMapFromJSPath(jsFilePath);
 
-    return this.normalizePath(
-      path.resolve(jsFilePath, '..', sourceMap.sources[0]),
-    );
+    try {
+      // Attempt to find the source map file and extract the original TypeScript path
+      const sourceMap = this.getSourceMapFromJSPath(jsFilePath);
+      return this.normalizePath(
+        path.resolve(jsFilePath, '..', sourceMap.sources[0]),
+      );
+    } catch (error) {
+      // Suppress the warning if in test environment
+      if (process.env.NODE_ENV !== 'test') {
+        console.warn(
+          `Warning: Could not resolve source map for ${jsFilePath}. Falling back to default path resolution.`,
+        );
+      }
+      return this.normalizePath(jsFilePath);
+    }
   }
 
   private normalizePath(p: string): string {
     return path.resolve(p.replace(/\\/g, '/'));
   }
 
-  private getPlatformPath(path: string): string {
-    const exec = /^\/(\w*):(.*)/.exec(path);
-
+  private getPlatformPath(p: string): string {
+    const exec = /^\/(\w*):(.*)/.exec(p);
     return /^win/.test(process.platform) && exec
       ? `${exec[1]}:\\${exec[2].replace(/\//g, '\\')}`
-      : path;
+      : p;
   }
 
   private getSourceMapFromJSPath(sourcePath: string): SourceMapping {
     const SOURCE_MAP_REGEX = /\/\/# sourceMappingURL=(.*\.map)$/m;
     const filePath = this.getPlatformPath(sourcePath);
 
-    const content = fs.readFileSync(filePath, { encoding: 'utf8' });
-    const exec = SOURCE_MAP_REGEX.exec(content);
+    let content: string;
+    try {
+      content = fs.readFileSync(filePath, { encoding: 'utf8' });
+    } catch (error) {
+      throw new Error(`Could not read source file at path: ${filePath}`);
+    }
 
+    const exec = SOURCE_MAP_REGEX.exec(content);
     if (exec == null) {
       throw new Error(
-        `Could not find source file for path ${sourcePath}, make sure "sourceMap" is enabled in your tsconfig.`,
+        `Could not find source map comment in file at path ${sourcePath}. Make sure "sourceMap" is enabled in your tsconfig.`,
       );
     }
+
     const sourceMapPath = path.resolve(filePath, '..', exec[1]);
-    const sourceMapContent = fs.readFileSync(sourceMapPath, {
-      encoding: 'utf8',
-    });
-    return JSON.parse(sourceMapContent);
+    let sourceMapContent: string;
+    try {
+      sourceMapContent = fs.readFileSync(sourceMapPath, { encoding: 'utf8' });
+    } catch (error) {
+      throw new Error(
+        `Could not read source map file at path: ${sourceMapPath}`,
+      );
+    }
+
+    try {
+      return JSON.parse(sourceMapContent);
+    } catch (error) {
+      throw new Error(
+        `Failed to parse source map content from: ${sourceMapPath}`,
+      );
+    }
   }
 }

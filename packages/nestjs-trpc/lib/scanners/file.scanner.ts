@@ -25,11 +25,13 @@ export class FileScanner {
     if (jsFilePath == null) {
       throw new Error(`Could not find caller file: ${caller}`);
     }
-    const sourceMap = this.getSourceMapFromJSPath(jsFilePath);
 
-    return this.normalizePath(
-      path.resolve(jsFilePath, '..', sourceMap.sources[0]),
-    );
+    if (typeof Bun !== "undefined") {
+      return jsFilePath
+    } else {
+      const sourceMap = this.getSourceMapFromJSPath(jsFilePath);
+      return this.normalizePath(path.resolve(jsFilePath, '..', sourceMap.sources[0]));
+     }
   }
 
   private normalizePath(p: string): string {

@@ -25,7 +25,6 @@ export class FileScanner {
     if (jsFilePath == null) {
       throw new Error(`Could not find caller file: ${caller}`);
     }
-    const sourceMap = this.getSourceMapFromJSPath(jsFilePath);
 
     if (typeof Bun !== "undefined") {
       return jsFilePath

@@ -9,6 +9,7 @@
     "clean": "tsc -b --clean",
     "format": "prettier packages/**/*.ts --ignore-path ./.prettierignore --write",
     "lint": "eslint 'packages/**/*.ts' --fix",
+    "test": "yarn workspaces foreach --all run test",
     "release": "release-it",
     "prepublish:npm": "yarn build && yarn changelog | pbcopy",
     "publish:npm": "lerna publish",

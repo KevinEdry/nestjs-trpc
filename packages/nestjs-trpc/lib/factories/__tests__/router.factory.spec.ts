@@ -119,7 +119,8 @@ describe('RouterFactory', () => {
         name: 'UserRouter',
         instance: userRouterInstance,
         alias: 'users',
-        middlewares: undefined,
+        middlewares: [],
+        path: undefined,
       });
     });
   });
@@ -214,7 +215,7 @@ describe('RouterFactory', () => {
         userRouterInstance,
         'users',
         mockProcedureBuilder,
-        undefined
+        []
       );
     });
   });

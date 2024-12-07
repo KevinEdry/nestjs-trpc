@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { DecoratorGenerator } from '../decorator.generator';
 import { ConsoleLogger } from '@nestjs/common';
 import { Project, SourceFile } from 'ts-morph';
+import { ProcedureGenerator } from '../procedure.generator';
 
 describe('DecoratorGenerator', () => {
   let decoratorGenerator: DecoratorGenerator;
@@ -34,6 +35,12 @@ describe('DecoratorGenerator', () => {
         DecoratorGenerator,
         {
           provide: ConsoleLogger,
+          useValue: {
+            warn: jest.fn(),
+          },
+        },
+        {
+          provide: ProcedureGenerator,
           useValue: {
             warn: jest.fn(),
           },

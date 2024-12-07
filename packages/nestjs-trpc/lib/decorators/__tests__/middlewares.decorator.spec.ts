@@ -4,24 +4,28 @@ import { MIDDLEWARES_KEY } from '../../trpc.constants';
 import { MiddlewareOptions, MiddlewareResponse, TRPCMiddleware } from '../../interfaces';
 
 describe('UseMiddlewares Decorator', () => {
-  const mockMiddleware = () => ({});
+  class TestMiddleware implements TRPCMiddleware {
+    use(opts: MiddlewareOptions<object>): MiddlewareResponse | Promise<MiddlewareResponse> {
+      throw new Error('Method not implemented.');
+    }
+  }
 
   it('should add metadata to the class', () => {
-    @UseMiddlewares(mockMiddleware)
+    @UseMiddlewares(TestMiddleware)
     class TestClass {}
 
     const metadata = Reflect.getMetadata(MIDDLEWARES_KEY, TestClass);
-    expect(metadata).toBe(mockMiddleware);
+    expect(metadata).toStrictEqual([TestMiddleware]);
   });
 
   it('should add metadata to the method', () => {
     class TestClass {
-      @UseMiddlewares(mockMiddleware)
+      @UseMiddlewares(TestMiddleware)
       testMethod() {}
     }
 
     const metadata = Reflect.getMetadata(MIDDLEWARES_KEY, TestClass.prototype.testMethod);
-    expect(metadata).toBe(mockMiddleware);
+    expect(metadata).toStrictEqual([TestMiddleware]);
   });
 
   it('should throw an error for invalid middleware on class', () => {
@@ -38,19 +42,5 @@ describe('UseMiddlewares Decorator', () => {
         testMethod() {}
       }
     }).toThrow();
-  });
-
-  it('should accept middleware with use method', () => {
-    class MiddlewareWithUse implements TRPCMiddleware{
-        use(opts: MiddlewareOptions<object>): MiddlewareResponse | Promise<MiddlewareResponse> {
-            throw new Error('Method not implemented.');
-        }
-    }
-
-    @UseMiddlewares(MiddlewareWithUse)
-    class TestClass {}
-
-    const metadata = Reflect.getMetadata(MIDDLEWARES_KEY, TestClass);
-    expect(metadata).toBe(MiddlewareWithUse);
   });
 });

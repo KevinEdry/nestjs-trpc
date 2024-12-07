@@ -11,6 +11,7 @@ import { ProcedureType } from '../../trpc.enum';
 
 describe('ProcedureFactory', () => {
   let procedureFactory: ProcedureFactory;
+  let metadataScanner: jest.Mocked<MetadataScanner>
   let moduleRef: ModuleRef;
 
   beforeEach(async () => {
@@ -19,7 +20,6 @@ describe('ProcedureFactory', () => {
         ProcedureFactory,
         {
           provide: ConsoleLogger,
-          provide: ConsoleLogger,
           useValue: {
             log: jest.fn(),
           },
@@ -27,7 +27,7 @@ describe('ProcedureFactory', () => {
         {
           provide: MetadataScanner,
           useValue: {
-            scanFromPrototype: jest.fn(),
+            getAllMethodNames: jest.fn(),
           },
         },
         {
@@ -40,6 +40,7 @@ describe('ProcedureFactory', () => {
     }).compile();
 
     procedureFactory = module.get<ProcedureFactory>(ProcedureFactory);
+    metadataScanner = module.get(MetadataScanner);
     moduleRef = module.get<ModuleRef>(ModuleRef);
   });
 
@@ -62,10 +63,11 @@ describe('ProcedureFactory', () => {
         }
       }
 
+
       class UserRouter {
         constructor(private readonly userService: UserService) {}
 
-        @Query({          
+        @Query({
           input: z.object({ userId: z.string() }),
           output: userSchema
         })
@@ -85,9 +87,9 @@ describe('ProcedureFactory', () => {
       const mockInstance = new UserRouter(new UserService());
       const mockPrototype = Object.getPrototypeOf(mockInstance);
 
-      (procedureFactory['metadataScanner'].scanFromPrototype as jest.Mock).mockImplementation(
-        (instance, prototype, callback) => {
-          return [callback('getUserById', prototype)];
+      metadataScanner.getAllMethodNames.mockImplementation(
+        (prototype: object | null) => {
+          return ['getUserById'];
         }
       );
 
@@ -99,7 +101,7 @@ describe('ProcedureFactory', () => {
         type: ProcedureType.Query,
         input: expect.any(Object),
         output: expect.any(Object),
-        middlewares: ProtectedMiddleware,
+        middlewares: [ProtectedMiddleware],
         params: [
           { type: 'options', index: 2 },
           { type: 'ctx', index: 1 },
@@ -127,7 +129,7 @@ describe('ProcedureFactory', () => {
           input: z.object({ userId: z.string() }),
           output: userSchema,
           type: 'query',
-          middlewares: ProtectedMiddleware,
+          middlewares: [ProtectedMiddleware],
           name: 'getUserById',
           implementation: jest.fn(),
           params: [
@@ -153,7 +155,7 @@ describe('ProcedureFactory', () => {
         mockInstance,
         'users',
         mockProcedureBuilder,
-        undefined
+        []
       );
 
       expect(result).toHaveProperty('getUserById');

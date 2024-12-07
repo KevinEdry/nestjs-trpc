@@ -17,6 +17,7 @@ const compat = new FlatCompat({
 export default [{
     ignores: [
         "packages/**/tests/**",
+        "packages/**/dist/**",
         "examples",
         "dist",
         "node_modules",

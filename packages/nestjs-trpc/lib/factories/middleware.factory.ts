@@ -30,7 +30,7 @@ export class MiddlewareFactory {
       );
 
       const procedureMiddleware = procedures.flatMap((procedure) => {
-        return procedure.middlewares != null ? procedure.middlewares : [];
+        return procedure.middlewares ?? [];
       });
 
       return [...middlewares, ...procedureMiddleware].map((middleware) => ({

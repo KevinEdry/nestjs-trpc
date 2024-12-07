@@ -3,10 +3,6 @@ import { ContextGenerator } from '../context.generator';
 import { Project, SourceFile } from 'ts-morph';
 import { TRPCContext } from '../../interfaces';
 
-jest.mock('func-loc', () => ({
-  locate: jest.fn().mockResolvedValue({ path: 'test.ts' }),
-}));
-
 describe('ContextGenerator', () => {
   let contextGenerator: ContextGenerator;
   let project: Project;
@@ -39,10 +35,6 @@ describe('ContextGenerator', () => {
   });
 
   describe('getContextInterface', () => {
-    it('should return null if context class name is not defined', async () => {
-      const result = await contextGenerator.getContextInterface({} as any, project);
-      expect(result).toBeNull();
-    });
 
     it('should return the context interface if everything is valid', async () => {
       class TestContext implements TRPCContext {
@@ -53,7 +45,7 @@ describe('ContextGenerator', () => {
 
       jest.spyOn(project, 'addSourceFileAtPath').mockReturnValue(sourceFile);
 
-      const result = await contextGenerator.getContextInterface(TestContext, project);
+      const result = await contextGenerator.getContextInterface(sourceFile, TestContext);
       expect(result).toBe('{ user: { id: string; name: string; }; }');
     });
 
@@ -71,8 +63,8 @@ describe('ContextGenerator', () => {
 
       jest.spyOn(project, 'addSourceFileAtPath').mockReturnValue(sourceFile);
 
-      //@ts-expect-error
-      const result = await contextGenerator.getContextInterface(InvalidContext, project);
+      //@ts-expect-error invalid context passed in
+      const result = await contextGenerator.getContextInterface(sourceFile, InvalidContext);
       expect(result).toBeNull();
     });
   });

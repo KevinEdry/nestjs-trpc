@@ -2,18 +2,20 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RouterGenerator } from '../router.generator';
 import { DecoratorGenerator } from '../decorator.generator';
 import { Project, SourceFile } from 'ts-morph';
-import { RoutersFactoryMetadata, ProcedureFactoryMetadata } from '../../interfaces/factory.interface';
-import { ProcedureGeneratorMetadata, DecoratorGeneratorMetadata, RouterGeneratorMetadata } from '../../interfaces/generator.interface';
+import { RoutersFactoryMetadata, } from '../../interfaces/factory.interface';
+import {
+  DecoratorGeneratorMetadata,
+  ProcedureGeneratorMetadata,
+  RouterGeneratorMetadata,
+} from '../../interfaces/generator.interface';
 import { Query, Mutation } from '../../decorators';
 import { z } from 'zod';
-
-jest.mock('func-loc', () => ({
-  locate: jest.fn().mockResolvedValue({ path: 'test.ts' }),
-}));
+import { ProcedureGenerator } from '../procedure.generator';
 
 describe('RouterGenerator', () => {
   let routerGenerator: RouterGenerator;
   let decoratorGenerator: jest.Mocked<DecoratorGenerator>;
+  let procedureGenerator: jest.Mocked<ProcedureGenerator>;
   let project: Project;
   let sourceFile: SourceFile;
 
@@ -27,11 +29,18 @@ describe('RouterGenerator', () => {
             serializeProcedureDecorators: jest.fn(),
           },
         },
+        {
+          provide: ProcedureGenerator,
+          useValue: {
+            generateProcedureString: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     routerGenerator = module.get<RouterGenerator>(RouterGenerator);
     decoratorGenerator = module.get(DecoratorGenerator);
+    procedureGenerator = module.get(ProcedureGenerator);
     project = new Project();
     
     sourceFile = project.createSourceFile(
@@ -76,10 +85,13 @@ describe('RouterGenerator', () => {
       const mockRouter: RoutersFactoryMetadata = {
         name: 'TestRouter',
         alias: 'test',
+        path: 'testPath',
         instance: {
             name: "TestRouter",
             instance: jest.fn(),
             alias: 'test',
+            path:"testPath",
+            middlewares: []
         },
         procedures: [
           {
@@ -89,6 +101,7 @@ describe('RouterGenerator', () => {
             input: z.string(),
             output: z.string(),
             params: [],
+            middlewares: [],
           },
           {
             name: 'testMutation',
@@ -97,8 +110,9 @@ describe('RouterGenerator', () => {
             input: z.string(),
             output: z.string(),
             params: [],
+            middlewares: [],
           },
-        ],
+        ]
       };
 
       const mockTestQueryDecoratorMetadata: DecoratorGeneratorMetadata[] = [
@@ -151,6 +165,9 @@ describe('RouterGenerator', () => {
           ],
         },
       ];
+
+      procedureGenerator.generateProcedureString.mockReturnValueOnce('testQuery: publicProcedure.query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any )');
+      procedureGenerator.generateProcedureString.mockReturnValueOnce('testMutation: publicProcedure.mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any )');
 
       const result = routerGenerator.generateRoutersStringFromMetadata(mockRouterMetadata);
 

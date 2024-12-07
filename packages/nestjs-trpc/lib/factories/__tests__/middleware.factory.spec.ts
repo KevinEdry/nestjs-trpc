@@ -38,7 +38,7 @@ describe('MiddlewareFactory', () => {
 
   describe('getMiddlewares', () => {
     it('should return unique middlewares', () => {
-      const mockRouter = { instance: {}, prototype: {} };
+      const mockRouter = { instance: {}, prototype: {}, middlewares: [] };
       const mockProcedure = { middlewares: [class TestMiddleware {}] };
       
       (routerFactory.getRouters as jest.Mock).mockReturnValue([mockRouter]);
@@ -47,11 +47,11 @@ describe('MiddlewareFactory', () => {
       const result = middlewareFactory.getMiddlewares();
 
       expect(result).toHaveLength(1);
-      expect(result[0]).toBe(mockProcedure.middlewares[0]);
+      expect(result[0]).toStrictEqual({"instance": mockProcedure.middlewares[0], "path": undefined });
     });
 
     it('should handle procedures without middlewares', () => {
-      const mockRouter = { instance: {}, prototype: {} };
+      const mockRouter = { instance: {}, prototype: {}, middlewares: []  };
       const mockProcedure = { middlewares: undefined };
       
       (routerFactory.getRouters as jest.Mock).mockReturnValue([mockRouter]);

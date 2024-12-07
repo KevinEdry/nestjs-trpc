@@ -66,8 +66,8 @@ export function UseMiddlewares(
 }
 
 /**
- * @deprecated Use `@UseMiddlewares` instead. This decorator is deprecated 
- * in order to satisfy NestJS naming convention fe. `@UseGuards`. 
+ * @deprecated Use `@UseMiddlewares` instead. This decorator is deprecated
+ * in order to satisfy NestJS naming convention fe. `@UseGuards`.
  *
  * Decorator that binds middlewares to the scope of the router or a procedure,
  * depending on its context.
@@ -126,4 +126,3 @@ export function Middlewares(
     return target;
   };
 }
-;

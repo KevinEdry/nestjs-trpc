@@ -3,10 +3,6 @@ import { MiddlewareGenerator } from '../middleware.generator';
 import { Project, SourceFile } from 'ts-morph';
 import { TRPCMiddleware } from '../../interfaces';
 
-jest.mock('func-loc', () => ({
-  locate: jest.fn().mockResolvedValue({ path: 'test.ts' }),
-}));
-
 describe('MiddlewareGenerator', () => {
   let middlewareGenerator: MiddlewareGenerator;
   let project: Project;
@@ -45,7 +41,7 @@ describe('MiddlewareGenerator', () => {
 
   describe('getMiddlewareInterface', () => {
     it('should return null if middleware class name is not defined', async () => {
-      const result = await middlewareGenerator.getMiddlewareInterface({} as any, project);
+      const result = await middlewareGenerator.getMiddlewareInterface('routerPath', {} as any, project);
       expect(result).toBeNull();
     });
 
@@ -62,7 +58,7 @@ describe('MiddlewareGenerator', () => {
 
       jest.spyOn(project, 'addSourceFileAtPath').mockReturnValue(sourceFile);
 
-      const result = await middlewareGenerator.getMiddlewareInterface(TestMiddleware, project);
+      const result = await middlewareGenerator.getMiddlewareInterface('routerPath', TestMiddleware, project);
       expect(result).toEqual({
         name: 'TestMiddleware',
         properties: [

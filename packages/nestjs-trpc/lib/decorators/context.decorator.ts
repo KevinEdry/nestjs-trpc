@@ -6,7 +6,7 @@ import { PROCEDURE_PARAM_METADATA_KEY } from '../trpc.constants';
 
 export function Ctx(): ParameterDecorator {
   return (
-    target: Object,
+    target: object,
     propertyKey: string | symbol | undefined,
     parameterIndex?: number | TypedPropertyDescriptor<any>,
   ) => {

@@ -67,7 +67,8 @@
   "lint-staged": {
     "*.ts": [
       "prettier --write",
-      "eslint --fix"
+      "eslint --fix",
+      "yarn test --bail --findRelatedTests"
     ]
   },
   "repository": {

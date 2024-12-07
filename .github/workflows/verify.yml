@@ -1,0 +1,29 @@
+name: verify
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, reopened]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    name: verify
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          submodules: false
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      - name: Lint
+        run: yarn lint --no-fix
+      - name: Test
+        run: yarn test
+      - name: Build
+        run: yarn build

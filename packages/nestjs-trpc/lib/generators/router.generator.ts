@@ -1,4 +1,4 @@
-import { Project } from 'ts-morph';
+import { ClassDeclaration, Project, SourceFile } from 'ts-morph';
 import {
   RouterGeneratorMetadata,
   ProcedureGeneratorMetadata,
@@ -11,6 +11,7 @@ import { DecoratorGenerator } from './decorator.generator';
 import { Inject, Injectable } from '@nestjs/common';
 import { camelCase } from 'lodash';
 import { ProcedureGenerator } from './procedure.generator';
+import { findClassInPath } from '../utils/find-class-in-path';
 
 @Injectable()
 export class RouterGenerator {
@@ -43,18 +44,18 @@ export class RouterGenerator {
   }
 
   private serializeRouterProcedures(
-    routerFilePath: string,
+    routerFilePath: string[],
     procedure: ProcedureFactoryMetadata,
     routerName: string,
     project: Project,
   ): ProcedureGeneratorMetadata {
-    const sourceFile = project.addSourceFileAtPath(routerFilePath);
-    const classDeclaration = sourceFile.getClass(routerName);
+    const classFromPath = findClassInPath(project, routerFilePath, routerName);
 
-    if (!classDeclaration) {
+    if (!classFromPath) {
       throw new Error(`Could not find router ${routerName} class declaration.`);
     }
 
+    const { sourceFile, classDeclaration } = classFromPath;
     const methodDeclaration = classDeclaration.getMethod(procedure.name);
 
     if (!methodDeclaration) {

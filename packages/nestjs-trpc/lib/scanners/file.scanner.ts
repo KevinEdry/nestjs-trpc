@@ -9,7 +9,7 @@ import { SourceMapping } from '../interfaces/scanner.interface';
  */
 @Injectable()
 export class FileScanner {
-  public getCallerFilePath(skip: number = 2): string {
+  public getCallerFilePath(skip: number = 2): string[] {
     const originalPrepareStackTrace = Error.prepareStackTrace;
 
     Error.prepareStackTrace = (_, stack) => stack;
@@ -18,28 +18,38 @@ export class FileScanner {
 
     Error.prepareStackTrace = originalPrepareStackTrace;
 
-    const caller = stack[skip];
-    const jsFilePath = caller?.getFileName();
+    const callers = stack.slice(skip);
+    const jsFilePaths: string[] = [];
 
-    if (jsFilePath == null) {
-      throw new Error(`Could not find caller file: ${caller}`);
-    }
+    for (const caller of callers) {
+      const fileName = caller.getFileName();
 
-    try {
-      // Attempt to find the source map file and extract the original TypeScript path
-      const sourceMap = this.getSourceMapFromJSPath(jsFilePath);
-      return this.normalizePath(
-        path.resolve(jsFilePath, '..', sourceMap.sources[0]),
-      );
-    } catch (error) {
-      // Suppress the warning if in test environment
-      if (process.env.NODE_ENV !== 'test') {
-        console.warn(
-          `Warning: Could not resolve source map for ${jsFilePath}. Falling back to default path resolution.`,
-        );
+      if (fileName && !fileName.startsWith('node:')) {
+        jsFilePaths.push(fileName);
       }
-      return this.normalizePath(jsFilePath);
     }
+
+    if (!jsFilePaths || jsFilePaths.length === 0) {
+      throw new Error(`Could not find caller file: ${callers}`);
+    }
+
+    return jsFilePaths.map((jsFilePath) => {
+      try {
+        // Attempt to find the source map file and extract the original TypeScript path
+        const sourceMap = this.getSourceMapFromJSPath(jsFilePath);
+        return this.normalizePath(
+          path.resolve(jsFilePath, '..', sourceMap.sources[0]),
+        );
+      } catch (error) {
+        // Suppress the warning if in test environment
+        if (process.env.NODE_ENV !== 'test' && jsFilePath.endsWith('.ts')) {
+          console.warn(
+            `Warning: Could not resolve source map for ${jsFilePath}. Falling back to default path resolution.`,
+          );
+        }
+        return this.normalizePath(jsFilePath);
+      }
+    });
   }
 
   private normalizePath(p: string): string {

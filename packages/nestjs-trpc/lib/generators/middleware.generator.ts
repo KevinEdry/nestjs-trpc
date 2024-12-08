@@ -12,11 +12,12 @@ import {
 import { Injectable } from '@nestjs/common';
 import { TRPCMiddleware } from '../interfaces';
 import type { Class } from 'type-fest';
+import { findClassInPath } from '../utils/find-class-in-path';
 
 @Injectable()
 export class MiddlewareGenerator {
   public async getMiddlewareInterface(
-    routerFilePath: string,
+    routerFilePath: string[],
     middleware: Class<TRPCMiddleware>,
     project: Project,
   ): Promise<{
@@ -34,18 +35,17 @@ export class MiddlewareGenerator {
       return null;
     }
 
-    const contextSourceFile = project.addSourceFileAtPath(routerFilePath);
-
-    const classDeclaration = this.getClassDeclaration(
-      contextSourceFile,
+    const classFromPath = findClassInPath(
+      project,
+      routerFilePath,
       middleware.name,
     );
 
-    if (!classDeclaration) {
+    if (!classFromPath) {
       return null;
     }
 
-    const useMethod = classDeclaration.getMethod('use');
+    const useMethod = classFromPath.classDeclaration.getMethod('use');
     if (!useMethod) {
       return null;
     }
@@ -97,17 +97,6 @@ export class MiddlewareGenerator {
 
     // Get the type of the 'ctx' property value
     return ctxProperty.getInitializer()?.getType() || null;
-  }
-
-  private getClassDeclaration(
-    sourceFile: SourceFile,
-    className: string,
-  ): ClassDeclaration | undefined {
-    const classDeclaration = sourceFile.getClass(className);
-    if (classDeclaration) {
-      return classDeclaration;
-    }
-    return undefined;
   }
 
   private typeToProperties(

@@ -41,7 +41,7 @@ describe('MiddlewareGenerator', () => {
 
   describe('getMiddlewareInterface', () => {
     it('should return null if middleware class name is not defined', async () => {
-      const result = await middlewareGenerator.getMiddlewareInterface('routerPath', {} as any, project);
+      const result = await middlewareGenerator.getMiddlewareInterface(['routerPath'], {} as any, project);
       expect(result).toBeNull();
     });
 
@@ -58,7 +58,7 @@ describe('MiddlewareGenerator', () => {
 
       jest.spyOn(project, 'addSourceFileAtPath').mockReturnValue(sourceFile);
 
-      const result = await middlewareGenerator.getMiddlewareInterface('routerPath', TestMiddleware, project);
+      const result = await middlewareGenerator.getMiddlewareInterface(['routerPath'], TestMiddleware, project);
       expect(result).toEqual({
         name: 'TestMiddleware',
         properties: [

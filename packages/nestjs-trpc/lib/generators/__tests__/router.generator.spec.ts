@@ -5,7 +5,6 @@ import { Project, SourceFile } from 'ts-morph';
 import { RoutersFactoryMetadata, } from '../../interfaces/factory.interface';
 import {
   DecoratorGeneratorMetadata,
-  ProcedureGeneratorMetadata,
   RouterGeneratorMetadata,
 } from '../../interfaces/generator.interface';
 import { Query, Mutation } from '../../decorators';
@@ -85,12 +84,12 @@ describe('RouterGenerator', () => {
       const mockRouter: RoutersFactoryMetadata = {
         name: 'TestRouter',
         alias: 'test',
-        path: 'testPath',
+        path: ['testPath'],
         instance: {
             name: "TestRouter",
             instance: jest.fn(),
             alias: 'test',
-            path:"testPath",
+            path: ["testPath"],
             middlewares: []
         },
         procedures: [

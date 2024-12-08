@@ -51,10 +51,11 @@ export class TRPCModule implements OnModuleInit {
     if (options.autoSchemaFile != null) {
       const fileScanner = new FileScanner();
       const callerFilePath = fileScanner.getCallerFilePath();
+      const rootModuleFilePath = callerFilePath[0];
       imports.push(
         GeneratorModule.forRoot({
           outputDirPath: options.autoSchemaFile,
-          rootModuleFilePath: callerFilePath,
+          rootModuleFilePath: rootModuleFilePath,
           schemaFileImports: options.schemaFileImports,
           context: options.context,
         }),

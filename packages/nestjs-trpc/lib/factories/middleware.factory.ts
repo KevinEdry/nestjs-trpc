@@ -5,8 +5,8 @@ import { RouterFactory } from './router.factory';
 import { ProcedureFactory } from './procedure.factory';
 import { isEqual, uniqWith } from 'lodash';
 
-interface MiddlewareMetadata {
-  path: string;
+export interface MiddlewareMetadata {
+  path: string[];
   instance: Class<TRPCMiddleware> | Constructor<TRPCMiddleware>;
 }
 

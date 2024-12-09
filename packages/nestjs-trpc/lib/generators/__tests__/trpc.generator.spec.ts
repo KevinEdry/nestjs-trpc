@@ -5,18 +5,18 @@ import { RouterGenerator } from '../router.generator';
 import { MiddlewareGenerator } from '../middleware.generator';
 import { ContextGenerator } from '../context.generator';
 import { RouterFactory } from '../../factories/router.factory';
-import { MiddlewareFactory } from '../../factories/middleware.factory';
+import { MiddlewareFactory, MiddlewareMetadata } from '../../factories/middleware.factory';
 import { ProcedureFactory } from '../../factories/procedure.factory';
 import { ClassDeclaration, Project, SourceFile } from 'ts-morph';
 import * as fileUtil from '../../utils/ts-morph.util';
-import { ProcedureFactoryMetadata } from '../../interfaces/factory.interface';
+import { ProcedureFactoryMetadata, RouterInstance } from '../../interfaces/factory.interface';
 import { MiddlewareOptions, MiddlewareResponse, TRPCContext, TRPCMiddleware } from '../../interfaces';
 import { CreateExpressContextOptions } from '@trpc/server/adapters/express';
 import { TRPC_GENERATOR_OPTIONS, TRPC_MODULE_CALLER_FILE_PATH } from '../../trpc.constants';
 import { TYPESCRIPT_APP_ROUTER_SOURCE_FILE, TYPESCRIPT_PROJECT } from '../generator.constants';
 import { StaticGenerator } from '../static.generator';
 import { ImportsScanner } from '../../scanners/imports.scanner';
-import { SourceFileImportsMap } from '../../interfaces/generator.interface';
+import { RouterGeneratorMetadata, SourceFileImportsMap } from '../../interfaces/generator.interface';
 
 jest.mock('../../utils/ts-morph.util');
 
@@ -128,7 +128,7 @@ describe('TRPCGenerator', () => {
 
   describe('generateSchemaFile', () => {
     it('should generate schema file', async () => {
-      const mockRouters = [{ name: 'TestRouter', instance: {}, alias: 'test', path: 'testPath', middlewares: [] }];
+      const mockRouters: Array<RouterInstance> = [{ name: 'TestRouter', instance: {}, alias: 'test', path: ['testPath'], middlewares: [] }];
       const mockProcedures: Array<ProcedureFactoryMetadata> = [{ 
         name: 'testProcedure', 
         implementation: jest.fn(), 
@@ -138,7 +138,7 @@ describe('TRPCGenerator', () => {
         params: [],
         middlewares: [],
       }];
-      const mockRoutersMetadata = [{ name: 'TestRouter', alias: 'test', procedures: [{ name: 'testProcedure', decorators: [] }], path: 'testPath'}];
+      const mockRoutersMetadata: Array<RouterGeneratorMetadata> = [{ name: 'TestRouter', alias: 'test', procedures: [{ name: 'testProcedure', decorators: [] }]}];
 
       routerFactory.getRouters.mockReturnValue(mockRouters);
       procedureFactory.getProcedures.mockReturnValue(mockProcedures);
@@ -185,7 +185,7 @@ describe('TRPCGenerator', () => {
         }
       }
 
-      const mockMiddlewares = [{ instance: TestMiddleware, path: 'testPath' }];
+      const mockMiddlewares: Array<MiddlewareMetadata> = [{ instance: TestMiddleware, path: ['testPath'] }];
       const mockMiddlewareInterface = { name: 'TestMiddleware', properties: [{ name: 'test', type: 'string' }] };
       const mockImportsMap = new Map<string, SourceFileImportsMap>([
         [TestContext.name, {sourceFile, initializer: sourceFile.getClass(TestContext.name) as ClassDeclaration}]

@@ -85,10 +85,20 @@ export class RouterGenerator {
   public generateRoutersStringFromMetadata(
     routers: Array<RouterGeneratorMetadata>,
   ): string {
-    return routers
-      .map((router) => {
-        const { name, procedures, alias } = router;
-        return `${alias ?? camelCase(name)}: t.router({ ${procedures
+    const routersMap: { [key: string]: ProcedureGeneratorMetadata[] } = {};
+
+    routers.forEach((router) => {
+      const { name, procedures, alias } = router;
+      const routerName = alias ?? camelCase(name);
+
+      routersMap[routerName] = (routersMap[routerName] ?? []).concat(
+        procedures,
+      );
+    });
+
+    return Object.entries(routersMap)
+      .map(([routerName, procedures]) => {
+        return `${routerName}: t.router({ ${procedures
           .map(this.procedureGenerator.generateProcedureString)
           .join(',\n')} })`;
       })

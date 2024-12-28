@@ -29,7 +29,7 @@ import * as process from 'node:process';
 export class TRPCGenerator implements OnModuleInit {
   private rootModuleImportsMap!: Map<string, SourceFileImportsMap>;
   private readonly HELPER_TYPES_OUTPUT_FILE = 'index.ts';
-  private readonly HELPER_TYPES_OUTPUT_PATH = path.join(__dirname, 'types');
+  private readonly HELPER_TYPES_OUTPUT_PATH = path.join(__dirname, '..', 'types');
 
   @Inject(TRPC_MODULE_CALLER_FILE_PATH)
   private readonly moduleCallerFilePath!: string;

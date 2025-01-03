@@ -54,6 +54,7 @@ export class TRPCModule implements OnModuleInit {
       imports.push(
         GeneratorModule.forRoot({
           outputDirPath: options.autoSchemaFile,
+          tsConfigFilePath: options.tsConfigFilePath,
           rootModuleFilePath: callerFilePath,
           schemaFileImports: options.schemaFileImports,
           context: options.context,

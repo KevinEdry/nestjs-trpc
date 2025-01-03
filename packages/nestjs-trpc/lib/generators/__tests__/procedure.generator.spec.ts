@@ -107,5 +107,36 @@ describe('ProcedureGenerator', () => {
       const result = procedureGenerator.flattenZodSchema(node, sourceFile, project, node.getText());
       expect(result).toMatchSnapshot();
     });
+
+    it('should flatten enum to literal value', () => {
+      project.createSourceFile(
+        "types.ts",
+        `
+        export enum TypeEnum { Normal = 'Normal', Unknown = 'Unknown' };
+        `,
+        { overwrite: true }
+      );
+      const sourceFile: SourceFile = project.createSourceFile(
+        "test.ts",
+        `
+        import { z } from 'zod';
+        import { TypeEnum } from './types';
+
+        const FindManyInput = z.object({
+          options: z
+            .object({
+              userId: z.string().describe('ID of the current user'),
+              type: z.literal(TypeEnum.Normal).describe('Type of the item')
+            })
+            .describe('Options to find many items'),
+        });
+        `,
+        { overwrite: true }
+      );
+
+      const node = sourceFile.getDescendantsOfKind(SyntaxKind.Identifier).find((identifier) => identifier.getText() === "FindManyInput") as Identifier;
+      const result = procedureGenerator.flattenZodSchema(node, sourceFile, project, node.getText());
+      expect(result).toMatchSnapshot();
+    });
   });
 });

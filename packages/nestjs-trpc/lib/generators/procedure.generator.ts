@@ -132,13 +132,22 @@ export class ProcedureGenerator {
           importsMap,
         );
       }
-
       for (const arg of node.getArguments()) {
         const argText = arg.getText();
         schema = schema.replace(
           argText,
           this.flattenZodSchema(arg, sourceFile, project, argText),
         );
+      }
+
+      for (const child of expression.getChildren()) {
+        if (Node.isCallExpression(child)) {
+          const childText = child.getText();
+          schema = schema.replace(
+            childText,
+            this.flattenZodSchema(child, sourceFile, project, childText),
+          );
+        }
       }
     } else if (Node.isPropertyAccessExpression(node)) {
       schema = this.flattenZodSchema(

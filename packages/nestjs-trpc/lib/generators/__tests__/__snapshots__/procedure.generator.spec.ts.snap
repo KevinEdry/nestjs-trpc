@@ -19,3 +19,14 @@ exports[`ProcedureGenerator flattenZodSchema should flatten all chained call exp
             .describe('Options to find many items'),
         })"
 `;
+
+exports[`ProcedureGenerator flattenZodSchema should flatten enum to literal value 1`] = `
+"z.object({
+          options: z
+            .object({
+              userId: z.string().describe('ID of the current user'),
+              type: z.literal('Normal').describe('Type of the item')
+            })
+            .describe('Options to find many items'),
+        })"
+`;

@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ProcedureGeneratorMetadata } from '../interfaces/generator.interface';
 import { ProcedureType } from '../trpc.enum';
-import { Project, SourceFile, Node } from 'ts-morph';
+import { Project, SourceFile, Node, SyntaxKind } from 'ts-morph';
 import { ImportsScanner } from '../scanners/imports.scanner';
 import { StaticGenerator } from './static.generator';
 import { TYPESCRIPT_APP_ROUTER_SOURCE_FILE } from './generator.constants';
@@ -48,7 +48,34 @@ export class ProcedureGenerator {
       sourceFile,
       project,
     );
-    if (Node.isIdentifier(node)) {
+    if (Node.isPropertyAccessExpression(node)) {
+      const propertyAccess = node.asKindOrThrow(
+        SyntaxKind.PropertyAccessExpression,
+      );
+      const enumName = propertyAccess.getExpression().getText();
+      const enumDeclaration =
+        sourceFile.getEnum(enumName) ??
+        importsMap
+          .get(enumName)
+          ?.initializer?.asKind(SyntaxKind.EnumDeclaration);
+
+      let enumValue: string | undefined;
+      if (enumDeclaration) {
+        enumValue = enumDeclaration
+          .getMember(propertyAccess.getName())
+          ?.getInitializer()
+          ?.getText();
+      }
+
+      schema =
+        enumValue ??
+        this.flattenZodSchema(
+          node.getExpression(),
+          sourceFile,
+          project,
+          node.getExpression().getText(),
+        );
+    } else if (Node.isIdentifier(node)) {
       const identifierName = node.getText();
       const identifierDeclaration =
         sourceFile.getVariableDeclaration(identifierName);
@@ -150,13 +177,6 @@ export class ProcedureGenerator {
           );
         }
       }
-    } else if (Node.isPropertyAccessExpression(node)) {
-      schema = this.flattenZodSchema(
-        node.getExpression(),
-        sourceFile,
-        project,
-        node.getExpression().getText(),
-      );
     }
 
     return schema;

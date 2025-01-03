@@ -20,6 +20,11 @@ export interface TRPCModuleOptions {
   autoSchemaFile?: string;
 
   /**
+   * Path to project tsconfig.
+   */
+  tsConfigFilePath?: string;
+
+  /**
    * Specifies additional imports for the schema file. This array can include functions, objects, or Zod schemas.
    * While `nestjs-trpc` typically handles imports automatically, this option allows manual inclusion of imports for exceptional cases.
    * Use this property only when automatic import resolution is insufficient.

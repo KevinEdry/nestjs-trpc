@@ -140,6 +140,16 @@ export class ProcedureGenerator {
           this.flattenZodSchema(arg, sourceFile, project, argText),
         );
       }
+
+      for (const child of expression.getChildren()) {
+        if (Node.isCallExpression(child)) {
+          const childText = child.getText();
+          schema = schema.replace(
+            childText,
+            this.flattenZodSchema(child, sourceFile, project, childText),
+          );
+        }
+      }
     } else if (Node.isPropertyAccessExpression(node)) {
       schema = this.flattenZodSchema(
         node.getExpression(),

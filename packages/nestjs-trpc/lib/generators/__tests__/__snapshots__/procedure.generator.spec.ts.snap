@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ProcedureGenerator flattenZodSchema should flatten all chained call expressions 1`] = `
+"z.object({
+          options: z
+            .object({
+              userId: z.string().describe('ID of the current user'),
+              type1: z
+          .enum(['Normal', 'Unknown'])
+          .describe('Type of the item').optional().describe('Type 1 of the item')
+            })
+            .merge({
+              z.object({
+                type2: z
+          .enum(['Normal', 'Unknown'])
+          .describe('Type of the item').optional().describe('Type 2 of the item')
+              })
+            })
+            .describe('Options to find many items'),
+        })"
+`;

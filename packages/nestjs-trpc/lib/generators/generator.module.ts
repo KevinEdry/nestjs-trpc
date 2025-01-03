@@ -58,7 +58,10 @@ export class GeneratorModule implements OnModuleInit {
       checkJs: true,
       esModuleInterop: true,
     };
-    const project = new Project({ compilerOptions: defaultCompilerOptions });
+    const project = new Project({
+      compilerOptions: defaultCompilerOptions,
+      tsConfigFilePath: options.tsConfigFilePath,
+    });
 
     const appRouterSourceFile = project.createSourceFile(
       path.resolve(options.outputDirPath ?? './', 'server.ts'),

@@ -6,4 +6,5 @@ export interface GeneratorModuleOptions {
   context?: Class<TRPCContext>;
   outputDirPath?: string;
   schemaFileImports?: Array<SchemaImports>;
+  tsConfigFilePath?: string;
 }

@@ -132,6 +132,7 @@ export class ProcedureGenerator {
           importsMap,
         );
       }
+
       for (const arg of node.getArguments()) {
         const argText = arg.getText();
         schema = schema.replace(

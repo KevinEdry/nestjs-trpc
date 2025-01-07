@@ -7,7 +7,10 @@ export type MiddlewareResponse =
       ctx: $Context;
     }) => Promise<MiddlewareResult<ProcedureParams>>);
 
-export type MiddlewareOptions<TContext extends object = object> = {
+export type MiddlewareOptions<
+  TContext extends object = object,
+  TRetContext = Record<string, unknown>,
+> = {
   ctx: TContext;
   type: ProcedureType;
   path: string;
@@ -15,7 +18,7 @@ export type MiddlewareOptions<TContext extends object = object> = {
   rawInput: unknown;
   meta: unknown;
   next: (opts?: {
-    ctx: Record<string, unknown>;
+    ctx: TRetContext;
   }) => Promise<MiddlewareResult<ProcedureParams>>;
 };
 

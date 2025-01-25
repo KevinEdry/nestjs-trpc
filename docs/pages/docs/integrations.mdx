@@ -6,6 +6,56 @@ import { Callout, Steps, Tabs } from 'nextra-theme-docs';
 
 # Integrations
 
+### Data Transformers
+You are able to serialize the response data & input args. Right now the only supported transformer is `superjson`.
+
+You need to use `superjson` version `1.13.3` because version `^2.0.0` doesn't support commonjs.
+
+To use `superjson`, you can install it using your preferred package manager:
+
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+  <Tabs.Tab>
+    ```bash copy
+    npm install superjson@1.13.3
+    ```
+  </Tabs.Tab>
+  <Tabs.Tab>
+    ```bash copy
+    pnpm add superjson@1.13.3
+    ```
+  </Tabs.Tab>
+  <Tabs.Tab>
+    ```bash copy
+    yarn add superjson@1.13.3
+    ```
+  </Tabs.Tab>
+  <Tabs.Tab>
+    ```bash copy
+    bun install superjson@1.13.3
+    ```
+  </Tabs.Tab>
+</Tabs>
+
+And then you can use it in your `TRPCModule` options:
+
+```typescript filename="app.module.ts" copy
+import { Module } from '@nestjs/common';
+import { TRPCModule } from 'nestjs-trpc';
+import { superjson } from 'superjson';
+
+@Module({
+  imports: [
+    TRPCModule.forRoot({
+      autoSchemaFile: './src/@generated',
+      transformer: superjson,
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+
+
 ### Accessing the AppRouter
 In some circumstances ,for example end-to-end tests or integrating with other `trpc` plugins, you may want to get a reference to the generated appRouter object. In end-to-end tests, you can then run queries using the appRouter object directly without using any HTTP listeners.
 

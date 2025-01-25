@@ -1,4 +1,4 @@
-import { RootConfigTypes } from '@trpc/server/dist/core/internals/config';
+import type { RootConfigTypes } from '@trpc/server/dist/core/internals/config';
 import { ErrorFormatter } from '@trpc/server/dist/error/formatter';
 import { TRPCErrorShape } from '@trpc/server/dist/rpc';
 import { TRPCContext } from './context.interface';

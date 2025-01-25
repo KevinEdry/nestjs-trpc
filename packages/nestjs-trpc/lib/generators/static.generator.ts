@@ -8,10 +8,14 @@ import {
 import { Injectable } from '@nestjs/common';
 import { SourceFileImportsMap } from '../interfaces/generator.interface';
 import * as path from 'node:path';
+import type { RootConfigTypes } from '@trpc/server/dist/core/internals/config';
 
 @Injectable()
 export class StaticGenerator {
-  public generateStaticDeclaration(sourceFile: SourceFile): void {
+  public generateStaticDeclaration(
+    sourceFile: SourceFile,
+    transformer?: RootConfigTypes['transformer'],
+  ): void {
     sourceFile.addImportDeclaration({
       kind: StructureKind.ImportDeclaration,
       moduleSpecifier: '@trpc/server',
@@ -23,10 +27,24 @@ export class StaticGenerator {
       namedImports: ['z'],
     });
 
+    if (transformer != null)
+      sourceFile.addImportDeclaration({
+        kind: StructureKind.ImportDeclaration,
+        moduleSpecifier: 'superjson',
+        defaultImport: 'superjson',
+      });
+
     sourceFile.addVariableStatements([
       {
         declarationKind: VariableDeclarationKind.Const,
-        declarations: [{ name: 't', initializer: 'initTRPC.create()' }],
+        declarations: [
+          {
+            name: 't',
+            initializer: transformer
+              ? 'initTRPC.create({ transformer: superjson })'
+              : 'initTRPC.create()',
+          },
+        ],
       },
       {
         declarationKind: VariableDeclarationKind.Const,

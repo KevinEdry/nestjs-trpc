@@ -24,6 +24,7 @@ import {
   TYPESCRIPT_PROJECT,
 } from './generator.constants';
 import * as process from 'node:process';
+import type { RootConfigTypes } from '@trpc/server/dist/core/internals/config';
 
 @Injectable()
 export class TRPCGenerator implements OnModuleInit {
@@ -73,6 +74,7 @@ export class TRPCGenerator implements OnModuleInit {
 
   public async generateSchemaFile(
     schemaImports?: Array<SchemaImports> | undefined,
+    transformer?: RootConfigTypes['transformer'],
   ): Promise<void> {
     try {
       const routers = this.routerFactory.getRouters();
@@ -87,7 +89,10 @@ export class TRPCGenerator implements OnModuleInit {
         return { name, path, alias, instance: { ...route }, procedures };
       });
 
-      this.staticGenerator.generateStaticDeclaration(this.appRouterSourceFile);
+      this.staticGenerator.generateStaticDeclaration(
+        this.appRouterSourceFile,
+        transformer,
+      );
 
       if (schemaImports != null && schemaImports.length > 0) {
         const schemaImportNames: Array<string> = schemaImports.map(

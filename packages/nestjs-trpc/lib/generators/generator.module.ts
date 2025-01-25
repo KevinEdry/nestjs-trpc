@@ -84,7 +84,10 @@ export class GeneratorModule implements OnModuleInit {
   }
 
   async onModuleInit() {
-    await this.trpcGenerator.generateSchemaFile(this.options.schemaFileImports);
+    await this.trpcGenerator.generateSchemaFile(
+      this.options.schemaFileImports,
+      this.options.transformer,
+    );
     await this.trpcGenerator.generateHelpersFile(this.options.context);
   }
 }

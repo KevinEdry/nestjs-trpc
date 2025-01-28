@@ -52,7 +52,9 @@ export class RouterGenerator {
     const classDeclaration = sourceFile.getClass(routerName);
 
     if (!classDeclaration) {
-      throw new Error(`Could not find router ${routerName} class declaration.`);
+      throw new Error(
+        `Could not find router ${routerName} class declaration. Did you set compilerOptions.sourceMap to true in tsconfig.json?`,
+      );
     }
 
     const methodDeclaration = classDeclaration.getMethod(procedure.name);

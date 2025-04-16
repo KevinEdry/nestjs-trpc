@@ -27,7 +27,7 @@
   },
   "license": "MIT",
   "engines": {
-    "node": "18 || 19 || 20"
+    "node": "18 || 19 || 20 || 22"
   },
   "workspaces": [
     "packages/*",

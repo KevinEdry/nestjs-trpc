@@ -69,12 +69,12 @@ export class ProcedureGenerator {
 
       schema =
         enumValue ??
-        this.flattenZodSchema(
+        `${this.flattenZodSchema(
           node.getExpression(),
           sourceFile,
           project,
           node.getExpression().getText(),
-        );
+        )}.${propertyAccess.getName()}`;
     } else if (Node.isIdentifier(node)) {
       const identifierName = node.getText();
       const identifierDeclaration =
@@ -141,16 +141,14 @@ export class ProcedureGenerator {
         Node.isPropertyAccessExpression(expression) &&
         !expression.getText().startsWith('z')
       ) {
-        const baseSchema = this.flattenZodSchema(
-          expression,
-          sourceFile,
-          project,
-          expression.getText(),
-        );
-        const propertyName = expression.getName();
         schema = schema.replace(
           expression.getText(),
-          `${baseSchema}.${propertyName}`,
+          this.flattenZodSchema(
+            expression,
+            sourceFile,
+            project,
+            expression.getText(),
+          ),
         );
       } else if (!expression.getText().startsWith('z')) {
         this.staticGenerator.addSchemaImports(
@@ -177,6 +175,10 @@ export class ProcedureGenerator {
           );
         }
       }
+    } else if (Node.isFunctionExpression(node)) {
+      schema = 'function() { /* Function body removed */ }';
+    } else if (Node.isArrowFunction(node)) {
+      schema = '() => /* Function body removed */ undefined';
     }
 
     return schema;

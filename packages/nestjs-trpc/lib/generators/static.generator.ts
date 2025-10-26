@@ -41,7 +41,7 @@ export class StaticGenerator {
     importsMap: Map<string, SourceFileImportsMap>,
   ): void {
     // Group imports by their module specifier
-    const importsByModule = new Map<string, string[]>();
+    const importsByModule = new Map<string, Set<string>>();
 
     for (const schemaImportName of schemaImportNames) {
       const importMapMetadata = importsMap.get(schemaImportName);
@@ -52,9 +52,10 @@ export class StaticGenerator {
 
       // Handle external/workspace imports (e.g., @repo/trpc/schemas)
       if (importMapMetadata.moduleSpecifier != null) {
-        const existing = importsByModule.get(importMapMetadata.moduleSpecifier) || [];
-        existing.push(schemaImportName);
-        importsByModule.set(importMapMetadata.moduleSpecifier, existing);
+        if (!importsByModule.has(importMapMetadata.moduleSpecifier)) {
+          importsByModule.set(importMapMetadata.moduleSpecifier, new Set());
+        }
+        importsByModule.get(importMapMetadata.moduleSpecifier)!.add(schemaImportName);
         continue;
       }
 
@@ -69,23 +70,39 @@ export class StaticGenerator {
           ? relativePath
           : `./${relativePath}`;
 
-        const existing = importsByModule.get(moduleSpecifier) || [];
-        existing.push(schemaImportName);
-        importsByModule.set(moduleSpecifier, existing);
+        if (!importsByModule.has(moduleSpecifier)) {
+          importsByModule.set(moduleSpecifier, new Set());
+        }
+        importsByModule.get(moduleSpecifier)!.add(schemaImportName);
       }
     }
 
-    // Generate import declarations grouped by module
-    const importDeclarations: ImportDeclarationStructure[] = [];
-    for (const [moduleSpecifier, namedImports] of importsByModule) {
-      importDeclarations.push({
-        kind: StructureKind.ImportDeclaration,
-        moduleSpecifier,
-        namedImports,
-      });
-    }
+    // Merge with existing imports or create new ones
+    for (const [moduleSpecifier, namedImportsSet] of importsByModule) {
+      const existingImport = sourceFile
+        .getImportDeclarations()
+        .find((imp) => imp.getModuleSpecifierValue() === moduleSpecifier);
 
-    sourceFile.addImportDeclarations(importDeclarations);
+      if (existingImport) {
+        // Add to existing import declaration
+        const existingNamedImports = existingImport
+          .getNamedImports()
+          .map((ni) => ni.getName());
+
+        for (const namedImport of namedImportsSet) {
+          if (!existingNamedImports.includes(namedImport)) {
+            existingImport.addNamedImport(namedImport);
+          }
+        }
+      } else {
+        // Create new import declaration
+        sourceFile.addImportDeclaration({
+          kind: StructureKind.ImportDeclaration,
+          moduleSpecifier,
+          namedImports: Array.from(namedImportsSet),
+        });
+      }
+    }
   }
 
   public findCtxOutProperty(type: Type): string | undefined {

@@ -40,27 +40,49 @@ export class StaticGenerator {
     schemaImportNames: Array<string>,
     importsMap: Map<string, SourceFileImportsMap>,
   ): void {
-    const importDeclarations: ImportDeclarationStructure[] = [];
+    // Group imports by their module specifier
+    const importsByModule = new Map<string, string[]>();
 
     for (const schemaImportName of schemaImportNames) {
-      for (const [importMapKey, importMapMetadata] of importsMap.entries()) {
-        if (schemaImportName == null || importMapKey !== schemaImportName) {
-          continue;
-        }
+      const importMapMetadata = importsMap.get(schemaImportName);
 
+      if (importMapMetadata == null) {
+        continue;
+      }
+
+      // Handle external/workspace imports (e.g., @repo/trpc/schemas)
+      if (importMapMetadata.moduleSpecifier != null) {
+        const existing = importsByModule.get(importMapMetadata.moduleSpecifier) || [];
+        existing.push(schemaImportName);
+        importsByModule.set(importMapMetadata.moduleSpecifier, existing);
+        continue;
+      }
+
+      // Handle local imports with relative paths
+      if (importMapMetadata.sourceFile != null) {
         const relativePath = path.relative(
           path.dirname(sourceFile.getFilePath()),
           importMapMetadata.sourceFile.getFilePath().replace(/\.ts$/, ''),
         );
 
-        importDeclarations.push({
-          kind: StructureKind.ImportDeclaration,
-          moduleSpecifier: relativePath.startsWith('.')
-            ? relativePath
-            : `./${relativePath}`,
-          namedImports: [schemaImportName],
-        });
+        const moduleSpecifier = relativePath.startsWith('.')
+          ? relativePath
+          : `./${relativePath}`;
+
+        const existing = importsByModule.get(moduleSpecifier) || [];
+        existing.push(schemaImportName);
+        importsByModule.set(moduleSpecifier, existing);
       }
+    }
+
+    // Generate import declarations grouped by module
+    const importDeclarations: ImportDeclarationStructure[] = [];
+    for (const [moduleSpecifier, namedImports] of importsByModule) {
+      importDeclarations.push({
+        kind: StructureKind.ImportDeclaration,
+        moduleSpecifier,
+        namedImports,
+      });
     }
 
     sourceFile.addImportDeclarations(importDeclarations);

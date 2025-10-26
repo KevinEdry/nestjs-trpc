@@ -40,7 +40,7 @@ export class ProcedureGenerator {
 
   public flattenZodSchema(
     node: Node,
-    sourceFile: SourceFile,
+    sourceFile: SourceFile | null,
     project: Project,
     schema: string,
   ): string {
@@ -51,7 +51,7 @@ export class ProcedureGenerator {
     if (Node.isIdentifier(node)) {
       const identifierName = node.getText();
       const identifierDeclaration =
-        sourceFile.getVariableDeclaration(identifierName);
+        sourceFile?.getVariableDeclaration(identifierName);
 
       if (identifierDeclaration != null) {
         const identifierInitializer = identifierDeclaration.getInitializer();
@@ -70,15 +70,27 @@ export class ProcedureGenerator {
         const importedIdentifier = importsMap.get(identifierName);
 
         if (importedIdentifier != null) {
-          const { initializer } = importedIdentifier;
-          const identifierSchema = this.flattenZodSchema(
-            initializer,
-            importedIdentifier.sourceFile,
-            project,
-            initializer.getText(),
-          );
+          const { initializer, sourceFile: importedSourceFile } = importedIdentifier;
 
-          schema = schema.replace(identifierName, identifierSchema);
+          // Handle external imports (workspace packages, node_modules)
+          if (initializer == null || importedSourceFile == null) {
+            // Can't flatten external imports, add to imports and keep as-is
+            this.staticGenerator.addSchemaImports(
+              this.appRouterSourceFile,
+              [identifierName],
+              importsMap,
+            );
+          } else {
+            // Flatten local imports
+            const identifierSchema = this.flattenZodSchema(
+              initializer,
+              importedSourceFile,
+              project,
+              initializer.getText(),
+            );
+
+            schema = schema.replace(identifierName, identifierSchema);
+          }
         }
       }
     } else if (Node.isObjectLiteralExpression(node)) {

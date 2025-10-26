@@ -5,10 +5,15 @@ import { SourceFileImportsMap } from '../interfaces/generator.interface';
 @Injectable()
 export class ImportsScanner {
   public buildSourceFileImportsMap(
-    sourceFile: SourceFile,
+    sourceFile: SourceFile | null,
     project: Project,
   ): Map<string, SourceFileImportsMap> {
     const sourceFileImportsMap = new Map<string, SourceFileImportsMap>();
+
+    if (sourceFile == null) {
+      return sourceFileImportsMap;
+    }
+
     const importDeclarations = sourceFile.getImportDeclarations();
 
     for (const importDeclaration of importDeclarations) {
@@ -19,6 +24,12 @@ export class ImportsScanner {
           importDeclaration.getModuleSpecifierSourceFile();
 
         if (importedSourceFile == null) {
+          // Preserve external/workspace imports that can't be resolved
+          sourceFileImportsMap.set(name, {
+            initializer: null,
+            sourceFile: null,
+            moduleSpecifier: importDeclaration.getModuleSpecifierValue(),
+          });
           continue;
         }
 

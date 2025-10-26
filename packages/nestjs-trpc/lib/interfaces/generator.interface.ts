@@ -34,6 +34,8 @@ export interface SourceFileImportsMap {
     | InterfaceDeclaration
     | EnumDeclaration
     | VariableDeclaration
-    | FunctionDeclaration;
-  sourceFile: SourceFile;
+    | FunctionDeclaration
+    | null;
+  sourceFile: SourceFile | null;
+  moduleSpecifier?: string;
 }

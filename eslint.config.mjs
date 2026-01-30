@@ -18,6 +18,8 @@ export default [{
     ignores: [
         "packages/**/tests/**",
         "packages/**/dist/**",
+        "packages/**/config/**",
+        "**/*.d.ts",
         "examples",
         "dist",
         "node_modules",

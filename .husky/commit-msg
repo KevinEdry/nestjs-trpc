@@ -1,1 +1,1 @@
-yarn commitlint -c --config .commitlintrc.json -E --edit
+bun run commitlint -c --config .commitlintrc.json -E --edit

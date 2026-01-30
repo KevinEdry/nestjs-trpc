@@ -1,6 +1,6 @@
 import { ConsoleLogger, Inject, Module } from '@nestjs/common';
 import { DynamicModule, OnModuleInit } from '@nestjs/common/interfaces';
-import { HttpAdapterHost } from '@nestjs/core';
+import { HttpAdapterHost, MetadataScanner } from '@nestjs/core';
 
 import { LOGGER_CONTEXT, TRPC_MODULE_OPTIONS } from './trpc.constants';
 
@@ -8,27 +8,13 @@ import { TRPCModuleOptions } from './interfaces';
 import { TRPCDriver } from './trpc.driver';
 import { AppRouterHost } from './app-router.host';
 import { ExpressDriver, FastifyDriver } from './drivers';
-import { FileScanner } from './scanners/file.scanner';
-import { GeneratorModule } from './generators/generator.module';
-import { FactoryModule } from './factories/factory.module';
+import { TRPCFactory } from './factories/trpc.factory';
+import { RouterFactory } from './factories/router.factory';
+import { ProcedureFactory } from './factories/procedure.factory';
+import { MiddlewareFactory } from './factories/middleware.factory';
 import { ScannerModule } from './scanners/scanner.module';
 
-@Module({
-  imports: [FactoryModule, ScannerModule],
-  providers: [
-    // NestJS Providers
-    ConsoleLogger,
-
-    // Drivers
-    TRPCDriver,
-    FastifyDriver,
-    ExpressDriver,
-
-    // Exports
-    AppRouterHost,
-  ],
-  exports: [AppRouterHost],
-})
+@Module({})
 export class TRPCModule implements OnModuleInit {
   @Inject(TRPC_MODULE_OPTIONS)
   private readonly options!: TRPCModuleOptions;
@@ -46,25 +32,31 @@ export class TRPCModule implements OnModuleInit {
   private readonly appRouterHost!: AppRouterHost;
 
   static forRoot(options: TRPCModuleOptions = {}): DynamicModule {
-    const imports: Array<DynamicModule> = [];
-
-    if (options.autoSchemaFile != null) {
-      const fileScanner = new FileScanner();
-      const callerFilePath = fileScanner.getCallerFilePath();
-      imports.push(
-        GeneratorModule.forRoot({
-          outputDirPath: options.autoSchemaFile,
-          rootModuleFilePath: callerFilePath,
-          schemaFileImports: options.schemaFileImports,
-          context: options.context,
-        }),
-      );
-    }
-
     return {
       module: TRPCModule,
-      imports,
-      providers: [{ provide: TRPC_MODULE_OPTIONS, useValue: options }],
+      imports: [ScannerModule],
+      providers: [
+        { provide: TRPC_MODULE_OPTIONS, useValue: options },
+
+        // NestJS Providers
+        ConsoleLogger,
+        MetadataScanner,
+
+        // Factories
+        TRPCFactory,
+        RouterFactory,
+        ProcedureFactory,
+        MiddlewareFactory,
+
+        // Drivers
+        TRPCDriver,
+        FastifyDriver,
+        ExpressDriver,
+
+        // Exports
+        AppRouterHost,
+      ],
+      exports: [AppRouterHost],
     };
   }
 

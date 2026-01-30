@@ -34,13 +34,13 @@
 
 ## Features
 
-- ✅&nbsp; Supports most tRPC features out of the box with more to come.
-- 🧙‍&nbsp; Full static typesafety & autocompletion on the client, for inputs, outputs, and errors.
-- 🙀&nbsp; Implements the Nestjs opinionated approach to how tRPC works.
-- ⚡️&nbsp; Same client-side DX - We generate the AppRouter on the fly.
-- 🔋&nbsp; Examples are available in the ./examples folder.
-- 📦&nbsp; Out of the box support for **Dependency Injection** within the routes and procedures.
-- 👀&nbsp; Native support for `express`, `fastify`, and `zod` with more drivers to come!
+- Fast Rust-based CLI for type generation with rich error messages
+- Full static typesafety & autocompletion on the client, for inputs, outputs, and errors
+- Implements the NestJS opinionated approach to how tRPC works
+- Watch mode for auto-regeneration during development
+- Out of the box support for **Dependency Injection** within the routes and procedures
+- Native support for `express`, `fastify`, and `zod` with more drivers to come
+- Examples are available in the ./examples folder
 
 ## Quickstart
 
@@ -49,6 +49,9 @@
 To install **NestJS tRPC** with your preferred package manager, you can use any of the following commands:
 
 ```shell
+# bun
+bun add nestjs-trpc zod @trpc/server
+
 # npm
 npm install nestjs-trpc zod @trpc/server
 
@@ -57,6 +60,18 @@ pnpm add nestjs-trpc zod @trpc/server
 
 # yarn
 yarn add nestjs-trpc zod @trpc/server
+```
+
+### Generate Types
+
+Run the CLI to generate your AppRouter types:
+
+```shell
+# Generate types (one-time)
+npx nestjs-trpc generate
+
+# Watch mode for development
+npx nestjs-trpc watch
 ```
 
 ## How to use
@@ -110,3 +125,7 @@ class UserRouter {
     <img width="720" height="50" src="https://contrib.rocks/image?repo=kevinedry/nestjs-trpc" alt="A table of avatars from the project's contributors" />
   </p>
 </a>
+
+## Release Process
+
+For maintainers, see [Release Checklist](./docs/docs/RELEASE_CHECKLIST.md) for the v2.0.0 release process.

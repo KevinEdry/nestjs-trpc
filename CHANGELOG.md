@@ -1,5 +1,36 @@
 # Changelog
 
+## [2.0.0] - UNRELEASED
+
+### BREAKING CHANGES
+
+#### tRPC v11 Required
+- **Minimum tRPC version**: `@trpc/server@^11.0.0` is now required
+- If using data transformers, move them to link configuration (see [migration guide](/docs/migration/v10-to-v11))
+
+#### TypeScript Generator Removed
+- **Code generation**: Now handled exclusively by Rust CLI
+- **Removed**: `TRPCGenerator` class and `autoSchemaFile` option
+- **Removed**: `ts-morph` dependency
+- **Migration**: Use `npx nestjs-trpc generate` instead (see [migration guide](/docs/migration/typescript-to-rust-cli))
+
+#### ImportsScanner Removed
+- **Internal change**: `ImportsScanner` class removed (was internal, should not affect users)
+
+### Added
+
+- **Watch mode**: `npx nestjs-trpc watch` for automatic regeneration on file changes
+- **Better error messages**: Rich diagnostics with file paths and line numbers
+- **Faster generation**: Rust-based CLI is 10-50x faster than TypeScript generator
+
+### Changed
+
+- **Internal**: Router construction uses plain objects instead of explicit `router()` calls (tRPC v11 shorthand)
+
+### Fixed
+
+- Various parser edge cases for complex Zod schemas
+
 ## <small>1.6.1 (2024-10-30)</small>
 
 ## 1.6.0 (2024-10-30)

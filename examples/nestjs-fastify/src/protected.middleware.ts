@@ -4,7 +4,7 @@ import {
   TRPCMiddleware,
 } from 'nestjs-trpc';
 import { Inject, Injectable } from '@nestjs/common';
-import { UserService } from './user.service';
+import { mop, UserService } from './user.service';
 
 @Injectable()
 export class ProtectedMiddleware implements TRPCMiddleware {
@@ -12,7 +12,7 @@ export class ProtectedMiddleware implements TRPCMiddleware {
   async use(opts: MiddlewareOptions<object>): Promise<MiddlewareResponse> {
     return opts.next({
       ctx: {
-        ben: 1,
+        blarg: mop,
       },
     });
   }

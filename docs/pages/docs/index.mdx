@@ -56,21 +56,42 @@ import { TRPCModule } from 'nestjs-trpc';
 @Module({
   imports: [
     TRPCModule.forRoot({
-      autoSchemaFile: './src/@generated',
+      // Optional: specify custom base path (default: '/trpc')
+      // basePath: '/api/trpc',
     }),
   ],
 })
 export class AppModule {}
 ```
 
-The `forRoot()` method takes an options object as an argument. These options are passed through to the underlying `express` or `fastify` driver. For example, if you want to disable the schema file generation (when deploying to production), you can omit the `autoSchemaFile` option.
+The `forRoot()` method takes an options object as an argument. These options are passed through to the underlying `express` or `fastify` driver.
+
+### Generate Types
+
+Run the CLI to generate your AppRouter types:
+
+```bash copy
+npx nestjs-trpc generate
+```
+
+This scans your routers and creates a TypeScript file with your complete router types. For watch mode during development:
+
+```bash copy
+npx nestjs-trpc watch
+```
+
+By default, types are generated to `./src/@generated/server.ts`. You can customize this with the `--output` flag:
+
+```bash copy
+npx nestjs-trpc generate --output ./src/trpc/types.ts
+```
 
 ### Start your NestJS server. You should be good to go! 🎉
 
 </Steps>
 
-<Callout type="error" emoji={"✋"}>
-  When setting up **NestJS tRPC** you must set your `"sourceMap": true{:typescript}` in your `compilerOptions` within the `tsconfig.json` configuration file.
+<Callout type="info" emoji={"💡"}>
+  Setting `"sourceMap": true{:typescript}` in your `compilerOptions` within `tsconfig.json` can help with debugging, but is not required for the CLI to work.
 </Callout>
 
 ### Module Options
@@ -80,7 +101,7 @@ You can import `TRPCModuleOptions` type from `nestjs-trpc` to safely assert all 
 ```typescript
 import { TRPCModule, TRPCModuleOptions } from 'nestjs-trpc';
 const trpcOptions: TRPCModuleOptions = {
-  autoSchemaFile: './src/@generated',
+  basePath: '/trpc',
 };
 ```
 
@@ -89,16 +110,6 @@ const trpcOptions: TRPCModuleOptions = {
     <Table.Cell icon>`basePath`</Table.Cell>
     <Table.Cell>`string`</Table.Cell>
     <Table.Cell>`"/trpc"`</Table.Cell>
-  </Table.Row>
-  <Table.Row>
-    <Table.Cell icon>`autoSchemaFile`</Table.Cell>
-    <Table.Cell>`string`</Table.Cell>
-    <Table.Cell>-</Table.Cell>
-  </Table.Row>
-  <Table.Row>
-    <Table.Cell icon>`schemaFileImports`</Table.Cell>
-    <Table.Cell>`Array<Function | Object | ZodAny>`</Table.Cell>
-    <Table.Cell>-</Table.Cell>
   </Table.Row>
   <Table.Row>
     <Table.Cell icon>`context`</Table.Cell>
@@ -116,3 +127,10 @@ const trpcOptions: TRPCModuleOptions = {
     <Table.Cell>-</Table.Cell>
   </Table.Row>
 </Table>
+
+### Supported Platforms
+
+The CLI binary is available for:
+- macOS (Intel and Apple Silicon)
+- Linux (x64 and ARM64)
+- Windows (x64)

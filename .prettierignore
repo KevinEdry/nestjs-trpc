@@ -5,3 +5,4 @@ public/
 *.md
 *.mdx
 packages/**/__tests__/*.ts
+packages/nestjs-trpc/cli/tests/fixtures/

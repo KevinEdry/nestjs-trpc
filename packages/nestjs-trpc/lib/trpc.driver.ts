@@ -33,28 +33,18 @@ function isFastifyApplication(app: any): app is FastifyApplication {
 export class TRPCDriver<
   TOptions extends Record<string, any> = TRPCModuleOptions,
 > {
-  @Inject(HttpAdapterHost)
-  protected readonly httpAdapterHost!: HttpAdapterHost;
-
-  @Inject(TRPCFactory)
-  protected readonly trpcFactory!: TRPCFactory;
-
-  @Inject(ConsoleLogger)
-  protected readonly consoleLogger!: ConsoleLogger;
-
-  @Inject(AppRouterHost)
-  protected readonly appRouterHost!: AppRouterHost;
-
-  @Inject(ExpressDriver)
-  protected readonly expressDriver!: ExpressDriver;
-
-  @Inject(FastifyDriver)
-  protected readonly fastifyDriver!: FastifyDriver;
-
-  constructor(private moduleRef: ModuleRef) {}
+  constructor(
+    @Inject(HttpAdapterHost)
+    protected readonly httpAdapterHost: HttpAdapterHost,
+    protected readonly trpcFactory: TRPCFactory,
+    protected readonly consoleLogger: ConsoleLogger,
+    protected readonly appRouterHost: AppRouterHost,
+    protected readonly expressDriver: ExpressDriver,
+    protected readonly fastifyDriver: FastifyDriver,
+    @Inject(ModuleRef) protected readonly moduleRef: ModuleRef,
+  ) {}
 
   public async start(options: TRPCModuleOptions) {
-    //@ts-expect-error Ignoring typescript here since it's the same type, yet it still isn't able to infer it.
     const { procedure, router } = initTRPC.context().create({
       ...(options.transformer != null
         ? { transformer: options.transformer }

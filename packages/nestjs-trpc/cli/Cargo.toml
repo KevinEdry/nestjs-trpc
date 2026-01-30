@@ -1,0 +1,112 @@
+# ============================================================================
+# CLI Build Instructions
+# ============================================================================
+# To build and test the CLI, run the following commands in a terminal
+# where Rust/cargo is available:
+#
+#   cd packages/nestjs-trpc/cli
+#   cargo build --release
+#
+# To test against the example project:
+#
+#   cd examples/nestjs-fastify
+#   npx nestjs-trpc generate
+#   npx tsc --noEmit src/@generated/server.ts
+#
+# ============================================================================
+
+[package]
+name = "nestjs-trpc"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.73"
+description = "Standalone CLI for generating tRPC routers from NestJS decorators"
+authors = ["NestJS-tRPC Contributors"]
+license = "MIT"
+repository = "https://github.com/KevinEdry/nestjs-trpc"
+keywords = ["nestjs", "trpc", "cli", "typescript", "codegen"]
+categories = ["command-line-utilities", "development-tools"]
+
+[[bin]]
+name = "nestjs-trpc"
+path = "src/main.rs"
+
+[lib]
+name = "nestjs_trpc"
+path = "src/lib.rs"
+
+[dependencies]
+# CLI framework
+clap = { version = "4.5", features = ["derive"] }
+
+# TypeScript parsing (SWC) - Latest compatible versions
+swc_common = { version = "18", features = ["sourcemap"] }
+swc_ecma_ast = "19"
+swc_ecma_parser = "32"
+swc_ecma_codegen = "21"
+
+# File discovery
+walkdir = "2.5"
+globset = "0.4"
+
+# Path utilities
+pathdiff = "0.2"
+
+# Error handling
+anyhow = "1.0"
+thiserror = "2.0"
+miette = { version = "7.6", features = ["fancy"] }
+
+# JSON parsing
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+
+# Text diffing (for dry-run mode)
+similar = "2.6"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Watch mode
+notify = "8.2"
+notify-debouncer-mini = "0.6"
+indicatif = "0.18"
+console = "0.16"
+crossbeam-channel = "0.5"
+ctrlc = "3.5"
+chrono = "0.4"
+
+# Temp file management (for dry-run mode)
+tempfile = "3.15"
+
+[dev-dependencies]
+assert_cmd = "2.0"
+predicates = "3.1"
+criterion = { version = "0.5", features = ["html_reports"] }
+insta = { version = "1.42", features = ["yaml"] }
+regex = "1.11"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+undocumented_unsafe_blocks = "deny"
+too_many_lines = "warn"
+cognitive_complexity = "warn"
+unwrap_used = "deny"
+expect_used = "deny"
+
+[[bench]]
+name = "parse_benchmark"
+harness = false

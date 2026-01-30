@@ -1,8 +1,8 @@
-import { ProcedureParams } from '@trpc/server';
-import { ResolveOptions } from '@trpc/server/dist/core/internals/utils';
-
-export type ProcedureOptions = ResolveOptions<ProcedureParams> & {
+export type ProcedureOptions = {
+  ctx: unknown;
+  input: unknown;
   type: string;
   path: string;
-  rawInput: string;
+  rawInput: unknown;
+  signal: AbortSignal | undefined;
 };

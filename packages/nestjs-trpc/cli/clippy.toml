@@ -1,0 +1,14 @@
+# Clippy configuration for nestjs-trpc CLI
+# Enforces code quality guidelines from CLAUDE.md
+
+# Maximum lines per function (excluding blanks/comments)
+# Helps keep functions focused and testable
+too-many-lines-threshold = 100
+
+# Maximum nesting depth (per ARCH-04: max 2 levels)
+# Enforces early return pattern
+excessive-nesting-threshold = 3
+
+# Allow unwrap/expect in test code (unit tests with #[cfg(test)] and #[test])
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true

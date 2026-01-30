@@ -5,7 +5,7 @@ on:
     branches:
       - main
   pull_request:
-    types: [opened, reopened]
+    types: [opened, reopened, synchronize]
 
 jobs:
   verify:
@@ -17,13 +17,91 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           submodules: false
-      - name: Enable Corepack
-        run: corepack enable
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: bun install --frozen-lockfile
       - name: Lint
-        run: yarn lint --no-fix
+        run: bun run lint --no-fix
       - name: Test
-        run: yarn test
+        run: bun run test
       - name: Build
-        run: yarn build
+        run: bun run build
+
+  verify-rust-cli:
+    runs-on: ubuntu-latest
+    name: verify-rust-cli
+    defaults:
+      run:
+        working-directory: packages/nestjs-trpc/cli
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          submodules: false
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+          cache-workspaces: packages/nestjs-trpc/cli -> target
+      - name: Check formatting
+        run: cargo fmt --check
+      - name: Run clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+      - name: Run tests
+        run: cargo test
+      - name: Build
+        run: cargo build --release
+      - name: Check file sizes
+        run: ./scripts/check-line-count.sh
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    name: e2e-tests
+    needs: [verify, verify-rust-cli]
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          submodules: false
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          cache-workspaces: packages/nestjs-trpc/cli -> target
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Build library
+        run: bun run build
+      - name: Build Rust CLI
+        working-directory: packages/nestjs-trpc/cli
+        run: cargo build --release
+      - name: Generate types for Express example
+        working-directory: examples/nestjs-express
+        run: |
+          mkdir -p src/@generated
+          ../../packages/nestjs-trpc/cli/target/release/nestjs-trpc generate \
+            --entrypoint ./src/user.router.ts \
+            --output ./src/@generated/server.ts
+      - name: Verify Express generated file exists
+        run: test -s examples/nestjs-express/src/@generated/server.ts
+      - name: Generate types for Fastify example
+        working-directory: examples/nestjs-fastify
+        run: |
+          mkdir -p src/@generated
+          ../../packages/nestjs-trpc/cli/target/release/nestjs-trpc generate \
+            --entrypoint ./src/user.router.ts \
+            --output ./src/@generated/server.ts
+      - name: Verify Fastify generated file exists
+        run: test -s examples/nestjs-fastify/src/@generated/server.ts
+      - name: Run E2E tests (Express)
+        working-directory: examples/nestjs-express
+        run: bun run test:e2e
+      - name: Run E2E tests (Fastify)
+        working-directory: examples/nestjs-fastify
+        run: bun run test:e2e

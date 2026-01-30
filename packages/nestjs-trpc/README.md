@@ -49,6 +49,9 @@
 To install **NestJS tRPC** with your preferred package manager, you can use any of the following commands:
 
 ```shell
+# bun
+bun add trpc-nestjs zod @trpc/server
+
 # npm
 npm install trpc-nestjs zod @trpc/server
 

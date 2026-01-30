@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TRPCFactory } from '../trpc.factory';
-import { TRPCGenerator } from '../../generators/trpc.generator';
 import { RouterFactory } from '../router.factory';
 import { ProcedureFactory } from '../procedure.factory';
 
@@ -12,10 +11,6 @@ describe('TRPCFactory', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TRPCFactory,
-        {
-          provide: TRPCGenerator,
-          useValue: {},
-        },
         {
           provide: RouterFactory,
           useValue: {

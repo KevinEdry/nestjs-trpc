@@ -34,3 +34,26 @@ test/**/dist
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Rust CLI (packages/nestjs-trpc/cli)
+**/target/
+**/*.rs.bk
+
+# Development tools
+.auto-claude/
+.worktrees/
+.claude/
+.planning/
+
+# Native binaries
+packages/nestjs-trpc/native/
+
+# Generated/build artifacts
+packages/nestjs-trpc/cli/@generated/
+**/*.rlib
+
+# Compiled test files
+examples/**/test/**/*.js
+examples/**/test/**/*.js.map
+examples/**/test/**/*.d.ts
+examples/**/test/**/*.d.ts.map

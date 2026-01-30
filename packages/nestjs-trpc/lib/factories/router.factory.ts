@@ -14,14 +14,12 @@ import { Class, Constructor } from 'type-fest';
 
 @Injectable()
 export class RouterFactory {
-  @Inject(ConsoleLogger)
-  private readonly consoleLogger!: ConsoleLogger;
-
-  @Inject(ModulesContainer)
-  private readonly modulesContainer!: ModulesContainer;
-
-  @Inject(ProcedureFactory)
-  private readonly procedureFactory!: ProcedureFactory;
+  constructor(
+    private readonly consoleLogger: ConsoleLogger,
+    @Inject(ModulesContainer)
+    private readonly modulesContainer: ModulesContainer,
+    private readonly procedureFactory: ProcedureFactory,
+  ) {}
 
   getRouters(): Array<RouterInstance> {
     const routers: Array<RouterInstance> = [];
@@ -99,8 +97,7 @@ export class RouterFactory {
         middlewares,
       );
 
-      // TODO: To get this working with `trpc` v11, we need to remove the `router()` method from here.
-      routerSchema[camelCasedRouterName] = router(routerProcedures);
+      routerSchema[camelCasedRouterName] = routerProcedures;
     });
 
     return routerSchema;

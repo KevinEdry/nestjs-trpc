@@ -10,7 +10,6 @@ import { LoggingMiddleware } from './logging.middleware';
 @Module({
   imports: [
     TRPCModule.forRoot({
-      autoSchemaFile: './src/@generated',
       context: AppContext,
     }),
   ],

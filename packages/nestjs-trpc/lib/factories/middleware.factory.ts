@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Class, Constructor } from 'type-fest';
 import { TRPCMiddleware } from '../interfaces';
 import { RouterFactory } from './router.factory';
@@ -12,11 +12,10 @@ interface MiddlewareMetadata {
 
 @Injectable()
 export class MiddlewareFactory {
-  @Inject(RouterFactory)
-  private readonly routerFactory!: RouterFactory;
-
-  @Inject(ProcedureFactory)
-  private readonly procedureFactory!: ProcedureFactory;
+  constructor(
+    private readonly routerFactory: RouterFactory,
+    private readonly procedureFactory: ProcedureFactory,
+  ) {}
 
   getMiddlewares(): Array<MiddlewareMetadata> {
     const routers = this.routerFactory.getRouters();

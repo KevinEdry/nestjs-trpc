@@ -1,9 +1,8 @@
 import type {
-  ProcedureRouterRecord,
+  TRPCRouterRecord,
   AnyRouter,
-  ProcedureBuilder,
-  ProcedureType,
-  ProcedureParams,
+  TRPCProcedureBuilder,
+  TRPCProcedureType,
 } from '@trpc/server';
 import type { ZodSchema, ZodType, ZodTypeDef } from 'zod';
 import type { TRPCMiddleware } from './middleware.interface';
@@ -41,7 +40,7 @@ export type ProcedureParamDecorator =
   | ProcedureInputParamDecorator;
 
 export interface ProcedureFactoryMetadata {
-  type: ProcedureType;
+  type: TRPCProcedureType;
   input: ZodSchema | undefined;
   output: ZodSchema | undefined;
   middlewares: Array<Constructor<TRPCMiddleware> | Class<TRPCMiddleware>>;
@@ -71,8 +70,17 @@ export interface RoutersFactoryMetadata {
   procedures: Array<ProcedureFactoryMetadata>;
 }
 
-export type TRPCRouter = <TProcRouterRecord extends ProcedureRouterRecord>(
+export type TRPCRouter = <TProcRouterRecord extends TRPCRouterRecord>(
   procedures: TProcRouterRecord,
 ) => AnyRouter;
 
-export type TRPCPublicProcedure = ProcedureBuilder<ProcedureParams>;
+export type TRPCPublicProcedure = TRPCProcedureBuilder<
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any
+>;

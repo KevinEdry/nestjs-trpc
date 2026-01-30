@@ -1,0 +1,25 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": "../..",
+  "testEnvironment": "node",
+  "testRegex": "test/e2e/.*.e2e-spec.ts$",
+  "transform": {
+    "^.+\\.ts$": [
+      "ts-jest",
+      {
+        "tsconfig": {
+          "module": "commonjs",
+          "target": "ES2021",
+          "emitDecoratorMetadata": true,
+          "experimentalDecorators": true,
+          "esModuleInterop": true,
+          "skipLibCheck": true,
+          "types": ["jest", "node"]
+        }
+      }
+    ]
+  },
+  "transformIgnorePatterns": [
+    "node_modules/(?!nestjs-trpc)"
+  ]
+}

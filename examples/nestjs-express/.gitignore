@@ -10,7 +10,6 @@ npm-debug.log
 .DS_Store
 
 # examples
-/test
 /coverage
 /.nyc_output
 test-schema.graphql

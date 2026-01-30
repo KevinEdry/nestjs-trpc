@@ -20,13 +20,11 @@ import { uniqWith, isEqual } from 'lodash';
 
 @Injectable()
 export class ProcedureFactory {
-  @Inject(ConsoleLogger)
-  private readonly consoleLogger!: ConsoleLogger;
-
-  @Inject(MetadataScanner)
-  private readonly metadataScanner!: MetadataScanner;
-
-  constructor(private moduleRef: ModuleRef) {}
+  constructor(
+    private readonly consoleLogger: ConsoleLogger,
+    @Inject(MetadataScanner) private readonly metadataScanner: MetadataScanner,
+    @Inject(ModuleRef) private readonly moduleRef: ModuleRef,
+  ) {}
 
   getProcedures(
     instance: any,

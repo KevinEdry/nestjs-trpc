@@ -1,0 +1,177 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (skip publish)'
+        type: boolean
+        default: false
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  build-cli:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { target: x86_64-apple-darwin, os: macos-13 }
+          - { target: aarch64-apple-darwin, os: macos-14 }
+          - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest }
+          - { target: aarch64-unknown-linux-gnu, os: ubuntu-latest }
+          - { target: x86_64-pc-windows-msvc, os: windows-latest }
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
+          cache-workspaces: packages/nestjs-trpc/cli -> target
+
+      - name: Install cross (Linux ARM64)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: cargo install cross --git https://github.com/cross-rs/cross
+
+      - name: Build CLI
+        shell: bash
+        run: ./scripts/build-cli.sh --target ${{ matrix.target }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cli-${{ matrix.target }}
+          path: packages/nestjs-trpc/native/${{ matrix.target }}/
+          retention-days: 1
+
+  publish:
+    needs: build-cli
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install git-cliff
+        uses: taiki-e/install-action@v2
+        with:
+          tool: git-cliff
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build TypeScript
+        run: bun run build
+
+      - name: Download all CLI binaries
+        uses: actions/download-artifact@v4
+        with:
+          path: packages/nestjs-trpc/native/
+          pattern: cli-*
+          merge-multiple: true
+
+      - name: Verify binaries
+        run: |
+          for target in x86_64-apple-darwin aarch64-apple-darwin x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu; do
+            test -f "packages/nestjs-trpc/native/$target/nestjs-trpc" || { echo "Missing: $target"; exit 1; }
+          done
+          test -f "packages/nestjs-trpc/native/x86_64-pc-windows-msvc/nestjs-trpc.exe" || { echo "Missing: windows"; exit 1; }
+          chmod +x packages/nestjs-trpc/native/x86_64-unknown-linux-gnu/nestjs-trpc
+          packages/nestjs-trpc/native/x86_64-unknown-linux-gnu/nestjs-trpc --help
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          else
+            VERSION=$(jq -r '.version' packages/nestjs-trpc/package.json)
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Update package.json version
+        working-directory: packages/nestjs-trpc
+        run: npm version ${{ steps.version.outputs.version }} --no-git-tag-version
+
+      - name: Update Cargo.toml version
+        run: |
+          sed -i 's/^version = ".*"/version = "${{ steps.version.outputs.version }}"/' packages/nestjs-trpc/cli/Cargo.toml
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          git-cliff --tag "v${{ steps.version.outputs.version }}" -o CHANGELOG.md
+          git-cliff --unreleased --tag "v${{ steps.version.outputs.version }}" > RELEASE_NOTES.md
+
+          {
+            echo 'changelog<<EOF'
+            cat RELEASE_NOTES.md
+            echo EOF
+          } >> $GITHUB_OUTPUT
+
+      - name: Publish to npm
+        if: ${{ github.event_name == 'push' || !inputs.dry_run }}
+        working-directory: packages/nestjs-trpc
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish to npm (dry run)
+        if: ${{ github.event_name != 'push' && inputs.dry_run }}
+        working-directory: packages/nestjs-trpc
+        run: |
+          echo "DRY RUN: Would publish to npm"
+          npm pack
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release-assets
+          cp packages/nestjs-trpc/native/x86_64-apple-darwin/nestjs-trpc    release-assets/nestjs-trpc-macos-x64
+          cp packages/nestjs-trpc/native/aarch64-apple-darwin/nestjs-trpc   release-assets/nestjs-trpc-macos-arm64
+          cp packages/nestjs-trpc/native/x86_64-unknown-linux-gnu/nestjs-trpc release-assets/nestjs-trpc-linux-x64
+          cp packages/nestjs-trpc/native/aarch64-unknown-linux-gnu/nestjs-trpc release-assets/nestjs-trpc-linux-arm64
+          cp packages/nestjs-trpc/native/x86_64-pc-windows-msvc/nestjs-trpc.exe release-assets/nestjs-trpc-windows-x64.exe
+
+          cd release-assets && sha256sum * > checksums.txt
+          cat checksums.txt
+
+      - name: Create GitHub Release
+        if: ${{ github.event_name == 'push' || !inputs.dry_run }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.version, '-') }}
+          files: |
+            release-assets/nestjs-trpc-macos-x64
+            release-assets/nestjs-trpc-macos-arm64
+            release-assets/nestjs-trpc-linux-x64
+            release-assets/nestjs-trpc-linux-arm64
+            release-assets/nestjs-trpc-windows-x64.exe
+            release-assets/checksums.txt
+

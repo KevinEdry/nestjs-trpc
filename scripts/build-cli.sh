@@ -61,18 +61,22 @@ if command -v rustc &>/dev/null; then
 fi
 
 BUILD_CMD="cargo"
+BUILD_SUBCMD="build"
 if [[ -n "$HOST_TARGET" && "$TARGET" != "$HOST_TARGET" ]]; then
-  if command -v cross &>/dev/null; then
+  if command -v cargo-zigbuild &>/dev/null; then
+    BUILD_SUBCMD="zigbuild"
+    echo "Cross-compiling with cargo-zigbuild: host=$HOST_TARGET, target=$TARGET"
+  elif command -v cross &>/dev/null; then
     BUILD_CMD="cross"
-    echo "Cross-compiling: host=$HOST_TARGET, target=$TARGET"
+    echo "Cross-compiling with cross: host=$HOST_TARGET, target=$TARGET"
   else
-    echo "Target $TARGET differs from host $HOST_TARGET but 'cross' is not installed."
+    echo "Target $TARGET differs from host $HOST_TARGET but neither 'cargo-zigbuild' nor 'cross' is installed."
     echo "Falling back to cargo (make sure the target toolchain is installed)."
   fi
 fi
 
-echo "Building CLI for $TARGET using $BUILD_CMD..."
-(cd "$CLI_DIR" && $BUILD_CMD build --release --target "$TARGET")
+echo "Building CLI for $TARGET..."
+(cd "$CLI_DIR" && $BUILD_CMD $BUILD_SUBCMD --release --target "$TARGET")
 
 # Place binary in native/{target}/
 DEST_DIR="$NATIVE_DIR/$TARGET"

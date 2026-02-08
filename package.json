@@ -5,13 +5,16 @@
   "private": true,
   "scripts": {
     "build": "tsc -b -v packages",
-    "changelog": "lerna-changelog",
+    "changelog": "git-cliff -o CHANGELOG.md",
+    "changelog:unreleased": "git-cliff --unreleased",
+    "changelog:next-version": "git-cliff --bumped-version",
     "clean": "tsc -b --clean",
     "format": "prettier packages/**/*.ts --ignore-path ./.prettierignore --write",
     "lint": "eslint 'packages/**/*.ts' --fix",
+    "lint:sh": "bash -c 'shopt -s globstar && shellcheck scripts/**/*.sh'",
     "test": "bun run --filter '*' test",
     "release": "release-it",
-    "prepublish:npm": "bun run build && bun run changelog | pbcopy",
+    "prepublish:npm": "bun run build && bun run changelog:unreleased | pbcopy",
     "publish:npm": "lerna publish",
     "prepublish:next": "bun run build",
     "publish:next": "lerna publish --dist-tag next",
@@ -71,6 +74,9 @@
     "!(packages/nestjs-trpc/cli/tests/fixtures/**)*.ts": [
       "prettier --write --ignore-path .prettierignore",
       "eslint --fix"
+    ],
+    "scripts/**/*.sh": [
+      "shellcheck"
     ],
     "packages/nestjs-trpc/cli/**/*.rs": [
       "cargo fmt --manifest-path packages/nestjs-trpc/cli/Cargo.toml --",

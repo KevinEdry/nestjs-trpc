@@ -58,7 +58,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -67,12 +66,6 @@ jobs:
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
 
       - name: Install git-cliff
         uses: taiki-e/install-action@v2
@@ -113,8 +106,9 @@ jobs:
           echo "Version: $VERSION"
 
       - name: Update package.json version
-        working-directory: packages/nestjs-trpc
-        run: npm version ${{ steps.version.outputs.version }} --no-git-tag-version
+        run: |
+          jq '.version = "${{ steps.version.outputs.version }}"' packages/nestjs-trpc/package.json > tmp.json
+          mv tmp.json packages/nestjs-trpc/package.json
 
       - name: Update Cargo.toml version
         run: |
@@ -135,16 +129,16 @@ jobs:
       - name: Publish to npm
         if: ${{ github.event_name == 'push' || !inputs.dry_run }}
         working-directory: packages/nestjs-trpc
-        run: npm publish --provenance --access public
+        run: bun publish --access public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish to npm (dry run)
         if: ${{ github.event_name != 'push' && inputs.dry_run }}
         working-directory: packages/nestjs-trpc
         run: |
           echo "DRY RUN: Would publish to npm"
-          npm pack
+          bun pack
 
       - name: Prepare release assets
         run: |

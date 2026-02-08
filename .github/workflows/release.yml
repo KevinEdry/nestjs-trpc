@@ -131,7 +131,7 @@ jobs:
         working-directory: packages/nestjs-trpc
         run: bun publish --access public
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish to npm (dry run)
         if: ${{ github.event_name != 'push' && inputs.dry_run }}

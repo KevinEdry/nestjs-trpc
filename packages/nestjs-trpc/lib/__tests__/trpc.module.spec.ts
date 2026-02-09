@@ -1,10 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConsoleLogger } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 import { TRPCModule } from '../trpc.module';
 import { TRPCDriver } from '../trpc.driver';
 import { AppRouterHost } from '../app-router.host';
-import { TRPC_MODULE_OPTIONS } from '../trpc.constants';
+import { TRPC_LOGGER, TRPC_MODULE_OPTIONS } from '../trpc.constants';
 
 describe('TRPCModule', () => {
   let trpcModule: TRPCModule;
@@ -23,8 +22,8 @@ describe('TRPCModule', () => {
           useValue: { basePath: '/trpc' },
         },
         {
-          provide: ConsoleLogger,
-          useValue: { setContext: jest.fn(), log: jest.fn() },
+          provide: TRPC_LOGGER,
+          useValue: { log: jest.fn() },
         },
         {
           provide: HttpAdapterHost,

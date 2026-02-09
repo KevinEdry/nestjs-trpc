@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProcedureFactory } from '../procedure.factory';
-import { ConsoleLogger } from '@nestjs/common';
 import { MetadataScanner, ModuleRef } from '@nestjs/core';
 import { z } from 'zod';
 import { TRPCProcedureBuilder, TRPCError, initTRPC } from '@trpc/server';
@@ -8,6 +7,7 @@ import { ProcedureFactoryMetadata, ProcedureParamDecoratorType } from '../../int
 import { TRPCMiddleware } from '../../interfaces';
 import { Ctx, Input, UseMiddlewares, Options, Query, Mutation } from '../../decorators';
 import { ProcedureType } from '../../trpc.enum';
+import { TRPC_LOGGER } from '../../trpc.constants';
 
 describe('ProcedureFactory', () => {
   let procedureFactory: ProcedureFactory;
@@ -19,7 +19,7 @@ describe('ProcedureFactory', () => {
       providers: [
         ProcedureFactory,
         {
-          provide: ConsoleLogger,
+          provide: TRPC_LOGGER,
           useValue: {
             log: jest.fn(),
           },

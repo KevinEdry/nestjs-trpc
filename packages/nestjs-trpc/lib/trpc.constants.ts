@@ -16,3 +16,4 @@ export const MIDDLEWARES_KEY = Symbol('trpc:middlewares_key');
 
 // Logging Constants
 export const LOGGER_CONTEXT = 'TRPC';
+export const TRPC_LOGGER = 'TrpcLogger';

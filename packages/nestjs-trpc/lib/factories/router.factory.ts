@@ -1,8 +1,13 @@
-import { ConsoleLogger, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { LoggerService } from '@nestjs/common';
 import { ModulesContainer } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import { camelCase } from 'lodash';
-import { MIDDLEWARES_KEY, ROUTER_METADATA_KEY } from '../trpc.constants';
+import {
+  MIDDLEWARES_KEY,
+  ROUTER_METADATA_KEY,
+  TRPC_LOGGER,
+} from '../trpc.constants';
 import {
   RouterInstance,
   TRPCPublicProcedure,
@@ -15,7 +20,7 @@ import { Class, Constructor } from 'type-fest';
 @Injectable()
 export class RouterFactory {
   constructor(
-    private readonly consoleLogger: ConsoleLogger,
+    @Inject(TRPC_LOGGER) private readonly logger: LoggerService,
     @Inject(ModulesContainer)
     private readonly modulesContainer: ModulesContainer,
     private readonly procedureFactory: ProcedureFactory,
@@ -84,7 +89,7 @@ export class RouterFactory {
         prototype,
       );
 
-      this.consoleLogger.log(
+      this.logger.log(
         `Router ${name} as ${camelCasedRouterName}.`,
         'Router Factory',
       );

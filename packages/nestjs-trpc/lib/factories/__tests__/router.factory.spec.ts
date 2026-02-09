@@ -1,9 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RouterFactory } from '../router.factory';
-import { ConsoleLogger } from '@nestjs/common';
 import { ModulesContainer } from '@nestjs/core';
 import { ProcedureFactory } from '../procedure.factory';
-import { ROUTER_METADATA_KEY, MIDDLEWARES_KEY, PROCEDURE_TYPE_KEY, PROCEDURE_METADATA_KEY } from '../../trpc.constants';
+import { ROUTER_METADATA_KEY, MIDDLEWARES_KEY, PROCEDURE_TYPE_KEY, PROCEDURE_METADATA_KEY, TRPC_LOGGER } from '../../trpc.constants';
 import { z } from 'zod';
 import { initTRPC, TRPCError } from '@trpc/server';
 import { TRPCMiddleware } from '../../interfaces';
@@ -21,7 +20,7 @@ describe('RouterFactory', () => {
       providers: [
         RouterFactory,
         {
-          provide: ConsoleLogger,
+          provide: TRPC_LOGGER,
           useValue: {
             log: jest.fn(),
           },

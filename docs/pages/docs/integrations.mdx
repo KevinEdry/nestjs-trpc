@@ -18,44 +18,44 @@ const { appRouter } = app.get(AppRouterHost);
 You must call the `AppRouterHost.appRouter{:tsx}` getter after the application has been initialized (after the `onModuleInit` hook has been triggered by either the `app.listen(){:tsx}` or `app.init(){:tsx}` method).
 </Callout>
 
-With the runtime appRouter object, you can integrate with virtually any trpc-specific library, this includes [trpc-panel](https://github.com/iway1/trpc-panel), [trpc-openapi](https://github.com/jlalmes/trpc-openapi), [trpc-playground](https://github.com/sachinraja/trpc-playground) and more.
+With the runtime appRouter object, you can integrate with virtually any trpc-specific library, this includes [trpc-ui](https://github.com/aidansunbury/trpc-ui), [trpc-openapi](https://github.com/jlalmes/trpc-openapi), [trpc-playground](https://github.com/sachinraja/trpc-playground) and more.
 
-### Integrating with `trpc-panel`
-Here is a short example of how to integrate [trpc-panel](https://github.com/iway1/trpc-panel), while this is a specific integration, the techniques used here can be applied to any of the trpc-specific libraries you wish to include. <br/>
+### Integrating with `trpc-ui`
+Here is a short example of how to integrate [trpc-ui](https://github.com/aidansunbury/trpc-ui), while this is a specific integration, the techniques used here can be applied to any of the trpc-specific libraries you wish to include. <br/>
 If you still run into issues, please open a [new issue](https://github.com/KevinEdry/nestjs-trpc/issues/new) or contact us via Discord.
 
 <Steps>
   ### Installation
-  To install `trpc-panel` with your preferred package manager, you can use any of the following commands:
+  To install `trpc-ui` with your preferred package manager, you can use any of the following commands:
   <Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
     <Tabs.Tab>
       ```bash copy
-      npm install trpc-panel
+      npm install trpc-ui
       ```
     </Tabs.Tab>
     <Tabs.Tab>
       ```bash copy
-      pnpm add trpc-panel
+      pnpm add trpc-ui
       ```
     </Tabs.Tab>
     <Tabs.Tab>
       ```bash copy
-      yarn add trpc-panel
+      yarn add trpc-ui
       ```
-     </Tabs.Tab>
+    </Tabs.Tab>
     <Tabs.Tab>
       ```bash copy
-      bun install trpc-panel
+      bun install trpc-ui
       ```
      </Tabs.Tab>
   </Tabs>
 
   ### Creating the Panel Controller
-  As per the `trpc-panel` [docs](https://github.com/iway1/trpc-panel?tab=readme-ov-file#quick-start) we need to serve the panel, using the `renderTrpcPanel` method for every method on route `/panel`.
+  As per the `trpc-ui` [docs](https://github.com/aidansunbury/trpc-ui?tab=readme-ov-file#quick-start) we need to serve the panel, using the `renderTrpcPanel` method for every method on route `/panel`.
 
   ```typescript {8, 14-16} filename="trpc-panel.controller.ts" copy
   import { All, Controller, Inject, OnModuleInit } from '@nestjs/common';
-  import { renderTrpcPanel } from 'trpc-panel';
+  import { renderTrpcPanel } from 'trpc-ui';
   import { AnyRouter } from '@trpc/server';
   import { AppRouterHost } from 'nestjs-trpc';
 

@@ -1,5 +1,5 @@
 import { All, Controller, Inject, OnModuleInit } from '@nestjs/common';
-import { renderTrpcPanel } from 'trpc-panel';
+import { renderTrpcPanel } from 'trpc-ui';
 import { AnyRouter } from '@trpc/server';
 import { AppRouterHost } from 'nestjs-trpc';
 

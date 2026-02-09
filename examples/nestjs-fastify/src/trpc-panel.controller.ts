@@ -5,7 +5,7 @@ import {
   OnModuleInit,
   Response,
 } from '@nestjs/common';
-import { renderTrpcPanel } from 'trpc-panel';
+import { renderTrpcPanel } from 'trpc-ui';
 import type { AnyRouter } from '@trpc/server';
 import { AppRouterHost } from 'nestjs-trpc';
 import type { FastifyReply } from 'fastify';

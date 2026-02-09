@@ -247,7 +247,8 @@ This guideline applies primarily to the Rust CLI. TypeScript files can be larger
 
 ## Package Manager
 
-- This project uses **Bun** as specified in `packageManager` field
+- This is a **Bun workspaces** monorepo — **always use `bun`**, never `npm`, `npx`, `yarn`, or `pnpm`
+- Use `bun run`, `bun test`, `bun install`, `bunx` etc. for all operations
 - `bun.lock` contains dependency lock information
 - Bun provides fast package installation and native TypeScript/JSX support
 

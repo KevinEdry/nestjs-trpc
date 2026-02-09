@@ -200,5 +200,77 @@ export interface AuthMiddlewareContext extends Context {
   </Tabs.Tab>
 </Tabs>
 
+#### Procedure Metadata
+
+Procedures can define a `meta` object that middlewares can read at runtime. This is the tRPC-idiomatic way to implement authorization and other cross-cutting concerns — similar to how NestJS guards use `@SetMetadata()` and `Reflector`.
+
+##### Defining Meta
+
+Pass a `meta` object to the `@Query()` or `@Mutation()` decorator:
+
+```typescript filename="admin.router.ts" copy
+import { Router, Query, Mutation, UseMiddlewares, Input } from 'nestjs-trpc';
+import { z } from 'zod';
+
+@Router({ alias: 'admin' })
+@UseMiddlewares(RolesMiddleware)
+export class AdminRouter {
+  @Query({
+    input: z.object({ userId: z.string() }),
+    meta: { roles: ['admin'] },
+  })
+  async getUser(@Input('userId') userId: string) {
+    return this.userService.getUser(userId);
+  }
+
+  @Mutation({
+    input: z.object({ userId: z.string() }),
+    meta: { roles: ['admin', 'moderator'] },
+  })
+  async deleteUser(@Input('userId') userId: string) {
+    return this.userService.deleteUser(userId);
+  }
+}
+```
+
+##### Reading Meta in Middleware
+
+The `TRPCMiddleware` interface accepts a generic type parameter for `meta`, and `MiddlewareOptions` accepts generics for both context and meta — giving you full type safety without assertions:
+
+```typescript filename="roles.middleware.ts" copy
+import {
+  MiddlewareOptions,
+  MiddlewareResponse,
+  TRPCMiddleware,
+} from 'nestjs-trpc';
+import { Injectable } from '@nestjs/common';
+import { TRPCError } from '@trpc/server';
+import type { AuthMiddlewareContext } from 'nestjs-trpc/types';
+
+interface RolesMeta {
+  roles: string[];
+}
+
+@Injectable()
+export class RolesMiddleware implements TRPCMiddleware<RolesMeta> {
+  async use(opts: MiddlewareOptions<AuthMiddlewareContext, RolesMeta>): Promise<MiddlewareResponse> {
+    const { meta, ctx, next } = opts;
+
+    if (!meta.roles.includes(ctx.auth.userId)) {
+      throw new TRPCError({
+        message: 'Insufficient permissions.',
+        code: 'FORBIDDEN',
+      });
+    }
+
+    return next();
+  }
+}
+```
+
+<Callout>
+  The `TRPCMiddleware<TMeta>` generic defaults to `unknown`, so existing middlewares that don't use meta continue to work without changes.
+</Callout>
+
 #### Dependency injection
 UseMiddlewares fully supports Dependency Injection. Just as with NestJS middlewares and guards, they are able to inject dependencies that are available within the same module. As usual, this is done through the `constructor`.

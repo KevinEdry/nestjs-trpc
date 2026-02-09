@@ -2,6 +2,7 @@ import { Inject } from '@nestjs/common';
 import {
   Router,
   Query,
+  Mutation,
   UseMiddlewares,
   Input,
   Ctx,
@@ -10,6 +11,7 @@ import {
 } from 'nestjs-trpc';
 import { UserService } from './user.service';
 import { ProtectedMiddleware } from './protected.middleware';
+import { RolesMiddleware } from './roles.middleware';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { User, userSchema } from './user.schema';
@@ -40,5 +42,14 @@ export class UserRouter {
     }
 
     return user;
+  }
+
+  @Mutation({
+    input: z.object({ userId: z.string() }),
+    meta: { roles: ['admin'] },
+  })
+  @UseMiddlewares(RolesMiddleware)
+  async deleteUser(@Input('userId') userId: string): Promise<string> {
+    return `User ${userId} deleted.`;
   }
 }

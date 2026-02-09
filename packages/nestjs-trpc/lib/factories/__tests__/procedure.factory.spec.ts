@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { TRPCProcedureBuilder, TRPCError, initTRPC } from '@trpc/server';
 import { ProcedureFactoryMetadata, ProcedureParamDecoratorType } from '../../interfaces/factory.interface';
 import { TRPCMiddleware } from '../../interfaces';
-import { Ctx, Input, UseMiddlewares, Options, Query } from '../../decorators';
+import { Ctx, Input, UseMiddlewares, Options, Query, Mutation } from '../../decorators';
 import { ProcedureType } from '../../trpc.enum';
 
 describe('ProcedureFactory', () => {
@@ -109,6 +109,74 @@ describe('ProcedureFactory', () => {
         ],
       });
     });
+
+    it('should extract meta from @Query decorator', () => {
+      const procedureMeta = { roles: ['admin'] };
+
+      class AdminRouter {
+        @Query({
+          input: z.object({ id: z.string() }),
+          meta: procedureMeta,
+        })
+        async getAdmin(@Input("id") id: string): Promise<any> {
+          return { id };
+        }
+      }
+
+      const mockInstance = new AdminRouter();
+      const mockPrototype = Object.getPrototypeOf(mockInstance);
+
+      metadataScanner.getAllMethodNames.mockImplementation(() => ['getAdmin']);
+
+      const result = procedureFactory.getProcedures(mockInstance, mockPrototype);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].meta).toEqual(procedureMeta);
+    });
+
+    it('should extract meta from @Mutation decorator', () => {
+      const procedureMeta = { roles: ['admin'], requiresAuth: true };
+
+      class AdminRouter {
+        @Mutation({
+          input: z.object({ name: z.string() }),
+          meta: procedureMeta,
+        })
+        async createItem(@Input("name") name: string): Promise<any> {
+          return { name };
+        }
+      }
+
+      const mockInstance = new AdminRouter();
+      const mockPrototype = Object.getPrototypeOf(mockInstance);
+
+      metadataScanner.getAllMethodNames.mockImplementation(() => ['createItem']);
+
+      const result = procedureFactory.getProcedures(mockInstance, mockPrototype);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].meta).toEqual(procedureMeta);
+      expect(result[0].type).toBe(ProcedureType.Mutation);
+    });
+
+    it('should set meta to undefined when not provided in decorator', () => {
+      class PublicRouter {
+        @Query({ input: z.object({ id: z.string() }) })
+        async getData(@Input("id") id: string): Promise<any> {
+          return { id };
+        }
+      }
+
+      const mockInstance = new PublicRouter();
+      const mockPrototype = Object.getPrototypeOf(mockInstance);
+
+      metadataScanner.getAllMethodNames.mockImplementation(() => ['getData']);
+
+      const result = procedureFactory.getProcedures(mockInstance, mockPrototype);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].meta).toBeUndefined();
+    });
   });
 
   describe('serializeProcedures', () => {
@@ -128,6 +196,7 @@ describe('ProcedureFactory', () => {
         {
           input: z.object({ userId: z.string() }),
           output: userSchema,
+          meta: undefined,
           type: 'query',
           middlewares: [ProtectedMiddleware],
           name: 'getUserById',
@@ -172,6 +241,169 @@ describe('ProcedureFactory', () => {
       expect(result.getUserById._def.middlewares.length).toBe(3);
 
       expect(result.getUserById._def.type).toBe('query');
+    });
+
+    it('should attach meta to the procedure when provided', () => {
+      const t = initTRPC.context().create();
+      const mockProcedureBuilder = t.procedure;
+
+      const procedureMeta = { roles: ['admin', 'editor'] };
+
+      const mockProcedures: Array<ProcedureFactoryMetadata> = [
+        {
+          input: z.object({ id: z.string() }),
+          output: undefined,
+          meta: procedureMeta,
+          type: 'query',
+          middlewares: [],
+          name: 'getProtectedData',
+          implementation: jest.fn(),
+          params: [
+            { type: ProcedureParamDecoratorType.Input, index: 0, key: 'id' },
+          ],
+        },
+      ];
+
+      const mockInstance = {
+        constructor: class ProtectedRouter {},
+        getProtectedData: jest.fn(),
+      };
+
+      (moduleRef.get as jest.Mock).mockReturnValue(mockInstance);
+
+      const result = procedureFactory.serializeProcedures(
+        mockProcedures,
+        mockInstance,
+        'protected',
+        mockProcedureBuilder,
+        [],
+      );
+
+      expect(result.getProtectedData._def.meta).toEqual(procedureMeta);
+    });
+
+    it('should not set meta on the procedure when meta is undefined', () => {
+      const t = initTRPC.context().create();
+      const mockProcedureBuilder = t.procedure;
+
+      const mockProcedures: Array<ProcedureFactoryMetadata> = [
+        {
+          input: undefined,
+          output: undefined,
+          meta: undefined,
+          type: 'query',
+          middlewares: [],
+          name: 'getPublicData',
+          implementation: jest.fn(),
+          params: [],
+        },
+      ];
+
+      const mockInstance = {
+        constructor: class PublicRouter {},
+        getPublicData: jest.fn(),
+      };
+
+      (moduleRef.get as jest.Mock).mockReturnValue(mockInstance);
+
+      const result = procedureFactory.serializeProcedures(
+        mockProcedures,
+        mockInstance,
+        'public',
+        mockProcedureBuilder,
+        [],
+      );
+
+      expect(result.getPublicData._def.meta).toBeUndefined();
+    });
+
+    it('should attach meta to a mutation procedure', () => {
+      const t = initTRPC.context().create();
+      const mockProcedureBuilder = t.procedure;
+
+      const procedureMeta = { requiresAuth: true, roles: ['admin'] };
+
+      const mockProcedures: Array<ProcedureFactoryMetadata> = [
+        {
+          input: z.object({ name: z.string() }),
+          output: undefined,
+          meta: procedureMeta,
+          type: 'mutation',
+          middlewares: [],
+          name: 'createItem',
+          implementation: jest.fn(),
+          params: [
+            { type: ProcedureParamDecoratorType.Input, index: 0, key: 'name' },
+          ],
+        },
+      ];
+
+      const mockInstance = {
+        constructor: class ItemRouter {},
+        createItem: jest.fn(),
+      };
+
+      (moduleRef.get as jest.Mock).mockReturnValue(mockInstance);
+
+      const result = procedureFactory.serializeProcedures(
+        mockProcedures,
+        mockInstance,
+        'items',
+        mockProcedureBuilder,
+        [],
+      );
+
+      expect(result.createItem._def.meta).toEqual(procedureMeta);
+    });
+
+    it('should attach meta alongside input, output, and middlewares', () => {
+      const t = initTRPC.context().create();
+      const mockProcedureBuilder = t.procedure;
+
+      class AuthMiddleware implements TRPCMiddleware {
+        use(opts: any) {
+          return opts.next();
+        }
+      }
+
+      const procedureMeta = { roles: ['admin'] };
+      const inputSchema = z.object({ id: z.string() });
+      const outputSchema = z.object({ id: z.string(), name: z.string() });
+
+      const mockProcedures: Array<ProcedureFactoryMetadata> = [
+        {
+          input: inputSchema,
+          output: outputSchema,
+          meta: procedureMeta,
+          type: 'query',
+          middlewares: [AuthMiddleware],
+          name: 'getProtectedItem',
+          implementation: jest.fn(),
+          params: [
+            { type: ProcedureParamDecoratorType.Input, index: 0, key: 'id' },
+          ],
+        },
+      ];
+
+      const mockInstance = {
+        constructor: class ProtectedRouter {},
+        getProtectedItem: jest.fn(),
+      };
+
+      (moduleRef.get as jest.Mock).mockReturnValue(mockInstance);
+
+      const result = procedureFactory.serializeProcedures(
+        mockProcedures,
+        mockInstance,
+        'protected',
+        mockProcedureBuilder,
+        [],
+      );
+
+      expect(result.getProtectedItem._def.meta).toEqual(procedureMeta);
+      expect(result.getProtectedItem._def.inputs[0]).toEqual(inputSchema);
+      expect(result.getProtectedItem._def.output).toEqual(outputSchema);
+      expect(result.getProtectedItem._def.middlewares.length).toBeGreaterThan(0);
     });
   });
 });

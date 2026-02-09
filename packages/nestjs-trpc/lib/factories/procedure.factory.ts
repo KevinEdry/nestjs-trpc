@@ -60,6 +60,7 @@ export class ProcedureFactory {
     return {
       input: metadata?.input,
       output: metadata?.output,
+      meta: metadata?.meta,
       middlewares,
       type,
       name: callback.name,
@@ -80,7 +81,8 @@ export class ProcedureFactory {
     const serializedProcedures = Object.create({});
 
     for (const procedure of procedures) {
-      const { input, output, type, middlewares, name, params } = procedure;
+      const { input, output, meta, type, middlewares, name, params } =
+        procedure;
 
       const uniqueMiddlewares = uniqWith(
         [...routerMiddlewares, ...middlewares],
@@ -99,6 +101,7 @@ export class ProcedureFactory {
         name,
         input,
         output,
+        meta,
         type,
         routerInstance,
         params,
@@ -160,13 +163,17 @@ export class ProcedureFactory {
     procedureName: string,
     input: any,
     output: any,
+    meta: Record<string, unknown> | undefined,
     type: string,
     routerInstance: Record<string, (...args: any[]) => any>,
     params: Array<ProcedureParamDecorator> | undefined,
   ): any {
-    const procedureWithInput = input
-      ? procedureInstance.input(input)
+    const procedureWithMeta = meta
+      ? procedureInstance.meta(meta)
       : procedureInstance;
+    const procedureWithInput = input
+      ? procedureWithMeta.input(input)
+      : procedureWithMeta;
     const procedureWithOutput = output
       ? procedureWithInput.output(output)
       : procedureWithInput;

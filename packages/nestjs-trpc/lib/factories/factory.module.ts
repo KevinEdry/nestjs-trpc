@@ -4,12 +4,21 @@ import { TRPCFactory } from './trpc.factory';
 import { RouterFactory } from './router.factory';
 import { ProcedureFactory } from './procedure.factory';
 import { MiddlewareFactory } from './middleware.factory';
+import { TRPC_LOGGER } from '../trpc.constants';
+import { LOGGER_CONTEXT } from '../trpc.constants';
 
 @Module({
   imports: [],
   providers: [
     // NestJS Providers
-    ConsoleLogger,
+    {
+      provide: TRPC_LOGGER,
+      useFactory: () => {
+        const logger = new ConsoleLogger();
+        logger.setContext(LOGGER_CONTEXT);
+        return logger;
+      },
+    },
     MetadataScanner,
 
     // Local Providers

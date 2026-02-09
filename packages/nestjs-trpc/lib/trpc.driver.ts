@@ -1,4 +1,5 @@
-import { ConsoleLogger, Inject, Injectable, Type } from '@nestjs/common';
+import { Inject, Injectable, Type } from '@nestjs/common';
+import type { LoggerService } from '@nestjs/common';
 import { HttpAdapterHost, ModuleRef } from '@nestjs/core';
 import type { Application as ExpressApplication } from 'express';
 import type { FastifyInstance as FastifyApplication } from 'fastify';
@@ -7,6 +8,7 @@ import { AnyRouter, initTRPC } from '@trpc/server';
 import { TRPCFactory } from './factories/trpc.factory';
 import { AppRouterHost } from './app-router.host';
 import { ExpressDriver, FastifyDriver } from './drivers';
+import { TRPC_LOGGER } from './trpc.constants';
 
 function isExpressApplication(app: any): app is ExpressApplication {
   return (
@@ -37,7 +39,7 @@ export class TRPCDriver<
     @Inject(HttpAdapterHost)
     protected readonly httpAdapterHost: HttpAdapterHost,
     protected readonly trpcFactory: TRPCFactory,
-    protected readonly consoleLogger: ConsoleLogger,
+    @Inject(TRPC_LOGGER) protected readonly logger: LoggerService,
     protected readonly appRouterHost: AppRouterHost,
     protected readonly expressDriver: ExpressDriver,
     protected readonly fastifyDriver: FastifyDriver,

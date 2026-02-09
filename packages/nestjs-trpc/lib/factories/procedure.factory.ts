@@ -1,10 +1,12 @@
-import { ConsoleLogger, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { LoggerService } from '@nestjs/common';
 import { MetadataScanner, ModuleRef } from '@nestjs/core';
 import {
   MIDDLEWARES_KEY,
   PROCEDURE_METADATA_KEY,
   PROCEDURE_PARAM_METADATA_KEY,
   PROCEDURE_TYPE_KEY,
+  TRPC_LOGGER,
 } from '../trpc.constants';
 import {
   ProcedureFactoryMetadata,
@@ -21,7 +23,7 @@ import { uniqWith, isEqual } from 'lodash';
 @Injectable()
 export class ProcedureFactory {
   constructor(
-    private readonly consoleLogger: ConsoleLogger,
+    @Inject(TRPC_LOGGER) private readonly logger: LoggerService,
     @Inject(MetadataScanner) private readonly metadataScanner: MetadataScanner,
     @Inject(ModuleRef) private readonly moduleRef: ModuleRef,
   ) {}
@@ -107,7 +109,7 @@ export class ProcedureFactory {
         params,
       );
 
-      this.consoleLogger.log(
+      this.logger.log(
         `Mapped {${type}, ${camelCasedRouterName}.${name}} route.`,
         'Router Factory',
       );

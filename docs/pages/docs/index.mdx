@@ -126,7 +126,33 @@ const trpcOptions: TRPCModuleOptions = {
     <Table.Cell>`(opts: { shape, error }) => {}`</Table.Cell>
     <Table.Cell>-</Table.Cell>
   </Table.Row>
+  <Table.Row>
+    <Table.Cell icon>`logger`</Table.Cell>
+    <Table.Cell>`LoggerService`</Table.Cell>
+    <Table.Cell>`ConsoleLogger`</Table.Cell>
+  </Table.Row>
 </Table>
+
+#### Custom Logger
+
+By default, **NestJS tRPC** uses the built-in NestJS `ConsoleLogger`. You can provide your own logger by passing any implementation of the NestJS `LoggerService` interface:
+
+```typescript filename="app.module.ts"
+import { Module } from '@nestjs/common';
+import { TRPCModule } from 'nestjs-trpc';
+import { MyLogger } from './my-logger.service';
+
+@Module({
+  imports: [
+    TRPCModule.forRoot({
+      logger: new MyLogger(),
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+This is useful when replacing the default NestJS logger with a production-grade alternative such as [Pino](https://github.com/iamolegga/nestjs-pino), [Winston](https://github.com/gremo/nest-winston), or any other logger that implements the `LoggerService` interface.
 
 ### Supported Platforms
 

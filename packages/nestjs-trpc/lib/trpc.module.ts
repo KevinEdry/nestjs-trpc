@@ -1,5 +1,6 @@
 import { ConsoleLogger, Inject, Module } from '@nestjs/common';
-import {
+import type { LoggerService } from '@nestjs/common';
+import type {
   DynamicModule,
   MiddlewareConsumer,
   NestModule,
@@ -7,7 +8,11 @@ import {
 } from '@nestjs/common/interfaces';
 import { HttpAdapterHost, MetadataScanner } from '@nestjs/core';
 
-import { LOGGER_CONTEXT, TRPC_MODULE_OPTIONS } from './trpc.constants';
+import {
+  LOGGER_CONTEXT,
+  TRPC_LOGGER,
+  TRPC_MODULE_OPTIONS,
+} from './trpc.constants';
 
 import { TRPCModuleOptions } from './interfaces';
 import { TRPCDriver } from './trpc.driver';
@@ -24,8 +29,8 @@ export class TRPCModule implements NestModule, OnModuleInit {
   @Inject(TRPC_MODULE_OPTIONS)
   private readonly options!: TRPCModuleOptions;
 
-  @Inject(ConsoleLogger)
-  private readonly consoleLogger!: ConsoleLogger;
+  @Inject(TRPC_LOGGER)
+  private readonly logger!: LoggerService;
 
   @Inject(HttpAdapterHost)
   private readonly httpAdapterHost!: HttpAdapterHost;
@@ -42,9 +47,19 @@ export class TRPCModule implements NestModule, OnModuleInit {
       imports: [ScannerModule],
       providers: [
         { provide: TRPC_MODULE_OPTIONS, useValue: options },
+        {
+          provide: TRPC_LOGGER,
+          useFactory: () => {
+            if (options.logger != null) {
+              return options.logger;
+            }
+            const logger = new ConsoleLogger();
+            logger.setContext(LOGGER_CONTEXT);
+            return logger;
+          },
+        },
 
         // NestJS Providers
-        ConsoleLogger,
         MetadataScanner,
 
         // Factories
@@ -74,8 +89,6 @@ export class TRPCModule implements NestModule, OnModuleInit {
       return;
     }
 
-    this.consoleLogger.setContext(LOGGER_CONTEXT);
-
     await this.trpcDriver.start(this.options);
   }
 
@@ -87,7 +100,7 @@ export class TRPCModule implements NestModule, OnModuleInit {
 
     const platformName = httpAdapter.getType();
     if (this.appRouterHost.appRouter != null) {
-      this.consoleLogger.log(
+      this.logger.log(
         `Server has been initialized successfully using the ${platformName} driver.`,
         'TRPC Server',
       );

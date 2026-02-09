@@ -66,15 +66,80 @@ fn create_stub_declarations(output_directory: &std::path::Path, generated_conten
     use std::fmt::Write;
 
     let stub_names = extract_schema_references(generated_content);
+    let external_modules = extract_external_module_specifiers(generated_content);
 
     let mut declarations = String::from("// Auto-generated stub declarations for validation\n");
     declarations.push_str("// Using any type to allow all Zod schema methods\n\n");
     for name in stub_names {
         writeln!(declarations, "declare const {name}: any;").unwrap();
     }
+    for module_specifier in &external_modules {
+        writeln!(declarations, "declare module \"{module_specifier}\" {{").unwrap();
+        let names = extract_import_names_for_module(generated_content, module_specifier);
+        for name in names {
+            writeln!(declarations, "  export const {name}: any;").unwrap();
+        }
+        writeln!(declarations, "}}").unwrap();
+    }
 
     let stub_path = output_directory.join("stubs.d.ts");
     fs::write(&stub_path, declarations).expect("Failed to write stub declarations");
+}
+
+fn extract_external_module_specifiers(content: &str) -> Vec<String> {
+    use std::collections::HashSet;
+
+    let well_known = ["@trpc/server", "zod"];
+    let mut modules = HashSet::new();
+
+    for line in content.lines() {
+        let trimmed = line.trim();
+        let is_import = trimmed.starts_with("import ");
+        if !is_import {
+            continue;
+        }
+
+        let Some(from_index) = trimmed.find("from ") else {
+            continue;
+        };
+        let after_from = &trimmed[from_index + 5..];
+        let quote = after_from.chars().next().unwrap_or(' ');
+        if quote != '"' && quote != '\'' {
+            continue;
+        }
+        let after_quote = &after_from[1..];
+        let Some(end) = after_quote.find(quote) else {
+            continue;
+        };
+        let specifier = &after_quote[..end];
+
+        let is_relative = specifier.starts_with('.') || specifier.starts_with('/');
+        let is_well_known = well_known.contains(&specifier);
+        if !is_relative && !is_well_known {
+            modules.insert(specifier.to_string());
+        }
+    }
+
+    modules.into_iter().collect()
+}
+
+fn extract_import_names_for_module(content: &str, module_specifier: &str) -> Vec<String> {
+    let mut names = Vec::new();
+
+    for line in content.lines() {
+        let trimmed = line.trim();
+        if !trimmed.contains(module_specifier) {
+            continue;
+        }
+
+        let new_names: Vec<String> = parse_import_names(trimmed)
+            .into_iter()
+            .filter(|name| !names.contains(name))
+            .collect();
+        names.extend(new_names);
+    }
+
+    names
 }
 
 fn parse_import_names(line: &str) -> Vec<String> {
@@ -108,6 +173,22 @@ fn extract_pattern_schemas(line: &str) -> Vec<String> {
         }
     }
     schemas
+}
+
+fn extract_enum_like_references(content: &str) -> Vec<String> {
+    use regex::Regex;
+
+    let pattern = Regex::new(r"\b([A-Z][a-zA-Z0-9_]+)\.[A-Z][a-zA-Z0-9_]+\b").unwrap();
+    let mut names = Vec::new();
+
+    for captures in pattern.captures_iter(content) {
+        let name = captures[1].to_string();
+        if name != "PLACEHOLDER_DO_NOT_REMOVE" {
+            names.push(name);
+        }
+    }
+
+    names
 }
 
 fn extract_schema_references(content: &str) -> Vec<String> {
@@ -150,6 +231,12 @@ fn extract_schema_references(content: &str) -> Vec<String> {
             .filter(|n| !builtin_identifiers.contains(n.as_str()));
         schema_names.extend(filtered);
     }
+
+    let enum_references = extract_enum_like_references(content);
+    let filtered = enum_references
+        .into_iter()
+        .filter(|n| !builtin_identifiers.contains(n.as_str()));
+    schema_names.extend(filtered);
 
     schema_names.into_iter().collect()
 }
@@ -243,6 +330,16 @@ fn validate_middleware_router_compiles() {
 #[test]
 fn validate_complex_router_compiles() {
     generate_and_validate_typescript("complex");
+}
+
+#[test]
+fn validate_enum_literals_compile() {
+    generate_and_validate_typescript("enum-literals");
+}
+
+#[test]
+fn validate_external_imports_compile() {
+    generate_and_validate_typescript("external-imports");
 }
 
 #[test]

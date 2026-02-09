@@ -67,3 +67,21 @@ fn snapshot_complex_router() {
     let output = run_generation_on_fixture("complex");
     assert_snapshot!("complex_router", output);
 }
+
+#[test]
+fn snapshot_enum_literals() {
+    let output = run_generation_on_fixture("enum-literals");
+    assert_snapshot!("enum_literals", output);
+}
+
+#[test]
+fn snapshot_path_aliases() {
+    let output = run_generation_on_fixture("path-aliases");
+    assert_snapshot!("path_aliases", output);
+}
+
+#[test]
+fn snapshot_external_imports() {
+    let output = run_generation_on_fixture("external-imports");
+    assert_snapshot!("external_imports", output);
+}

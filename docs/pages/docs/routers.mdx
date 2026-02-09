@@ -99,21 +99,23 @@ This can be done by using the right decorator, here is a list of the available p
 <br/>
 <Table columns={["Decorator", "Output"]}>
   <Table.Row>
-    <Table.Cell>`@Query({ input?: ZodSchema, output?: ZodSchema })`</Table.Cell>
+    <Table.Cell>`@Query({ input?, output?, meta? })`</Table.Cell>
     <Table.Cell>`publicProcedure.query()`</Table.Cell>
   </Table.Row>
   <Table.Row>
-    <Table.Cell>`@Mutation({ input?: ZodSchema, output?: ZodSchema })`</Table.Cell>
+    <Table.Cell>`@Mutation({ input?, output?, meta? })`</Table.Cell>
     <Table.Cell>`publicProcedure.mutation()`</Table.Cell>
   </Table.Row>
   <Table.Row>
-    <Table.Cell>`@Subscription({ input?: ZodSchema, output?: ZodSchema })`</Table.Cell>
+    <Table.Cell>`@Subscription({ input?, output?, meta? })`</Table.Cell>
     <Table.Cell>`publicProcedure.subscription()`</Table.Cell>
   </Table.Row>
 </Table>
 
 tRPC procedures may define validation logic for their input and/or output, and validators are also used to infer the types of inputs and outputs in the client-side.
-We can pass those schemas directly to the decorator as shown above.<br/>For me information on how tRPC procedure validation works, check their <Link href={"https://trpc.io/docs/server/validators"} className="underline" target="_blank">official documentation page</Link>.
+We can pass those schemas directly to the decorator as shown above.<br/>For more information on how tRPC procedure validation works, check their <Link href={"https://trpc.io/docs/server/validators"} className="underline" target="_blank">official documentation page</Link>.
+
+Procedures can also define a `meta` object that can be read by middlewares. This is the tRPC-idiomatic way to implement authorization and other cross-cutting concerns, similar to how NestJS guards use decorator metadata. See the <Link href={"/docs/middlewares#procedure-metadata"} className="underline">Procedure Metadata</Link> section in the Middlewares guide for details.
 
 ##### Middlewares
 By default every route will be assigned the `publicProcedure` base, but it is possible to use custom middlewares instead our router via the `@UseMiddlewares()` decorator.

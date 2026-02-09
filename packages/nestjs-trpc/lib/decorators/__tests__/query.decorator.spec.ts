@@ -61,4 +61,29 @@ describe('Query Decorator', () => {
     const metadata = Reflect.getMetadata(PROCEDURE_METADATA_KEY, TestClass.prototype.testMethod);
     expect(metadata).toEqual({ output: outputSchema });
   });
+
+  it('should set procedure metadata with meta', () => {
+    const inputSchema = z.string();
+    const meta = { roles: ['admin', 'editor'] };
+
+    class TestClass {
+      @Query({ input: inputSchema, meta })
+      testMethod() {}
+    }
+
+    const metadata = Reflect.getMetadata(PROCEDURE_METADATA_KEY, TestClass.prototype.testMethod);
+    expect(metadata).toEqual({ input: inputSchema, meta });
+  });
+
+  it('should set procedure metadata with only meta', () => {
+    const meta = { public: true };
+
+    class TestClass {
+      @Query({ meta })
+      testMethod() {}
+    }
+
+    const metadata = Reflect.getMetadata(PROCEDURE_METADATA_KEY, TestClass.prototype.testMethod);
+    expect(metadata).toEqual({ meta });
+  });
 });

@@ -18,7 +18,11 @@ import { ProcedureType } from '../trpc.enum';
  *
  * @publicApi
  */
-export function Mutation(args?: { input?: ZodSchema; output?: ZodSchema }) {
+export function Mutation(args?: {
+  input?: ZodSchema;
+  output?: ZodSchema;
+  meta?: Record<string, unknown>;
+}) {
   return applyDecorators(
     ...[
       SetMetadata(PROCEDURE_TYPE_KEY, ProcedureType.Mutation),

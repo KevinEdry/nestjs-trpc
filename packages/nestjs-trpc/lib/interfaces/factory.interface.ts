@@ -43,6 +43,7 @@ export interface ProcedureFactoryMetadata {
   type: TRPCProcedureType;
   input: ZodSchema | undefined;
   output: ZodSchema | undefined;
+  meta: Record<string, unknown> | undefined;
   middlewares: Array<Constructor<TRPCMiddleware> | Class<TRPCMiddleware>>;
   name: string;
   implementation: ProcedureImplementation;

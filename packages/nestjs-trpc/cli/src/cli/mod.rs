@@ -8,7 +8,7 @@ pub use watch::run_watch;
 use clap::{Parser, Subcommand};
 
 pub const DEFAULT_ROUTER_PATTERN: &str = "**/*.router.ts";
-pub const DEFAULT_OUTPUT_PATH: &str = "./@generated";
+pub const DEFAULT_OUTPUT_PATH: &str = "./src/@generated";
 
 #[derive(Parser, Debug)]
 #[command(name = "nestjs-trpc")]

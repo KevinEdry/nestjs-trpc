@@ -1,5 +1,10 @@
 import { ConsoleLogger, Inject, Module } from '@nestjs/common';
-import { DynamicModule, OnModuleInit } from '@nestjs/common/interfaces';
+import {
+  DynamicModule,
+  MiddlewareConsumer,
+  NestModule,
+  OnModuleInit,
+} from '@nestjs/common/interfaces';
 import { HttpAdapterHost, MetadataScanner } from '@nestjs/core';
 
 import { LOGGER_CONTEXT, TRPC_MODULE_OPTIONS } from './trpc.constants';
@@ -15,7 +20,7 @@ import { MiddlewareFactory } from './factories/middleware.factory';
 import { ScannerModule } from './scanners/scanner.module';
 
 @Module({})
-export class TRPCModule implements OnModuleInit {
+export class TRPCModule implements NestModule, OnModuleInit {
   @Inject(TRPC_MODULE_OPTIONS)
   private readonly options!: TRPCModuleOptions;
 
@@ -60,7 +65,10 @@ export class TRPCModule implements OnModuleInit {
     };
   }
 
-  async onModuleInit() {
+  // Register tRPC middleware during NestJS's middleware registration phase,
+  // which runs before controller routes are compiled. This prevents wildcard
+  // controllers (e.g. @All('*')) from intercepting tRPC requests.
+  async configure(_consumer: MiddlewareConsumer) {
     const httpAdapter = this.httpAdapterHost?.httpAdapter;
     if (!httpAdapter) {
       return;
@@ -69,6 +77,13 @@ export class TRPCModule implements OnModuleInit {
     this.consoleLogger.setContext(LOGGER_CONTEXT);
 
     await this.trpcDriver.start(this.options);
+  }
+
+  async onModuleInit() {
+    const httpAdapter = this.httpAdapterHost?.httpAdapter;
+    if (!httpAdapter) {
+      return;
+    }
 
     const platformName = httpAdapter.getType();
     if (this.appRouterHost.appRouter != null) {

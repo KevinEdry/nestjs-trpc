@@ -3,7 +3,10 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use tracing::{debug, info};
 
-use nestjs_trpc::{discover_root_module, WatchConfig, WatchSession};
+use nestjs_trpc::{
+    discover_root_module, extract_trpc_options, resolve_transformer_import, TsParser, WatchConfig,
+    WatchSession,
+};
 
 use super::{DEFAULT_OUTPUT_PATH, DEFAULT_ROUTER_PATTERN};
 
@@ -47,12 +50,25 @@ pub fn run_watch(
         "Using watch configuration"
     );
 
+    let transformer = extract_transformer_from_watch_module(&root_module_path);
+
     let config = WatchConfig::new(router_pattern, output_path, base_directory.to_path_buf())
         .with_debounce_milliseconds(300)
-        .with_verbose(verbose);
+        .with_verbose(verbose)
+        .with_transformer(transformer);
 
     let session = WatchSession::new(config)?;
     session.run()
+}
+
+fn extract_transformer_from_watch_module(
+    root_module_path: &Path,
+) -> Option<nestjs_trpc::TransformerInfo> {
+    let parser = TsParser::new();
+    let parsed = parser.parse_file(root_module_path).ok()?;
+    let options = extract_trpc_options(&parsed)?;
+    let transformer_identifier = options.transformer_identifier?;
+    resolve_transformer_import(&parsed, &transformer_identifier)
 }
 
 fn resolve_output_path(output_override: Option<&str>, current_directory: &Path) -> PathBuf {

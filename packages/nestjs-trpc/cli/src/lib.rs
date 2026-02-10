@@ -31,10 +31,10 @@ pub use parser::procedure::extract_procedures_from_class;
 pub use parser::{
     extract_context, extract_middleware, extract_middleware_names_from_class, extract_routers,
     extract_trpc_options, flatten_zod_schema, is_procedure_decorator, parse_typescript_file,
-    parse_typescript_source, resolve_context_file, ContextInfo, ContextParser, ContextProperty,
-    DecoratorParser, MiddlewareInfo, MiddlewareParser, ModuleParser, ParsedFile,
-    ProcedureDecoratorInfo, RouterInfo, RouterParser, TrpcModuleOptions, TsParser, ZodFlattener,
-    ZodResult,
+    parse_typescript_source, resolve_context_file, resolve_transformer_import, ContextInfo,
+    ContextParser, ContextProperty, DecoratorParser, MiddlewareInfo, MiddlewareParser,
+    ModuleParser, ParsedFile, ProcedureDecoratorInfo, RouterInfo, RouterParser, TransformerInfo,
+    TrpcModuleOptions, TsParser, ZodFlattener, ZodResult,
 };
 pub use scanner::{scan_for_routers, FileScanner};
 pub use validation::{

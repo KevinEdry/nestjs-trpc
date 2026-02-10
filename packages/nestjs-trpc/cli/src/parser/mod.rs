@@ -224,7 +224,10 @@ pub use middleware::{
     extract_middleware, extract_middleware_names_from_class, ContextProperty, MiddlewareInfo,
     MiddlewareParser,
 };
-pub use module::{extract_trpc_options, resolve_context_file, ModuleParser, TrpcModuleOptions};
+pub use module::{
+    extract_trpc_options, resolve_context_file, resolve_transformer_import, ModuleParser,
+    TransformerInfo, TrpcModuleOptions,
+};
 pub use procedure::extract_procedures_from_class;
 pub use router::{extract_routers, RouterInfo, RouterParser};
 pub use schema::{flatten_zod_schema, ZodFlattener, ZodResult};

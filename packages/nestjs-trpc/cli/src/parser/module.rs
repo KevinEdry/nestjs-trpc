@@ -10,6 +10,14 @@ use tracing::{debug, trace};
 pub struct TrpcModuleOptions {
     pub context_class_name: Option<String>,
     pub auto_schema_file: Option<String>,
+    pub transformer_identifier: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TransformerInfo {
+    pub package_name: String,
+    pub import_name: String,
+    pub is_default_import: bool,
 }
 
 fn extract_class_from_module_item(item: &ModuleItem) -> Option<&Class> {
@@ -249,6 +257,7 @@ impl ModuleParser {
         match key_name.as_str() {
             "context" => self.extract_context_option(key_value, result),
             "autoSchemaFile" => self.extract_auto_schema_option(key_value, result),
+            "transformer" => self.extract_transformer_option(key_value, result),
             _ => {}
         }
     }
@@ -278,6 +287,19 @@ impl ModuleParser {
         let auto_schema_value = string.value.to_string_lossy().into_owned();
         trace!(auto_schema = %auto_schema_value, "Found autoSchemaFile");
         result.auto_schema_file = Some(auto_schema_value);
+    }
+
+    #[allow(clippy::unused_self)]
+    fn extract_transformer_option(
+        &self,
+        key_value: &swc_ecma_ast::KeyValueProp,
+        result: &mut TrpcModuleOptions,
+    ) {
+        let Expr::Ident(identifier) = &*key_value.value else {
+            return;
+        };
+        result.transformer_identifier = Some(identifier.sym.to_string());
+        trace!(transformer = %identifier.sym, "Found transformer identifier");
     }
 
     #[allow(clippy::unused_self)]
@@ -313,6 +335,64 @@ pub fn resolve_context_file(parsed_file: &ParsedFile, context_class_name: &str) 
     }
 
     resolved
+}
+
+#[must_use]
+pub fn resolve_transformer_import(
+    parsed_file: &ParsedFile,
+    transformer_identifier: &str,
+) -> Option<TransformerInfo> {
+    let resolved = parsed_file
+        .module
+        .body
+        .iter()
+        .find_map(|item| find_transformer_import(item, transformer_identifier));
+
+    if let Some(ref info) = resolved {
+        trace!(
+            transformer = %transformer_identifier,
+            package = %info.package_name,
+            default = info.is_default_import,
+            "Resolved transformer import"
+        );
+    }
+
+    resolved
+}
+
+fn find_transformer_import(
+    item: &ModuleItem,
+    transformer_identifier: &str,
+) -> Option<TransformerInfo> {
+    use swc_ecma_ast::ImportSpecifier;
+
+    let ModuleItem::ModuleDecl(ModuleDecl::Import(import_declaration)) = item else {
+        return None;
+    };
+
+    let is_default_import =
+        import_declaration
+            .specifiers
+            .iter()
+            .find_map(|specifier| match specifier {
+                ImportSpecifier::Default(default_specifier)
+                    if default_specifier.local.sym.as_ref() == transformer_identifier =>
+                {
+                    Some(true)
+                }
+                ImportSpecifier::Named(named_specifier)
+                    if named_specifier.local.sym.as_ref() == transformer_identifier =>
+                {
+                    Some(false)
+                }
+                _ => None,
+            })?;
+
+    Some(TransformerInfo {
+        package_name: import_declaration.src.value.to_string_lossy().into_owned(),
+        import_name: transformer_identifier.to_string(),
+        is_default_import,
+    })
 }
 
 fn find_context_import(
@@ -754,5 +834,172 @@ mod tests {
             resolved.is_none(),
             "Should return None when imported file doesn't exist"
         );
+    }
+
+    // ========================================================================
+    // Transformer extraction tests
+    // ========================================================================
+
+    #[test]
+    fn test_extract_transformer_identifier() {
+        let source = r"
+            import { Module } from '@nestjs/common';
+            import { TRPCModule } from 'nestjs-trpc';
+            import superjson from 'superjson';
+
+            @Module({
+                imports: [
+                    TRPCModule.forRoot({
+                        autoSchemaFile: './src/@generated',
+                        transformer: superjson,
+                    }),
+                ],
+            })
+            export class AppModule {}
+        ";
+
+        let options = parse_and_extract(source);
+        assert!(options.is_some());
+        let options = options.unwrap();
+        assert_eq!(
+            options.transformer_identifier,
+            Some("superjson".to_string())
+        );
+    }
+
+    #[test]
+    fn test_extract_transformer_with_context() {
+        let source = r"
+            import { Module } from '@nestjs/common';
+            import { TRPCModule } from 'nestjs-trpc';
+            import { AppContext } from './app.context';
+            import superjson from 'superjson';
+
+            @Module({
+                imports: [
+                    TRPCModule.forRoot({
+                        autoSchemaFile: './src/@generated',
+                        context: AppContext,
+                        transformer: superjson,
+                    }),
+                ],
+            })
+            export class AppModule {}
+        ";
+
+        let options = parse_and_extract(source);
+        assert!(options.is_some());
+        let options = options.unwrap();
+        assert_eq!(options.context_class_name, Some("AppContext".to_string()));
+        assert_eq!(
+            options.transformer_identifier,
+            Some("superjson".to_string())
+        );
+    }
+
+    #[test]
+    fn test_no_transformer_returns_none() {
+        let source = r"
+            import { Module } from '@nestjs/common';
+            import { TRPCModule } from 'nestjs-trpc';
+
+            @Module({
+                imports: [
+                    TRPCModule.forRoot({
+                        autoSchemaFile: './src/@generated',
+                    }),
+                ],
+            })
+            export class AppModule {}
+        ";
+
+        let options = parse_and_extract(source);
+        assert!(options.is_some());
+        assert!(options.unwrap().transformer_identifier.is_none());
+    }
+
+    #[test]
+    fn test_resolve_transformer_default_import() {
+        let (_temp, path) = create_temp_file(
+            r"
+            import { Module } from '@nestjs/common';
+            import { TRPCModule } from 'nestjs-trpc';
+            import superjson from 'superjson';
+
+            @Module({
+                imports: [
+                    TRPCModule.forRoot({
+                        transformer: superjson,
+                    }),
+                ],
+            })
+            export class AppModule {}
+        ",
+        );
+
+        let parser = TsParser::new();
+        let parsed = parser.parse_file(&path).expect("Failed to parse");
+
+        let info = resolve_transformer_import(&parsed, "superjson");
+        assert!(info.is_some());
+        let info = info.unwrap();
+        assert_eq!(info.package_name, "superjson");
+        assert_eq!(info.import_name, "superjson");
+        assert!(info.is_default_import);
+    }
+
+    #[test]
+    fn test_resolve_transformer_named_import() {
+        let (_temp, path) = create_temp_file(
+            r"
+            import { Module } from '@nestjs/common';
+            import { TRPCModule } from 'nestjs-trpc';
+            import { myTransformer } from 'custom-transformer';
+
+            @Module({
+                imports: [
+                    TRPCModule.forRoot({
+                        transformer: myTransformer,
+                    }),
+                ],
+            })
+            export class AppModule {}
+        ",
+        );
+
+        let parser = TsParser::new();
+        let parsed = parser.parse_file(&path).expect("Failed to parse");
+
+        let info = resolve_transformer_import(&parsed, "myTransformer");
+        assert!(info.is_some());
+        let info = info.unwrap();
+        assert_eq!(info.package_name, "custom-transformer");
+        assert_eq!(info.import_name, "myTransformer");
+        assert!(!info.is_default_import);
+    }
+
+    #[test]
+    fn test_resolve_transformer_not_imported() {
+        let (_temp, path) = create_temp_file(
+            r"
+            import { Module } from '@nestjs/common';
+            import { TRPCModule } from 'nestjs-trpc';
+
+            @Module({
+                imports: [
+                    TRPCModule.forRoot({
+                        transformer: nonExistent,
+                    }),
+                ],
+            })
+            export class AppModule {}
+        ",
+        );
+
+        let parser = TsParser::new();
+        let parsed = parser.parse_file(&path).expect("Failed to parse");
+
+        let info = resolve_transformer_import(&parsed, "nonExistent");
+        assert!(info.is_none());
     }
 }

@@ -6,6 +6,8 @@ use anyhow::Result;
 use console::Term;
 use std::path::PathBuf;
 
+use crate::parser::module::TransformerInfo;
+
 pub use event_loop::*;
 pub use paths::{find_watchable_files, should_watch_path};
 pub use progress::*;
@@ -29,6 +31,9 @@ pub struct WatchConfig {
 
     /// Enable verbose logging
     pub verbose: bool,
+
+    /// Transformer info extracted from `TRPCModule.forRoot()`
+    pub transformer: Option<TransformerInfo>,
 }
 
 impl WatchConfig {
@@ -45,7 +50,15 @@ impl WatchConfig {
             base_directory,
             debounce_milliseconds: DEFAULT_DEBOUNCE_MILLISECONDS,
             verbose: false,
+            transformer: None,
         }
+    }
+
+    /// Sets the transformer info.
+    #[must_use]
+    pub fn with_transformer(mut self, transformer: Option<TransformerInfo>) -> Self {
+        self.transformer = transformer;
+        self
     }
 
     /// Sets the debounce duration in milliseconds.
@@ -131,6 +144,7 @@ impl WatchSession {
             &self.config.base_directory,
             &self.config.output_directory,
             &self.config.router_pattern,
+            self.config.transformer.as_ref(),
         )
     }
 
@@ -168,6 +182,7 @@ fn handle_file_change(config: &WatchConfig) -> Result<()> {
             &config.base_directory,
             &config.output_directory,
             &config.router_pattern,
+            config.transformer.as_ref(),
         )
     });
 

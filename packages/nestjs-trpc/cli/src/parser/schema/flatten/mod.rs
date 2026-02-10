@@ -5,7 +5,7 @@ use super::helpers::ZodHelpers;
 use crate::error::GeneratorError;
 use crate::parser::imports::ResolvedImport;
 use crate::parser::{ParsedFile, TsParser};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use swc_ecma_ast::{Decl, Expr, ModuleItem, Stmt};
 use tracing::{debug, trace, warn};
@@ -21,6 +21,7 @@ pub struct ZodFlattener<'a> {
     pub(super) parsed_cache: HashMap<PathBuf, ParsedFile>,
     pub(super) max_depth: usize,
     pub(super) resolving: Vec<String>,
+    pub(super) importable_identifiers: HashSet<String>,
 }
 
 impl<'a> ZodFlattener<'a> {
@@ -32,12 +33,19 @@ impl<'a> ZodFlattener<'a> {
             parsed_cache: HashMap::new(),
             max_depth: DEFAULT_MAX_SCHEMA_FLATTEN_DEPTH,
             resolving: Vec::new(),
+            importable_identifiers: HashSet::new(),
         }
     }
 
     #[must_use]
     pub const fn with_max_depth(mut self, max_depth: usize) -> Self {
         self.max_depth = max_depth;
+        self
+    }
+
+    #[must_use]
+    pub fn with_importable_identifiers(mut self, identifiers: HashSet<String>) -> Self {
+        self.importable_identifiers = identifiers;
         self
     }
 
@@ -543,9 +551,10 @@ mod tests {
 
         let parser = TsParser::new();
         let parsed = parser.parse_file(&main_path).expect("Failed to parse");
+        let empty_importable = std::collections::HashSet::new();
 
-        let result =
-            flatten_zod_schema(&parser, "schema", &parsed, base).expect("Failed to flatten");
+        let result = flatten_zod_schema(&parser, "schema", &parsed, base, &empty_importable)
+            .expect("Failed to flatten");
 
         assert!(result.contains("z.string()"));
     }

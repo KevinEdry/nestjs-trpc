@@ -197,7 +197,9 @@ impl ServerGenerator {
     fn extract_schema_refs(procedure: &ProcedureMetadata) -> Vec<&str> {
         let input_ref = procedure.input_schema_ref.as_deref();
         let output_ref = procedure.output_schema_ref.as_deref();
-        [input_ref, output_ref].into_iter().flatten().collect()
+        let mut refs: Vec<&str> = [input_ref, output_ref].into_iter().flatten().collect();
+        refs.extend(procedure.schema_identifiers.iter().map(String::as_str));
+        refs
     }
 
     fn append_schema_imports(
@@ -253,6 +255,7 @@ mod tests {
             output_schema: output.map(std::string::ToString::to_string),
             input_schema_ref: None,
             output_schema_ref: None,
+            schema_identifiers: Vec::new(),
         }
     }
 
@@ -741,6 +744,7 @@ mod tests {
             output_schema: None,
             input_schema_ref: None,
             output_schema_ref: None,
+            schema_identifiers: Vec::new(),
         };
 
         let output = generator.generate_procedure_string(&procedure, 1);
@@ -774,6 +778,7 @@ mod tests {
                 output_schema: None,
                 input_schema_ref: Some("userInputSchema".to_string()),
                 output_schema_ref: None,
+                schema_identifiers: Vec::new(),
             }],
         )];
 
@@ -874,6 +879,7 @@ mod tests {
             output_schema: Some("outputSchema".to_string()),
             input_schema_ref: Some("InputRef".to_string()),
             output_schema_ref: Some("OutputRef".to_string()),
+            schema_identifiers: Vec::new(),
         };
 
         let refs = ServerGenerator::extract_schema_refs(&procedure);
@@ -891,6 +897,7 @@ mod tests {
             output_schema: None,
             input_schema_ref: None,
             output_schema_ref: None,
+            schema_identifiers: Vec::new(),
         };
 
         let refs = ServerGenerator::extract_schema_refs(&procedure);

@@ -58,6 +58,7 @@ pub struct ProcedureMetadata {
     pub output_schema: Option<String>,
     pub input_schema_ref: Option<String>,
     pub output_schema_ref: Option<String>,
+    pub schema_identifiers: Vec<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

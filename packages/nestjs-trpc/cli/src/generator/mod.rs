@@ -117,35 +117,34 @@ impl StaticGenerator {
         I: IntoIterator<Item = &'a str>,
     {
         let output_dir = output_file_path.parent().unwrap_or_else(|| Path::new("."));
-        let mut seen_paths: HashSet<String> = HashSet::new();
 
-        schema_names
-            .into_iter()
-            .filter_map(|name| {
-                self.format_schema_import(name, schema_locations, output_dir, &mut seen_paths)
-            })
-            .collect()
-    }
+        let mut seen_names: HashSet<&str> = HashSet::new();
+        let mut path_order: Vec<String> = Vec::new();
+        let mut names_by_path: std::collections::HashMap<String, Vec<&str>> =
+            std::collections::HashMap::new();
 
-    fn format_schema_import(
-        &self,
-        schema_name: &str,
-        schema_locations: &std::collections::HashMap<String, std::path::PathBuf>,
-        output_dir: &Path,
-        seen_paths: &mut HashSet<String>,
-    ) -> Option<String> {
-        let source_path = schema_locations.get(schema_name)?;
-        let relative_path = Self::calculate_relative_path(output_dir, source_path);
-
-        if !seen_paths.insert(relative_path.clone()) {
-            return None;
-        }
+        group_schema_names_by_path(
+            schema_names,
+            schema_locations,
+            output_dir,
+            &mut seen_names,
+            &mut path_order,
+            &mut names_by_path,
+        );
 
         let q = self.quote();
         let term = self.terminator();
-        Some(format!(
-            "import {{ {schema_name} }} from {q}{relative_path}{q}{term}\n"
-        ))
+
+        path_order
+            .iter()
+            .filter_map(|path| {
+                let names = names_by_path.get(path)?;
+                let names_joined = names.join(", ");
+                Some(format!(
+                    "import {{ {names_joined} }} from {q}{path}{q}{term}\n"
+                ))
+            })
+            .collect()
     }
 
     fn calculate_relative_path(from_dir: &Path, to_file: &Path) -> String {
@@ -164,6 +163,40 @@ impl StaticGenerator {
         } else {
             format!("./{without_ext}")
         }
+    }
+}
+
+fn group_schema_names_by_path<'a, I>(
+    schema_names: I,
+    schema_locations: &std::collections::HashMap<String, std::path::PathBuf>,
+    output_dir: &Path,
+    seen_names: &mut HashSet<&'a str>,
+    path_order: &mut Vec<String>,
+    names_by_path: &mut std::collections::HashMap<String, Vec<&'a str>>,
+) where
+    I: IntoIterator<Item = &'a str>,
+{
+    for name in schema_names {
+        if !seen_names.insert(name) {
+            continue;
+        }
+        let Some(source_path) = schema_locations.get(name) else {
+            continue;
+        };
+        let import_path = resolve_import_path(output_dir, source_path);
+        if !names_by_path.contains_key(&import_path) {
+            path_order.push(import_path.clone());
+        }
+        names_by_path.entry(import_path).or_default().push(name);
+    }
+}
+
+fn resolve_import_path(output_dir: &Path, source_path: &Path) -> String {
+    let is_external_package = output_dir.is_absolute() && !source_path.is_absolute();
+    if is_external_package {
+        source_path.to_string_lossy().to_string()
+    } else {
+        StaticGenerator::calculate_relative_path(output_dir, source_path)
     }
 }
 

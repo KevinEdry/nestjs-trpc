@@ -6,10 +6,14 @@ use std::time::Instant;
 use anyhow::{Context, Result};
 use tracing::{debug, info, warn};
 
+use crate::parser::decorator::collect_schema_identifiers;
 use crate::{
-    build_imports_map, extract_procedures_from_class, DecoratorParser, FileScanner, ParsedFile,
-    ParserError, RouterMetadata, RouterParser, ServerGenerator, SyntaxDiagnostic, TsParser,
+    build_imports_map, extract_procedures_from_class, flatten_zod_schema, DecoratorParser,
+    FileScanner, ParsedFile, ParserError, ProcedureMetadata, RouterMetadata, RouterParser,
+    ServerGenerator, SyntaxDiagnostic, TsParser,
 };
+use std::collections::HashSet;
+use swc_ecma_ast::{Decl, ModuleDecl, ModuleItem, Stmt};
 
 /// Result of a generation operation
 #[derive(Debug, Clone)]
@@ -30,9 +34,16 @@ pub fn run_generation(
 
     let router_files = scan_router_files(base_directory, router_pattern)?;
     let (typescript_parser, parsed_files) = parse_router_files(&router_files)?;
-    let routers = extract_routers(&parsed_files)?;
+    let mut routers = extract_routers(&parsed_files)?;
     let schema_locations =
         build_schema_locations(&typescript_parser, &parsed_files, base_directory);
+    flatten_unimportable_schemas(
+        &mut routers,
+        &schema_locations,
+        &typescript_parser,
+        &parsed_files,
+        base_directory,
+    );
     write_server_file(output_path, &routers, &schema_locations)?;
 
     let router_count = routers.len();
@@ -189,6 +200,8 @@ fn build_schema_locations(
             parsed_file,
             base_directory,
         );
+        add_external_imports_from_file(&mut schema_locations, parsed_file);
+        add_exported_declarations_from_file(&mut schema_locations, parsed_file);
     }
 
     debug!(
@@ -219,6 +232,287 @@ fn add_imports_from_file(
     for (name, resolved) in imports_map {
         schema_locations.insert(name, resolved.source_file);
     }
+}
+
+fn add_external_imports_from_file(
+    schema_locations: &mut HashMap<String, PathBuf>,
+    parsed_file: &ParsedFile,
+) {
+    for item in &parsed_file.module.body {
+        let ModuleItem::ModuleDecl(ModuleDecl::Import(import_declaration)) = item else {
+            continue;
+        };
+
+        let module_specifier = import_declaration.src.value.to_string_lossy().into_owned();
+        if module_specifier.starts_with('.') || module_specifier.starts_with('/') {
+            continue;
+        }
+
+        add_named_import_specifiers(schema_locations, import_declaration, &module_specifier);
+    }
+}
+
+fn add_named_import_specifiers(
+    schema_locations: &mut HashMap<String, PathBuf>,
+    import_declaration: &swc_ecma_ast::ImportDecl,
+    module_specifier: &str,
+) {
+    for specifier in &import_declaration.specifiers {
+        let swc_ecma_ast::ImportSpecifier::Named(named) = specifier else {
+            continue;
+        };
+        let local_name = named.local.sym.to_string();
+        schema_locations
+            .entry(local_name)
+            .or_insert_with(|| PathBuf::from(module_specifier));
+    }
+}
+
+fn add_exported_declarations_from_file(
+    schema_locations: &mut HashMap<String, PathBuf>,
+    parsed_file: &ParsedFile,
+) {
+    for item in &parsed_file.module.body {
+        let ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(export)) = item else {
+            continue;
+        };
+        let Decl::Var(variable_declaration) = &export.decl else {
+            continue;
+        };
+
+        add_variable_declarator_names(
+            schema_locations,
+            variable_declaration,
+            &parsed_file.file_path,
+        );
+    }
+}
+
+fn add_variable_declarator_names(
+    schema_locations: &mut HashMap<String, PathBuf>,
+    variable_declaration: &swc_ecma_ast::VarDecl,
+    file_path: &Path,
+) {
+    for declarator in &variable_declaration.decls {
+        let swc_ecma_ast::Pat::Ident(identifier) = &declarator.name else {
+            continue;
+        };
+        let name = identifier.id.sym.to_string();
+        schema_locations
+            .entry(name)
+            .or_insert_with(|| file_path.to_path_buf());
+    }
+}
+
+fn flatten_unimportable_schemas(
+    routers: &mut [RouterMetadata],
+    schema_locations: &HashMap<String, PathBuf>,
+    typescript_parser: &TsParser,
+    parsed_files: &[ParsedFile],
+    base_directory: &Path,
+) {
+    let importable_identifiers: HashSet<String> = schema_locations.keys().cloned().collect();
+
+    for router in routers.iter_mut() {
+        let Some(source_file) = find_parsed_file(parsed_files, &router.file_path) else {
+            continue;
+        };
+
+        for procedure in &mut router.procedures {
+            flatten_procedure_schemas(
+                procedure,
+                typescript_parser,
+                source_file,
+                base_directory,
+                &importable_identifiers,
+            );
+        }
+    }
+}
+
+fn flatten_procedure_schemas(
+    procedure: &mut ProcedureMetadata,
+    typescript_parser: &TsParser,
+    source_file: &ParsedFile,
+    base_directory: &Path,
+    importable_identifiers: &HashSet<String>,
+) {
+    let input_changed = try_flatten_schema(
+        &mut procedure.input_schema,
+        &mut procedure.input_schema_ref,
+        typescript_parser,
+        source_file,
+        base_directory,
+        importable_identifiers,
+    );
+
+    let output_changed = try_flatten_schema(
+        &mut procedure.output_schema,
+        &mut procedure.output_schema_ref,
+        typescript_parser,
+        source_file,
+        base_directory,
+        importable_identifiers,
+    );
+
+    // Resolve remaining unimportable identifiers nested within inline schemas.
+    // The flattener handles top-level refs correctly but can't resolve identifiers
+    // embedded in inline expressions due to span misalignment between the temporary
+    // parse and the original source file.
+    let unimportable: Vec<_> = procedure
+        .schema_identifiers
+        .iter()
+        .filter(|identifier| !importable_identifiers.contains(identifier.as_str()))
+        .cloned()
+        .collect();
+
+    let mut inner_changed = false;
+    for identifier in &unimportable {
+        if resolve_and_replace_identifier(
+            &mut procedure.input_schema,
+            &mut procedure.output_schema,
+            identifier,
+            typescript_parser,
+            source_file,
+            base_directory,
+            importable_identifiers,
+        ) {
+            inner_changed = true;
+        }
+    }
+
+    if input_changed || output_changed || inner_changed {
+        recollect_schema_identifiers(procedure, typescript_parser);
+    }
+}
+
+fn try_flatten_schema(
+    schema: &mut Option<String>,
+    schema_ref: &mut Option<String>,
+    typescript_parser: &TsParser,
+    source_file: &ParsedFile,
+    base_directory: &Path,
+    importable_identifiers: &HashSet<String>,
+) -> bool {
+    let Some(schema_text) = schema else {
+        return false;
+    };
+    let Ok(flattened) = flatten_zod_schema(
+        typescript_parser,
+        schema_text,
+        source_file,
+        base_directory,
+        importable_identifiers,
+    ) else {
+        return false;
+    };
+    if flattened == *schema_text {
+        return false;
+    }
+    *schema = Some(flattened);
+    *schema_ref = None;
+    true
+}
+
+fn resolve_and_replace_identifier(
+    input_schema: &mut Option<String>,
+    output_schema: &mut Option<String>,
+    identifier: &str,
+    typescript_parser: &TsParser,
+    source_file: &ParsedFile,
+    base_directory: &Path,
+    importable_identifiers: &HashSet<String>,
+) -> bool {
+    let Ok(resolved) = flatten_zod_schema(
+        typescript_parser,
+        identifier,
+        source_file,
+        base_directory,
+        importable_identifiers,
+    ) else {
+        return false;
+    };
+    if resolved == identifier {
+        return false;
+    }
+
+    let mut changed = false;
+    if let Some(text) = input_schema {
+        if text.contains(identifier) {
+            *text = text.replace(identifier, &resolved);
+            changed = true;
+        }
+    }
+    if let Some(text) = output_schema {
+        if text.contains(identifier) {
+            *text = text.replace(identifier, &resolved);
+            changed = true;
+        }
+    }
+    changed
+}
+
+fn recollect_schema_identifiers(procedure: &mut ProcedureMetadata, typescript_parser: &TsParser) {
+    let mut all_identifiers = HashSet::new();
+
+    if let Some(schema_text) = &procedure.input_schema {
+        all_identifiers.extend(collect_identifiers_from_schema_text(
+            typescript_parser,
+            schema_text,
+        ));
+    }
+
+    if let Some(schema_text) = &procedure.output_schema {
+        all_identifiers.extend(collect_identifiers_from_schema_text(
+            typescript_parser,
+            schema_text,
+        ));
+    }
+
+    let mut identifiers: Vec<String> = all_identifiers.into_iter().collect();
+    identifiers.sort();
+    procedure.schema_identifiers = identifiers;
+}
+
+fn collect_identifiers_from_schema_text(
+    typescript_parser: &TsParser,
+    schema_text: &str,
+) -> Vec<String> {
+    let wrapper = format!("const __temp = {schema_text};");
+    let Ok(parsed) = typescript_parser.parse_source("<schema>", &wrapper) else {
+        return Vec::new();
+    };
+
+    let Some(expression) = extract_initializer_expression(&parsed.module) else {
+        return Vec::new();
+    };
+
+    collect_schema_identifiers(expression)
+}
+
+fn extract_initializer_expression(module: &swc_ecma_ast::Module) -> Option<&swc_ecma_ast::Expr> {
+    for item in &module.body {
+        let ModuleItem::Stmt(Stmt::Decl(Decl::Var(variable_declaration))) = item else {
+            continue;
+        };
+        let initializer = variable_declaration
+            .decls
+            .first()
+            .and_then(|declarator| declarator.init.as_deref());
+        if initializer.is_some() {
+            return initializer;
+        }
+    }
+    None
+}
+
+fn find_parsed_file<'a>(
+    parsed_files: &'a [ParsedFile],
+    file_path: &Path,
+) -> Option<&'a ParsedFile> {
+    parsed_files
+        .iter()
+        .find(|parsed_file| parsed_file.file_path == file_path)
 }
 
 fn write_server_file(

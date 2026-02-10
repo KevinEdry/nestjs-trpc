@@ -17,24 +17,39 @@ import { z } from "zod";
 
 const t = initTRPC.create();
 const publicProcedure = t.procedure;
+import { createPostInput } from "<FIXTURES>/nested/posts.router";
 
 const appRouter = t.router({
   posts: t.router({
     getPost: publicProcedure
       .input(z.object({ id: z.string() }))
-      .output(postSchema)
+      .output(z.object({
+    id: z.string(),
+    title: z.string(),
+    authorId: z.string(),
+}))
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     createPost: publicProcedure
       .input(createPostInput)
-      .output(postSchema)
+      .output(z.object({
+    id: z.string(),
+    title: z.string(),
+    authorId: z.string(),
+}))
       .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
     }),
   users: t.router({
     getUser: publicProcedure
-      .output(userSchema)
+      .output(z.object({
+    id: z.string(),
+    name: z.string(),
+}))
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     listUsers: publicProcedure
-      .output(z.array(userSchema))
+      .output(z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+})))
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
     })
 });

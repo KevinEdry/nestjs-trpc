@@ -269,7 +269,7 @@ fn generate_and_validate_typescript(fixture_name: &str) {
     let temporary_directory = TempDir::new().expect("Failed to create temp directory");
     let output_path = temporary_directory.path();
 
-    run_generation(&fixture_path, output_path, "**/*.router.ts").expect("Generation failed");
+    run_generation(&fixture_path, output_path, "**/*.router.ts", None).expect("Generation failed");
 
     let server_file = output_path.join("server.ts");
     let generated_content = fs::read_to_string(&server_file).expect("Failed to read server.ts");

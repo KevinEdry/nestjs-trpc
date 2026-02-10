@@ -38,7 +38,7 @@ impl ServerGenerator {
     }
 
     #[must_use]
-    pub const fn with_static_generator(mut self, generator: StaticGenerator) -> Self {
+    pub fn with_static_generator(mut self, generator: StaticGenerator) -> Self {
         self.static_generator = generator;
         self
     }
@@ -1196,5 +1196,50 @@ mod tests {
 
         assert_eq!(output.matches("shared: t.router(").count(), 1);
         assert!(output.contains("action: publicProcedure"));
+    }
+
+    // ========================================================================
+    // Transformer integration tests
+    // ========================================================================
+
+    #[test]
+    fn test_generate_complete_file_with_transformer() {
+        let transformer = crate::parser::module::TransformerInfo {
+            package_name: "superjson".to_string(),
+            import_name: "superjson".to_string(),
+            is_default_import: true,
+        };
+        let static_generator = StaticGenerator::new().with_transformer(Some(transformer));
+        let generator = ServerGenerator::new().with_static_generator(static_generator);
+
+        let routers = vec![create_test_router(
+            "UserRouter",
+            Some("users"),
+            vec![create_test_procedure(
+                "getUser",
+                ProcedureType::Query,
+                None,
+                None,
+            )],
+        )];
+
+        let output = generator.generate(&routers);
+
+        assert!(output.contains("import superjson from \"superjson\";"));
+        assert!(output.contains("const t = initTRPC.create({ transformer: superjson });"));
+        assert!(output.contains("users: t.router({"));
+        assert!(output.contains("export type AppRouter = typeof appRouter;"));
+    }
+
+    #[test]
+    fn test_generate_complete_file_without_transformer() {
+        let generator = ServerGenerator::new();
+        let routers = vec![create_test_router("Test", Some("test"), vec![])];
+
+        let output = generator.generate(&routers);
+
+        assert!(output.contains("const t = initTRPC.create();"));
+        assert!(!output.contains("transformer"));
+        assert!(!output.contains("superjson"));
     }
 }

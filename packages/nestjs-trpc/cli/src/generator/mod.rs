@@ -5,6 +5,8 @@ use std::collections::HashSet;
 use std::fmt::Write;
 use std::path::Path;
 
+use crate::parser::module::TransformerInfo;
+
 pub use server::{generate_server_file, ServerGenerator};
 pub use types::{generate_types_file, TypesGenerator};
 
@@ -15,6 +17,8 @@ pub struct StaticGenerator {
     pub(crate) use_single_quotes: bool,
 
     pub(crate) use_semicolons: bool,
+
+    pub(crate) transformer: Option<TransformerInfo>,
 }
 
 impl Default for StaticGenerator {
@@ -29,6 +33,7 @@ impl StaticGenerator {
         Self {
             use_single_quotes: false,
             use_semicolons: true,
+            transformer: None,
         }
     }
 
@@ -41,6 +46,12 @@ impl StaticGenerator {
     #[must_use]
     pub const fn with_semicolons(mut self, use_semicolons: bool) -> Self {
         self.use_semicolons = use_semicolons;
+        self
+    }
+
+    #[must_use]
+    pub fn with_transformer(mut self, transformer: Option<TransformerInfo>) -> Self {
+        self.transformer = transformer;
         self
     }
 
@@ -73,9 +84,13 @@ impl StaticGenerator {
         );
         let _ = writeln!(output, "import {{ z }} from {q}zod{q}{term}");
 
+        if let Some(transformer) = &self.transformer {
+            let _ = writeln!(output, "{}", self.generate_transformer_import(transformer));
+        }
+
         output.push('\n');
 
-        let _ = writeln!(output, "const t = initTRPC.create(){term}");
+        let _ = writeln!(output, "{}", self.generate_t_declaration());
         let _ = writeln!(output, "const publicProcedure = t.procedure{term}");
 
         output
@@ -98,7 +113,26 @@ impl StaticGenerator {
     #[must_use]
     pub fn generate_t_declaration(&self) -> String {
         let term = self.terminator();
-        format!("const t = initTRPC.create(){term}")
+        self.transformer.as_ref().map_or_else(
+            || format!("const t = initTRPC.create(){term}"),
+            |transformer| {
+                let name = &transformer.import_name;
+                format!("const t = initTRPC.create({{ transformer: {name} }}){term}")
+            },
+        )
+    }
+
+    fn generate_transformer_import(&self, transformer: &TransformerInfo) -> String {
+        let q = self.quote();
+        let term = self.terminator();
+        let name = &transformer.import_name;
+        let package = &transformer.package_name;
+
+        if transformer.is_default_import {
+            format!("import {name} from {q}{package}{q}{term}")
+        } else {
+            format!("import {{ {name} }} from {q}{package}{q}{term}")
+        }
     }
 
     #[must_use]
@@ -400,6 +434,134 @@ mod tests {
 import { z } from "zod";
 
 const t = initTRPC.create();
+const publicProcedure = t.procedure;
+"#;
+
+        assert_eq!(output, expected);
+    }
+
+    // ========================================================================
+    // Transformer output tests
+    // ========================================================================
+
+    #[test]
+    fn test_generate_static_declarations_with_default_transformer() {
+        let transformer = TransformerInfo {
+            package_name: "superjson".to_string(),
+            import_name: "superjson".to_string(),
+            is_default_import: true,
+        };
+        let generator = StaticGenerator::new().with_transformer(Some(transformer));
+        let output = generator.generate_static_declarations();
+
+        assert!(output.contains("import superjson from \"superjson\";"));
+        assert!(output.contains("const t = initTRPC.create({ transformer: superjson });"));
+        assert!(output.contains("const publicProcedure = t.procedure;"));
+    }
+
+    #[test]
+    fn test_generate_static_declarations_with_named_transformer() {
+        let transformer = TransformerInfo {
+            package_name: "custom-transformer".to_string(),
+            import_name: "myTransformer".to_string(),
+            is_default_import: false,
+        };
+        let generator = StaticGenerator::new().with_transformer(Some(transformer));
+        let output = generator.generate_static_declarations();
+
+        assert!(output.contains("import { myTransformer } from \"custom-transformer\";"));
+        assert!(output.contains("const t = initTRPC.create({ transformer: myTransformer });"));
+    }
+
+    #[test]
+    fn test_generate_static_declarations_transformer_with_single_quotes() {
+        let transformer = TransformerInfo {
+            package_name: "superjson".to_string(),
+            import_name: "superjson".to_string(),
+            is_default_import: true,
+        };
+        let generator = StaticGenerator::new()
+            .with_single_quotes(true)
+            .with_transformer(Some(transformer));
+        let output = generator.generate_static_declarations();
+
+        assert!(output.contains("import superjson from 'superjson';"));
+        assert!(output.contains("import { initTRPC } from '@trpc/server';"));
+    }
+
+    #[test]
+    fn test_generate_static_declarations_transformer_without_semicolons() {
+        let transformer = TransformerInfo {
+            package_name: "superjson".to_string(),
+            import_name: "superjson".to_string(),
+            is_default_import: true,
+        };
+        let generator = StaticGenerator::new()
+            .with_semicolons(false)
+            .with_transformer(Some(transformer));
+        let output = generator.generate_static_declarations();
+
+        assert!(output.contains("import superjson from \"superjson\"\n"));
+        assert!(output.contains("const t = initTRPC.create({ transformer: superjson })\n"));
+        assert!(!output.contains(';'));
+    }
+
+    #[test]
+    fn test_generate_t_declaration_with_transformer() {
+        let transformer = TransformerInfo {
+            package_name: "superjson".to_string(),
+            import_name: "superjson".to_string(),
+            is_default_import: true,
+        };
+        let generator = StaticGenerator::new().with_transformer(Some(transformer));
+        let output = generator.generate_t_declaration();
+
+        assert_eq!(
+            output,
+            "const t = initTRPC.create({ transformer: superjson });"
+        );
+    }
+
+    #[test]
+    fn test_generate_t_declaration_without_transformer() {
+        let generator = StaticGenerator::new();
+        let output = generator.generate_t_declaration();
+        assert_eq!(output, "const t = initTRPC.create();");
+    }
+
+    #[test]
+    fn test_with_transformer_builder() {
+        let transformer = TransformerInfo {
+            package_name: "superjson".to_string(),
+            import_name: "superjson".to_string(),
+            is_default_import: true,
+        };
+        let generator = StaticGenerator::new().with_transformer(Some(transformer.clone()));
+        assert!(generator.transformer.is_some());
+        assert_eq!(generator.transformer.unwrap(), transformer);
+    }
+
+    #[test]
+    fn test_with_transformer_none() {
+        let generator = StaticGenerator::new().with_transformer(None);
+        assert!(generator.transformer.is_none());
+    }
+
+    #[test]
+    fn test_transformer_output_format() {
+        let transformer = TransformerInfo {
+            package_name: "superjson".to_string(),
+            import_name: "superjson".to_string(),
+            is_default_import: true,
+        };
+        let generator = StaticGenerator::new().with_transformer(Some(transformer));
+        let output = generator.generate_static_declarations();
+
+        let expected = r#"import { initTRPC } from "@trpc/server";
+import { z } from "zod";
+import superjson from "superjson";
+
+const t = initTRPC.create({ transformer: superjson });
 const publicProcedure = t.procedure;
 "#;
 

@@ -7,10 +7,11 @@ use anyhow::{Context, Result};
 use tracing::{debug, info, warn};
 
 use crate::parser::decorator::collect_schema_identifiers;
+use crate::parser::module::TransformerInfo;
 use crate::{
     build_imports_map, extract_procedures_from_class, flatten_zod_schema, DecoratorParser,
     FileScanner, ParsedFile, ParserError, ProcedureMetadata, RouterMetadata, RouterParser,
-    ServerGenerator, SyntaxDiagnostic, TsParser,
+    ServerGenerator, StaticGenerator, SyntaxDiagnostic, TsParser,
 };
 use std::collections::HashSet;
 use swc_ecma_ast::{Decl, ModuleDecl, ModuleItem, Stmt};
@@ -29,6 +30,7 @@ pub fn run_generation(
     base_directory: &Path,
     output_path: &Path,
     router_pattern: &str,
+    transformer: Option<&TransformerInfo>,
 ) -> Result<GenerationResult> {
     let start_time = Instant::now();
 
@@ -44,7 +46,7 @@ pub fn run_generation(
         &parsed_files,
         base_directory,
     );
-    write_server_file(output_path, &routers, &schema_locations)?;
+    write_server_file(output_path, &routers, &schema_locations, transformer)?;
 
     let router_count = routers.len();
     let procedure_count = routers.iter().map(|r| r.procedures.len()).sum();
@@ -519,8 +521,10 @@ fn write_server_file(
     output_path: &Path,
     routers: &[RouterMetadata],
     schema_locations: &HashMap<String, PathBuf>,
+    transformer: Option<&TransformerInfo>,
 ) -> Result<PathBuf> {
-    let server_generator = ServerGenerator::new();
+    let static_generator = StaticGenerator::new().with_transformer(transformer.cloned());
+    let server_generator = ServerGenerator::new().with_static_generator(static_generator);
 
     let server_file_path = if output_path
         .extension()

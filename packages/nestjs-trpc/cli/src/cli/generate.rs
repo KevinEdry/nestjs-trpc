@@ -6,7 +6,10 @@ use anyhow::{Context, Result};
 use console::style;
 use tracing::info;
 
-use nestjs_trpc::{compute_diff, discover_root_module, find_tsc, run_tsc_validation, DiffResult};
+use nestjs_trpc::{
+    compute_diff, discover_root_module, extract_trpc_options, find_tsc, resolve_transformer_import,
+    run_tsc_validation, DiffResult, TransformerInfo, TsParser,
+};
 
 use super::output::{DiffSummary, DryRunOutput, ValidationError};
 use super::{DEFAULT_OUTPUT_PATH, DEFAULT_ROUTER_PATTERN};
@@ -47,20 +50,42 @@ pub fn run_generate(
 
     let base_directory = root_module_path.parent().unwrap_or(&current_directory);
 
+    let transformer = extract_transformer_from_module(&root_module_path);
+
     if dry_run {
-        run_dry_run_generation(base_directory, &output_path, &router_pattern, json_output)
+        run_dry_run_generation(
+            base_directory,
+            &output_path,
+            &router_pattern,
+            json_output,
+            transformer.as_ref(),
+        )
     } else {
-        run_normal_generation(base_directory, &output_path, &router_pattern)
+        run_normal_generation(
+            base_directory,
+            &output_path,
+            &router_pattern,
+            transformer.as_ref(),
+        )
     }
+}
+
+fn extract_transformer_from_module(root_module_path: &std::path::Path) -> Option<TransformerInfo> {
+    let parser = TsParser::new();
+    let parsed = parser.parse_file(root_module_path).ok()?;
+    let options = extract_trpc_options(&parsed)?;
+    let transformer_identifier = options.transformer_identifier?;
+    resolve_transformer_import(&parsed, &transformer_identifier)
 }
 
 fn run_normal_generation(
     base_directory: &std::path::Path,
     output_path: &std::path::Path,
     router_pattern: &str,
+    transformer: Option<&TransformerInfo>,
 ) -> Result<ExitCode> {
     let generation_result =
-        nestjs_trpc::run_generation(base_directory, output_path, router_pattern)?;
+        nestjs_trpc::run_generation(base_directory, output_path, router_pattern, transformer)?;
 
     print_summary(
         output_path,
@@ -75,12 +100,17 @@ fn run_dry_run_generation(
     output_path: &std::path::Path,
     router_pattern: &str,
     json_output: bool,
+    transformer: Option<&TransformerInfo>,
 ) -> Result<ExitCode> {
     let temp_directory = tempfile::tempdir().context("Failed to create temporary directory")?;
     let temp_output_path = temp_directory.path().join("@generated");
 
-    let generation_result =
-        nestjs_trpc::run_generation(base_directory, &temp_output_path, router_pattern)?;
+    let generation_result = nestjs_trpc::run_generation(
+        base_directory,
+        &temp_output_path,
+        router_pattern,
+        transformer,
+    )?;
 
     let generated_server_path = temp_output_path.join("server.ts");
     let generated_content =

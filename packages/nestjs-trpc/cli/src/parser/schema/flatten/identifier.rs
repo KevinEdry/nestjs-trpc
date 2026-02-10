@@ -30,6 +30,10 @@ impl ZodFlattener<'_> {
             return Ok(schema);
         }
 
+        if self.importable_identifiers.contains(&name) {
+            return Ok(schema);
+        }
+
         self.try_resolve_identifier(&name, source_file, imports_map, schema, depth)
     }
 

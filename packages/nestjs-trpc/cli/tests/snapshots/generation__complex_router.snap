@@ -17,24 +17,73 @@ import { z } from "zod";
 
 const t = initTRPC.create();
 const publicProcedure = t.procedure;
+import { addressSchema } from "<FIXTURES>/complex/combined.router";
 
 const appRouter = t.router({
   customers: t.router({
     list: publicProcedure
-      .input(paginationInput)
+      .input(z.object({
+    page: z.number().int().positive().default(1),
+    limit: z.number().int().min(1).max(100).default(20),
+}))
       .output(z.object({
-            items: z.array(customerSchema),
+            items: z.array(z.object({
+    id: z.string().uuid(),
+    email: z.string().email(),
+    name: z.string().min(2).max(50),
+    addresses: z.array(addressSchema),
+    status: z.enum(['active', 'inactive', 'pending']),
+    metadata: z.record(z.string(), z.unknown()).optional(),
+})),
             total: z.number(),
             page: z.number(),
         }))
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     create: publicProcedure
-      .input(customerSchema.omit({ id: true }))
-      .output(customerSchema)
+      .input(z.object({
+    id: z.string().uuid(),
+    email: z.string().email(),
+    name: z.string().min(2).max(50),
+    addresses: z.array(addressSchema),
+    status: z.enum(['active', 'inactive', 'pending']),
+    metadata: z.record(z.string(), z.unknown()).optional(),
+}).omit({ id: true }))
+      .output(z.object({
+    id: z.string().uuid(),
+    email: z.string().email(),
+    name: z.string().min(2).max(50),
+    addresses: z.array(addressSchema),
+    status: z.enum(['active', 'inactive', 'pending']),
+    metadata: z.record(z.string(), z.unknown()).optional(),
+}))
       .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     getById: publicProcedure
       .input(z.object({ id: z.string().uuid() }))
-      .output(customerSchema.nullable())
+      .output(z.object({
+    id: z.string().uuid(),
+    email: z.string().email(),
+    name: z.string().min(2).max(50),
+    addresses: z.array(addressSchema),
+    status: z.enum(['active', 'inactive', 'pending']),
+    metadata: z.record(z.string(), z.unknown()).optional(),
+}).nullable())
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    search: publicProcedure
+      .input(z.object({
+    page: z.number().int().positive().default(1),
+    limit: z.number().int().min(1).max(100).default(20),
+}).merge(z.object({
+    status: z.enum(['active', 'inactive', 'pending']),
+    query: z.string().optional(),
+})))
+      .output(z.array(z.object({
+    id: z.string().uuid(),
+    email: z.string().email(),
+    name: z.string().min(2).max(50),
+    addresses: z.array(addressSchema),
+    status: z.enum(['active', 'inactive', 'pending']),
+    metadata: z.record(z.string(), z.unknown()).optional(),
+})))
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
     })
 });

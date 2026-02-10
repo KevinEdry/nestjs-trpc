@@ -1,7 +1,9 @@
 use crate::parser::ParsedFile;
 use crate::ProcedureType;
+use std::collections::HashSet;
 use swc_ecma_ast::{
-    CallExpr, Callee, Decorator, Expr, ExprOrSpread, ObjectLit, Prop, PropName, PropOrSpread,
+    CallExpr, Callee, Decorator, Expr, ExprOrSpread, MemberExpr, ObjectLit, Prop, PropName,
+    PropOrSpread,
 };
 use tracing::{debug, trace, warn};
 
@@ -12,6 +14,7 @@ pub struct ProcedureDecoratorInfo {
     pub output: Option<String>,
     pub input_ref: Option<String>,
     pub output_ref: Option<String>,
+    pub schema_identifiers: Vec<String>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -20,6 +23,7 @@ pub struct DecoratorArguments {
     pub output: Option<String>,
     pub input_ref: Option<String>,
     pub output_ref: Option<String>,
+    pub schema_identifiers: Vec<String>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -77,6 +81,7 @@ impl DecoratorParser {
             output: None,
             input_ref: None,
             output_ref: None,
+            schema_identifiers: Vec::new(),
         })
     }
 
@@ -95,6 +100,7 @@ impl DecoratorParser {
                 output: None,
                 input_ref: None,
                 output_ref: None,
+                schema_identifiers: Vec::new(),
             });
         }
 
@@ -107,6 +113,7 @@ impl DecoratorParser {
             output: arguments.output,
             input_ref: arguments.input_ref,
             output_ref: arguments.output_ref,
+            schema_identifiers: arguments.schema_identifiers,
         })
     }
 
@@ -172,11 +179,15 @@ impl DecoratorParser {
             "input" => {
                 arguments.input = Some(Self::extract_value_text(&key_value.value, parsed_file));
                 arguments.input_ref = Self::extract_identifier_name(&key_value.value);
+                let identifiers = collect_schema_identifiers(&key_value.value);
+                arguments.schema_identifiers.extend(identifiers);
                 trace!(input = ?arguments.input, input_ref = ?arguments.input_ref, "Extracted input property");
             }
             "output" => {
                 arguments.output = Some(Self::extract_value_text(&key_value.value, parsed_file));
                 arguments.output_ref = Self::extract_identifier_name(&key_value.value);
+                let identifiers = collect_schema_identifiers(&key_value.value);
+                arguments.schema_identifiers.extend(identifiers);
                 trace!(output = ?arguments.output, output_ref = ?arguments.output_ref, "Extracted output property");
             }
             _ => {}
@@ -261,6 +272,75 @@ impl DecoratorParser {
             Expr::OptChain(e) => e.span,
             Expr::Invalid(e) => e.span,
         }
+    }
+}
+
+pub(crate) fn collect_schema_identifiers(expression: &Expr) -> Vec<String> {
+    let mut found = HashSet::new();
+    walk_expression_for_identifiers(expression, &mut found);
+    found.into_iter().collect()
+}
+
+fn walk_expression_for_identifiers(expression: &Expr, found: &mut HashSet<String>) {
+    match expression {
+        Expr::Ident(identifier) => {
+            let name = identifier.sym.as_ref();
+            if name != "z" {
+                found.insert(name.to_string());
+            }
+        }
+        Expr::Member(member_expression) => {
+            walk_member_expression_for_root(member_expression, found);
+        }
+        Expr::Call(call_expression) => {
+            walk_call_expression_for_identifiers(call_expression, found);
+        }
+        Expr::Object(object) => {
+            walk_object_properties_for_identifiers(&object.props, found);
+        }
+        Expr::Array(array) => {
+            for element in array.elems.iter().flatten() {
+                walk_expression_for_identifiers(&element.expr, found);
+            }
+        }
+        _ => {}
+    }
+}
+
+fn walk_object_properties_for_identifiers(
+    properties: &[PropOrSpread],
+    found: &mut HashSet<String>,
+) {
+    for property_or_spread in properties {
+        let PropOrSpread::Prop(property) = property_or_spread else {
+            continue;
+        };
+        let Prop::KeyValue(key_value) = &**property else {
+            continue;
+        };
+        walk_expression_for_identifiers(&key_value.value, found);
+    }
+}
+
+fn walk_member_expression_for_root(member_expression: &MemberExpr, found: &mut HashSet<String>) {
+    match &*member_expression.obj {
+        Expr::Ident(identifier) => {
+            let name = identifier.sym.as_ref();
+            if name != "z" {
+                found.insert(name.to_string());
+            }
+        }
+        Expr::Member(nested) => walk_member_expression_for_root(nested, found),
+        _ => walk_expression_for_identifiers(&member_expression.obj, found),
+    }
+}
+
+fn walk_call_expression_for_identifiers(call_expression: &CallExpr, found: &mut HashSet<String>) {
+    if let Callee::Expr(callee_expression) = &call_expression.callee {
+        walk_expression_for_identifiers(callee_expression, found);
+    }
+    for argument in &call_expression.args {
+        walk_expression_for_identifiers(&argument.expr, found);
     }
 }
 
@@ -674,6 +754,7 @@ mod tests {
             output: None,
             input_ref: None,
             output_ref: None,
+            schema_identifiers: Vec::new(),
         };
         let info2 = ProcedureDecoratorInfo {
             procedure_type: ProcedureType::Query,
@@ -681,6 +762,7 @@ mod tests {
             output: None,
             input_ref: None,
             output_ref: None,
+            schema_identifiers: Vec::new(),
         };
         assert_eq!(info1, info2);
     }
@@ -693,6 +775,7 @@ mod tests {
             output: Some("z.void()".to_string()),
             input_ref: None,
             output_ref: None,
+            schema_identifiers: Vec::new(),
         };
         let cloned = info.clone();
         assert_eq!(info, cloned);
@@ -706,6 +789,7 @@ mod tests {
             output: None,
             input_ref: None,
             output_ref: None,
+            schema_identifiers: Vec::new(),
         };
         let debug_str = format!("{info:?}");
         assert!(debug_str.contains("Query"));

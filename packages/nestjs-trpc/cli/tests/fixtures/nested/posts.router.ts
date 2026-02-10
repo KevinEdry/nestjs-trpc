@@ -7,7 +7,7 @@ const postSchema = z.object({
     authorId: z.string(),
 });
 
-const createPostInput = z.object({
+export const createPostInput = z.object({
     title: z.string().min(1).max(100),
     authorId: z.string().uuid(),
 });

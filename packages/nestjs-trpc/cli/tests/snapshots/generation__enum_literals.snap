@@ -1,6 +1,5 @@
 ---
 source: tests/generation.rs
-assertion_line: 74
 expression: output
 ---
 /**
@@ -18,12 +17,18 @@ import { z } from "zod";
 
 const t = initTRPC.create();
 const publicProcedure = t.procedure;
+import { Priority, Status, TypeEnum } from "<FIXTURES>/enum-literals/types";
 
 const appRouter = t.router({
   items: t.router({
     getItem: publicProcedure
       .input(z.object({ id: z.string() }))
-      .output(itemSchema)
+      .output(z.object({
+    id: z.string(),
+    type: z.literal(TypeEnum.Normal),
+    status: z.literal(Status.Active),
+    priority: z.literal(Priority.High),
+}))
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     createItem: publicProcedure
       .input(z.object({

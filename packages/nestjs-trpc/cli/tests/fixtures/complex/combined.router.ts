@@ -1,7 +1,7 @@
 import { Router, Query, Mutation } from 'nestjs-trpc';
 import { z } from 'zod';
 
-const addressSchema = z.object({
+export const addressSchema = z.object({
     street: z.string(),
     city: z.string(),
     zip: z.string().regex(/^\d{5}$/),
@@ -19,6 +19,11 @@ const customerSchema = z.object({
 const paginationInput = z.object({
     page: z.number().int().positive().default(1),
     limit: z.number().int().min(1).max(100).default(20),
+});
+
+const filterSchema = z.object({
+    status: z.enum(['active', 'inactive', 'pending']),
+    query: z.string().optional(),
 });
 
 @Router({ alias: 'customers' })
@@ -49,5 +54,13 @@ export class CustomersRouter {
     })
     getById() {
         return null;
+    }
+
+    @Query({
+        input: paginationInput.merge(filterSchema),
+        output: z.array(customerSchema),
+    })
+    search() {
+        return [];
     }
 }

@@ -120,14 +120,38 @@ impl ServerGenerator {
             return format!("const appRouter = t.router({{}}){term}\n");
         }
 
-        let router_strings: Vec<String> = routers
+        let merged = merge_routers_by_key(routers);
+        let router_strings: Vec<String> = merged
             .iter()
-            .map(|router| self.generate_router_string(router, 1))
+            .map(|(key, procedures)| self.generate_merged_router_string(key, procedures, 1))
             .collect();
 
         let routers_content = router_strings.join(",\n");
 
         format!("const appRouter = t.router({{\n{routers_content}\n}}){term}\n")
+    }
+
+    fn generate_merged_router_string(
+        &self,
+        router_key: &str,
+        procedures: &[&ProcedureMetadata],
+        depth: usize,
+    ) -> String {
+        let indent = self.indent.repeat(depth);
+        let inner_indent = self.indent.repeat(depth + 1);
+
+        if procedures.is_empty() {
+            return format!("{indent}{router_key}: t.router({{}})");
+        }
+
+        let procedure_strings: Vec<String> = procedures
+            .iter()
+            .map(|procedure| self.generate_procedure_string(procedure, depth + 1))
+            .collect();
+
+        let procedures_content = procedure_strings.join(",\n");
+
+        format!("{indent}{router_key}: t.router({{\n{procedures_content}\n{inner_indent}}})")
     }
 
     #[must_use]
@@ -230,6 +254,29 @@ fn to_camel_case(s: &str) -> String {
     chars.next().map_or_else(String::new, |first| {
         first.to_lowercase().chain(chars).collect()
     })
+}
+
+fn merge_routers_by_key(routers: &[RouterMetadata]) -> Vec<(String, Vec<&ProcedureMetadata>)> {
+    let mut key_order: Vec<String> = Vec::new();
+    let mut merged: HashMap<String, Vec<&ProcedureMetadata>> = HashMap::new();
+
+    for router in routers {
+        let key = router
+            .alias
+            .clone()
+            .unwrap_or_else(|| to_camel_case(&router.name));
+
+        if !merged.contains_key(&key) {
+            key_order.push(key.clone());
+        }
+
+        merged.entry(key).or_default().extend(&router.procedures);
+    }
+
+    key_order
+        .into_iter()
+        .filter_map(|key| merged.remove(&key).map(|procedures| (key, procedures)))
+        .collect()
 }
 
 #[must_use]
@@ -911,5 +958,243 @@ mod tests {
 
         assert!(output.contains("AUTO-GENERATED FILE - DO NOT EDIT!"));
         assert!(output.contains("nestjs-trpc"));
+    }
+
+    // ========================================================================
+    // Router alias merging tests
+    // ========================================================================
+
+    #[test]
+    fn test_merge_routers_with_same_alias() {
+        let generator = ServerGenerator::new();
+        let routers = vec![
+            create_test_router(
+                "UserRouterA",
+                Some("users"),
+                vec![create_test_procedure(
+                    "getUser",
+                    ProcedureType::Query,
+                    None,
+                    None,
+                )],
+            ),
+            create_test_router(
+                "UserRouterB",
+                Some("users"),
+                vec![create_test_procedure(
+                    "createUser",
+                    ProcedureType::Mutation,
+                    None,
+                    None,
+                )],
+            ),
+        ];
+
+        let output = generator.generate_app_router(&routers);
+
+        assert_eq!(
+            output.matches("users: t.router(").count(),
+            1,
+            "Should produce a single merged router"
+        );
+        assert!(output.contains("getUser: publicProcedure"));
+        assert!(output.contains("createUser: publicProcedure"));
+    }
+
+    #[test]
+    fn test_merge_routers_with_same_camel_case_name() {
+        let generator = ServerGenerator::new();
+        let routers = vec![
+            create_test_router(
+                "UserRouter",
+                None,
+                vec![create_test_procedure(
+                    "getUser",
+                    ProcedureType::Query,
+                    None,
+                    None,
+                )],
+            ),
+            create_test_router(
+                "UserRouter",
+                None,
+                vec![create_test_procedure(
+                    "deleteUser",
+                    ProcedureType::Mutation,
+                    None,
+                    None,
+                )],
+            ),
+        ];
+
+        let output = generator.generate_app_router(&routers);
+
+        assert_eq!(
+            output.matches("userRouter: t.router(").count(),
+            1,
+            "Should produce a single merged router"
+        );
+        assert!(output.contains("getUser: publicProcedure"));
+        assert!(output.contains("deleteUser: publicProcedure"));
+    }
+
+    #[test]
+    fn test_merge_preserves_insertion_order() {
+        let generator = ServerGenerator::new();
+        let routers = vec![
+            create_test_router(
+                "PostRouter",
+                Some("posts"),
+                vec![create_test_procedure(
+                    "getPost",
+                    ProcedureType::Query,
+                    None,
+                    None,
+                )],
+            ),
+            create_test_router(
+                "UserRouter",
+                Some("users"),
+                vec![create_test_procedure(
+                    "getUser",
+                    ProcedureType::Query,
+                    None,
+                    None,
+                )],
+            ),
+            create_test_router(
+                "PostRouterExtended",
+                Some("posts"),
+                vec![create_test_procedure(
+                    "createPost",
+                    ProcedureType::Mutation,
+                    None,
+                    None,
+                )],
+            ),
+        ];
+
+        let output = generator.generate_app_router(&routers);
+
+        let posts_pos = output.find("posts: t.router(").unwrap();
+        let users_pos = output.find("users: t.router(").unwrap();
+
+        assert!(
+            posts_pos < users_pos,
+            "Merged router should appear at its first occurrence position"
+        );
+        assert_eq!(
+            output.matches("posts: t.router(").count(),
+            1,
+            "Duplicate alias should be merged"
+        );
+    }
+
+    #[test]
+    fn test_merge_mixed_unique_and_shared_aliases() {
+        let generator = ServerGenerator::new();
+        let routers = vec![
+            create_test_router(
+                "UserRouterA",
+                Some("users"),
+                vec![create_test_procedure(
+                    "getUser",
+                    ProcedureType::Query,
+                    None,
+                    None,
+                )],
+            ),
+            create_test_router(
+                "PostRouter",
+                Some("posts"),
+                vec![create_test_procedure(
+                    "getPost",
+                    ProcedureType::Query,
+                    None,
+                    None,
+                )],
+            ),
+            create_test_router(
+                "UserRouterB",
+                Some("users"),
+                vec![create_test_procedure(
+                    "updateUser",
+                    ProcedureType::Mutation,
+                    None,
+                    None,
+                )],
+            ),
+        ];
+
+        let output = generator.generate_app_router(&routers);
+
+        assert_eq!(output.matches("users: t.router(").count(), 1);
+        assert_eq!(output.matches("posts: t.router(").count(), 1);
+        assert!(output.contains("getUser: publicProcedure"));
+        assert!(output.contains("updateUser: publicProcedure"));
+        assert!(output.contains("getPost: publicProcedure"));
+    }
+
+    #[test]
+    fn test_merge_three_routers_same_alias() {
+        let generator = ServerGenerator::new();
+        let routers = vec![
+            create_test_router(
+                "A",
+                Some("shared"),
+                vec![create_test_procedure("a", ProcedureType::Query, None, None)],
+            ),
+            create_test_router(
+                "B",
+                Some("shared"),
+                vec![create_test_procedure(
+                    "b",
+                    ProcedureType::Mutation,
+                    None,
+                    None,
+                )],
+            ),
+            create_test_router(
+                "C",
+                Some("shared"),
+                vec![create_test_procedure(
+                    "c",
+                    ProcedureType::Query,
+                    Some("z.string()"),
+                    None,
+                )],
+            ),
+        ];
+
+        let output = generator.generate_app_router(&routers);
+
+        assert_eq!(output.matches("shared: t.router(").count(), 1);
+        assert!(output.contains("a: publicProcedure"));
+        assert!(output.contains("b: publicProcedure"));
+        assert!(output.contains("c: publicProcedure"));
+        assert!(output.contains(".input(z.string())"));
+    }
+
+    #[test]
+    fn test_merge_routers_empty_plus_nonempty() {
+        let generator = ServerGenerator::new();
+        let routers = vec![
+            create_test_router("Empty", Some("shared"), vec![]),
+            create_test_router(
+                "NonEmpty",
+                Some("shared"),
+                vec![create_test_procedure(
+                    "action",
+                    ProcedureType::Query,
+                    None,
+                    None,
+                )],
+            ),
+        ];
+
+        let output = generator.generate_app_router(&routers);
+
+        assert_eq!(output.matches("shared: t.router(").count(), 1);
+        assert!(output.contains("action: publicProcedure"));
     }
 }

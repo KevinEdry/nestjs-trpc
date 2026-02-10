@@ -85,3 +85,9 @@ fn snapshot_external_imports() {
     let output = run_generation_on_fixture("external-imports");
     assert_snapshot!("external_imports", output);
 }
+
+#[test]
+fn snapshot_merged_alias() {
+    let output = run_generation_on_fixture("merged-alias");
+    assert_snapshot!("merged_alias", output);
+}

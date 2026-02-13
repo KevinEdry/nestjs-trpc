@@ -3,7 +3,8 @@ import type { LoggerService } from '@nestjs/common';
 import { HttpAdapterHost, ModuleRef } from '@nestjs/core';
 import type { Application as ExpressApplication } from 'express';
 import type { FastifyInstance as FastifyApplication } from 'fastify';
-import { TRPCContext, TRPCModuleOptions } from './interfaces';
+import { TRPCContext, TRPCMiddleware, TRPCModuleOptions } from './interfaces';
+import type { TRPCPublicProcedure } from './interfaces';
 import { AnyRouter, initTRPC } from '@trpc/server';
 import { TRPCFactory } from './factories/trpc.factory';
 import { AppRouterHost } from './app-router.host';
@@ -47,7 +48,7 @@ export class TRPCDriver<
   ) {}
 
   public async start(options: TRPCModuleOptions) {
-    const { procedure, router } = initTRPC.context().create({
+    const { procedure: baseProcedure, router } = initTRPC.context().create({
       ...(options.transformer != null
         ? { transformer: options.transformer }
         : {}),
@@ -55,6 +56,11 @@ export class TRPCDriver<
         ? { errorFormatter: options.errorFormatter }
         : {}),
     });
+
+    const procedure = this.applyGlobalMiddlewares(
+      baseProcedure,
+      options.globalMiddlewares,
+    );
 
     const appRouter: AnyRouter = this.trpcFactory.serializeAppRoutes(
       router,
@@ -85,5 +91,26 @@ export class TRPCDriver<
     } else {
       throw new Error(`Unsupported http adapter: ${platformName}`);
     }
+  }
+
+  private applyGlobalMiddlewares(
+    procedure: TRPCPublicProcedure,
+    globalMiddlewares: TRPCModuleOptions['globalMiddlewares'],
+  ): TRPCPublicProcedure {
+    if (globalMiddlewares == null || globalMiddlewares.length === 0) {
+      return procedure;
+    }
+
+    for (const middleware of globalMiddlewares) {
+      const instance = this.moduleRef.get<TRPCMiddleware>(middleware, {
+        strict: false,
+      });
+      if (typeof instance.use === 'function') {
+        //@ts-expect-error this is expected since the type is correct.
+        procedure = procedure.use((opts) => instance.use(opts));
+      }
+    }
+
+    return procedure;
   }
 }

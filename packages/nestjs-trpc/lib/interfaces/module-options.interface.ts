@@ -6,7 +6,8 @@ import type {
 } from '@trpc/server';
 import type { LoggerService } from '@nestjs/common';
 import { TRPCContext } from './context.interface';
-import type { Class } from 'type-fest';
+import type { TRPCMiddleware } from './middleware.interface';
+import type { Class, Constructor } from 'type-fest';
 
 export interface TRPCModuleOptions {
   basePath?: string;
@@ -36,4 +37,8 @@ export interface TRPCModuleOptions {
    * @link https://docs.nestjs.com/techniques/logger
    */
   logger?: LoggerService;
+
+  globalMiddlewares?: Array<
+    Class<TRPCMiddleware> | Constructor<TRPCMiddleware>
+  >;
 }

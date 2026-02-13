@@ -118,6 +118,32 @@ export class DogsRouter {
 ```
 </Steps>
 
+### Global Middlewares
+
+If you need to apply a middleware to **every** procedure in your application (e.g., logging, error reporting, analytics), you can use the `globalMiddlewares` option in `TRPCModule.forRoot()` instead of decorating each router individually.
+
+```typescript filename="app.module.ts" copy
+import { Module } from '@nestjs/common';
+import { TRPCModule } from 'nestjs-trpc';
+import { LoggedMiddleware } from './logged.middleware';
+import { ErrorReportingMiddleware } from './error-reporting.middleware';
+
+@Module({
+  imports: [
+    TRPCModule.forRoot({
+      globalMiddlewares: [LoggedMiddleware, ErrorReportingMiddleware],
+    }),
+  ],
+  providers: [LoggedMiddleware, ErrorReportingMiddleware],
+})
+export class AppModule {}
+```
+
+<Callout>
+  **Execution order:** Global middlewares → Router middlewares (`@UseMiddlewares()` on class) → Procedure middlewares (`@UseMiddlewares()` on method) → Handler.
+</Callout>
+
+Global middlewares have full dependency injection support — they work exactly like middlewares applied with `@UseMiddlewares()`, including context modification and generated types.
 
 #### Modified Context
 With middlewares you can change and inject certain parameters in the context to be available to the procedure, this can be done by using the `next(){:tsx}` method available from the `opts` parameter.

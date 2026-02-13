@@ -4,6 +4,7 @@ export * from './router.decorator';
 export * from './middlewares.decorator';
 export * from './mutation.decorator';
 export * from './query.decorator';
+export * from './subscription.decorator';
 
 // Procedure Param Decorators
 export * from './options.decorator';

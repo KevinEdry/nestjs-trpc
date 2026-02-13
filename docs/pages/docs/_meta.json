@@ -22,6 +22,7 @@
 
   "structure": "First Steps",
   "routers": "Routers",
+  "subscriptions": "Subscriptions",
   "middlewares": "Middlewares",
   "context": "Context",
   "dependency-injection": "Dependency Injection",

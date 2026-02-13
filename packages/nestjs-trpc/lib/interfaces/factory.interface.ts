@@ -2,11 +2,11 @@ import type {
   TRPCRouterRecord,
   AnyRouter,
   TRPCProcedureBuilder,
-  TRPCProcedureType,
 } from '@trpc/server';
 import type { ZodSchema, ZodType, ZodTypeDef } from 'zod';
 import type { TRPCMiddleware } from './middleware.interface';
 import type { Class, Constructor } from 'type-fest';
+import type { ProcedureType } from '../trpc.enum';
 
 export enum ProcedureParamDecoratorType {
   Options = 'options',
@@ -40,7 +40,7 @@ export type ProcedureParamDecorator =
   | ProcedureInputParamDecorator;
 
 export interface ProcedureFactoryMetadata {
-  type: TRPCProcedureType;
+  type: ProcedureType;
   input: ZodSchema | undefined;
   output: ZodSchema | undefined;
   meta: Record<string, unknown> | undefined;

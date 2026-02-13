@@ -77,6 +77,12 @@ fn snapshot_enum_literals() {
 }
 
 #[test]
+fn snapshot_subscription() {
+    let output = run_generation_on_fixture("subscription");
+    assert_snapshot!("subscription", output);
+}
+
+#[test]
 fn snapshot_path_aliases() {
     let output = run_generation_on_fixture("path-aliases");
     assert_snapshot!("path_aliases", output);

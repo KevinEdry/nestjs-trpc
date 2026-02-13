@@ -1,0 +1,89 @@
+import 'reflect-metadata';
+import { Subscription } from '../subscription.decorator';
+import { PROCEDURE_METADATA_KEY, PROCEDURE_TYPE_KEY } from '../../trpc.constants';
+import { ProcedureType } from '../../trpc.enum';
+import { z } from 'zod';
+
+describe('Subscription Decorator', () => {
+  it('should set procedure type metadata', () => {
+    class TestClass {
+      @Subscription()
+      testMethod() {}
+    }
+
+    const metadata = Reflect.getMetadata(PROCEDURE_TYPE_KEY, TestClass.prototype.testMethod);
+    expect(metadata).toBe(ProcedureType.Subscription);
+  });
+
+  it('should set procedure metadata with input and output schemas', () => {
+    const inputSchema = z.string();
+    const outputSchema = z.number();
+
+    class TestClass {
+      @Subscription({ input: inputSchema, output: outputSchema })
+      testMethod() {}
+    }
+
+    const metadata = Reflect.getMetadata(PROCEDURE_METADATA_KEY, TestClass.prototype.testMethod);
+    expect(metadata).toEqual({ input: inputSchema, output: outputSchema });
+  });
+
+  it('should set procedure metadata without schemas', () => {
+    class TestClass {
+      @Subscription()
+      testMethod() {}
+    }
+
+    const metadata = Reflect.getMetadata(PROCEDURE_METADATA_KEY, TestClass.prototype.testMethod);
+    expect(metadata).toBeUndefined();
+  });
+
+  it('should set procedure metadata with only input schema', () => {
+    const inputSchema = z.string();
+
+    class TestClass {
+      @Subscription({ input: inputSchema })
+      testMethod() {}
+    }
+
+    const metadata = Reflect.getMetadata(PROCEDURE_METADATA_KEY, TestClass.prototype.testMethod);
+    expect(metadata).toEqual({ input: inputSchema });
+  });
+
+  it('should set procedure metadata with only output schema', () => {
+    const outputSchema = z.number();
+
+    class TestClass {
+      @Subscription({ output: outputSchema })
+      testMethod() {}
+    }
+
+    const metadata = Reflect.getMetadata(PROCEDURE_METADATA_KEY, TestClass.prototype.testMethod);
+    expect(metadata).toEqual({ output: outputSchema });
+  });
+
+  it('should set procedure metadata with meta', () => {
+    const inputSchema = z.string();
+    const meta = { roles: ['admin', 'editor'] };
+
+    class TestClass {
+      @Subscription({ input: inputSchema, meta })
+      testMethod() {}
+    }
+
+    const metadata = Reflect.getMetadata(PROCEDURE_METADATA_KEY, TestClass.prototype.testMethod);
+    expect(metadata).toEqual({ input: inputSchema, meta });
+  });
+
+  it('should set procedure metadata with only meta', () => {
+    const meta = { public: true };
+
+    class TestClass {
+      @Subscription({ meta })
+      testMethod() {}
+    }
+
+    const metadata = Reflect.getMetadata(PROCEDURE_METADATA_KEY, TestClass.prototype.testMethod);
+    expect(metadata).toEqual({ meta });
+  });
+});

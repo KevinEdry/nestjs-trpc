@@ -186,8 +186,12 @@ export class ProcedureFactory {
       );
     };
 
-    return type === ProcedureType.Mutation
-      ? procedureWithOutput.mutation(procedureInvocation as any)
-      : procedureWithOutput.query(procedureInvocation as any);
+    if (type === ProcedureType.Mutation) {
+      return procedureWithOutput.mutation(procedureInvocation as any);
+    }
+    if (type === ProcedureType.Subscription) {
+      return procedureWithOutput.subscription(procedureInvocation as any);
+    }
+    return procedureWithOutput.query(procedureInvocation as any);
   }
 }

@@ -25,6 +25,7 @@
   "subscriptions": "Subscriptions",
   "middlewares": "Middlewares",
   "context": "Context",
+  "error-handling": "Error Handling",
   "dependency-injection": "Dependency Injection",
   "client": "Client Usage",
   "integrations": "Integrations",

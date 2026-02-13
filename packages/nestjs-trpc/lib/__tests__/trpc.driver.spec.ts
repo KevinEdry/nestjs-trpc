@@ -154,4 +154,46 @@ describe('TRPCDriver', () => {
       });
     });
   });
+
+  describe('onError handler', () => {
+    it('should resolve onError instance from moduleRef and pass it to the driver', async () => {
+      class TestErrorHandler {
+        onError = jest.fn();
+      }
+
+      const errorHandlerInstance = new TestErrorHandler();
+      jest.spyOn(moduleRef, 'get').mockReturnValue(errorHandlerInstance);
+
+      const options: TRPCModuleOptions = {
+        onError: TestErrorHandler,
+      };
+
+      await trpcDriver.start(options);
+
+      expect(moduleRef.get).toHaveBeenCalledWith(TestErrorHandler, {
+        strict: false,
+      });
+      expect(mockExpressDriver.start).toHaveBeenCalledWith(
+        options,
+        mockExpressApp,
+        expect.anything(),
+        null,
+        errorHandlerInstance,
+      );
+    });
+
+    it('should pass null when onError is not provided', async () => {
+      const options: TRPCModuleOptions = {};
+
+      await trpcDriver.start(options);
+
+      expect(mockExpressDriver.start).toHaveBeenCalledWith(
+        options,
+        mockExpressApp,
+        expect.anything(),
+        null,
+        null,
+      );
+    });
+  });
 });

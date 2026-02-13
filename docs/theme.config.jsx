@@ -11,10 +11,10 @@ export default {
     component: <Footer />
   },
   banner: {
-    key: '1.0-release',
+    key: '2.0.0-release',
     text: (
       <a href="https://github.com/KevinEdry/nestjs-trpc/releases" target="_blank">
-        🎉 NestJS tRPC 1.0 is released. Read more →
+        🎉 NestJS tRPC 2.0.0 is released. Read more →
       </a>
     ),
     dismissible: true

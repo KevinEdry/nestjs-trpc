@@ -90,10 +90,6 @@ npx nestjs-trpc generate --output ./src/trpc/types.ts
 
 </Steps>
 
-<Callout type="info" emoji={"💡"}>
-  Setting `"sourceMap": true{:typescript}` in your `compilerOptions` within `tsconfig.json` can help with debugging, but is not required for the CLI to work.
-</Callout>
-
 ### Module Options
 
 You can import `TRPCModuleOptions` type from `nestjs-trpc` to safely assert all of the `TRPCModule` option types.
@@ -130,6 +126,11 @@ const trpcOptions: TRPCModuleOptions = {
     <Table.Cell icon>`logger`</Table.Cell>
     <Table.Cell>`LoggerService`</Table.Cell>
     <Table.Cell>`ConsoleLogger`</Table.Cell>
+  </Table.Row>
+  <Table.Row>
+    <Table.Cell icon>`onError`</Table.Cell>
+    <Table.Cell>`TRPCErrorHandler`</Table.Cell>
+    <Table.Cell>-</Table.Cell>
   </Table.Row>
   <Table.Row>
     <Table.Cell icon>`globalMiddlewares`</Table.Cell>

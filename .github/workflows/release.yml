@@ -169,3 +169,14 @@ jobs:
             release-assets/nestjs-trpc-windows-x64.exe
             release-assets/checksums.txt
 
+      - name: Commit changelog to main
+        if: ${{ github.event_name == 'push' || !inputs.dry_run }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout main
+          git add CHANGELOG.md
+          git diff --cached --quiet && exit 0
+          git commit -m "chore(release): update changelog for v${{ steps.version.outputs.version }}"
+          git push origin main
+

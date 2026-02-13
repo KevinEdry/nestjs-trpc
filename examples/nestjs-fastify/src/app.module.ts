@@ -12,6 +12,7 @@ import { LoggingMiddleware } from './logging.middleware';
   imports: [
     TRPCModule.forRoot({
       context: AppContext,
+      globalMiddlewares: [LoggingMiddleware],
     }),
   ],
   controllers: [TrpcPanelController],

@@ -71,6 +71,7 @@ impl DecoratorParser {
         let procedure_type = match name {
             "Query" => ProcedureType::Query,
             "Mutation" => ProcedureType::Mutation,
+            "Subscription" => ProcedureType::Subscription,
             _ => return None,
         };
 
@@ -129,6 +130,7 @@ impl DecoratorParser {
         match identifier.sym.as_ref() {
             "Query" => Some(ProcedureType::Query),
             "Mutation" => Some(ProcedureType::Mutation),
+            "Subscription" => Some(ProcedureType::Subscription),
             _ => None,
         }
     }
@@ -364,7 +366,7 @@ fn is_procedure_call(call_expression: &CallExpr) -> bool {
 }
 
 fn is_procedure_name(name: &str) -> bool {
-    name == "Query" || name == "Mutation"
+    name == "Query" || name == "Mutation" || name == "Subscription"
 }
 
 #[cfg(test)]
@@ -744,6 +746,73 @@ mod tests {
 
         let output = results[0].output.as_ref().unwrap();
         assert!(output.contains("email"));
+    }
+
+    #[test]
+    fn test_extract_subscription_decorator() {
+        let source = r"
+            function Subscription(opts?: { input?: any }): MethodDecorator {
+                return (target, key, desc) => desc;
+            }
+
+            export class EventRouter {
+                @Subscription({ input: z.object({ channelId: z.string() }) })
+                async *onMessage() {}
+            }
+        ";
+
+        let (_temp, parsed) = parse_file(source);
+        let decorators = get_method_decorators(&parsed, "onMessage").expect("Method not found");
+        let decorator_parser = DecoratorParser::new();
+        let results = decorator_parser.extract_procedure_decorators(decorators, &parsed);
+
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].procedure_type, ProcedureType::Subscription);
+        assert!(results[0].input.is_some());
+        assert!(results[0].input.as_ref().unwrap().contains("channelId"));
+    }
+
+    #[test]
+    fn test_extract_subscription_no_parentheses() {
+        let source = r"
+            function Subscription(target: any, key: string, desc: PropertyDescriptor): PropertyDescriptor {
+                return desc;
+            }
+
+            export class EventRouter {
+                @Subscription
+                async *onMessage() {}
+            }
+        ";
+
+        let (_temp, parsed) = parse_file(source);
+        let decorators = get_method_decorators(&parsed, "onMessage").expect("Method not found");
+        let decorator_parser = DecoratorParser::new();
+        let results = decorator_parser.extract_procedure_decorators(decorators, &parsed);
+
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].procedure_type, ProcedureType::Subscription);
+        assert!(results[0].input.is_none());
+    }
+
+    #[test]
+    fn test_is_procedure_decorator_subscription() {
+        let source = r"
+            function Subscription(opts?: any): MethodDecorator {
+                return (target, key, desc) => desc;
+            }
+
+            export class EventRouter {
+                @Subscription({ input: z.string() })
+                async *onMessage() {}
+            }
+        ";
+
+        let (_temp, parsed) = parse_file(source);
+        let decorators = get_method_decorators(&parsed, "onMessage").expect("Method not found");
+
+        assert!(!decorators.is_empty());
+        assert!(is_procedure_decorator(&decorators[0]));
     }
 
     #[test]

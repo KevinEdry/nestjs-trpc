@@ -377,6 +377,24 @@ mod tests {
     }
 
     #[test]
+    fn test_generate_procedure_string_subscription_with_input_output() {
+        let generator = ServerGenerator::new();
+        let procedure = create_test_procedure(
+            "onMessage",
+            ProcedureType::Subscription,
+            Some("z.object({ channelId: z.string() })"),
+            Some("z.object({ message: z.string() })"),
+        );
+
+        let output = generator.generate_procedure_string(&procedure, 2);
+
+        assert!(output.contains("onMessage: publicProcedure"));
+        assert!(output.contains(".input(z.object({ channelId: z.string() }))"));
+        assert!(output.contains(".output(z.object({ message: z.string() }))"));
+        assert!(output.contains(".subscription(async () => \"PLACEHOLDER_DO_NOT_REMOVE\" as any)"));
+    }
+
+    #[test]
     fn test_generate_procedure_string_query_no_input_no_output() {
         let generator = ServerGenerator::new();
         let procedure = create_test_procedure("getAll", ProcedureType::Query, None, None);

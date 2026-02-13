@@ -1,0 +1,151 @@
+---
+title: "NestJS-tRPC Documentation - Subscriptions"
+---
+
+import { Cards, Card, Callout, Tabs } from 'nextra/components';
+import Table from "../../components/Table";
+import TrpcIcon from '../../public/icons/trpc.svg';
+import Link from 'next/link';
+
+# Subscriptions
+
+Subscriptions allow you to stream real-time data from your server to clients using Server-Sent Events (SSE).
+With tRPC v11, subscriptions use async generators — a native JavaScript pattern for producing a sequence of values over time.
+
+<Callout emoji={<TrpcIcon width={25} height={50} className="m-1"/>}>
+  If you are not sure about tRPC subscriptions, you can dive into the concept in their <Link href={"https://trpc.io/docs/server/subscriptions"} target="blank" className="underline">official documentation</Link>.
+</Callout>
+
+#### Writing Subscriptions
+
+Subscriptions work just like queries and mutations but use the `@Subscription(){:tsx}` decorator and an async generator method.
+The generator yields values that are streamed to the client as SSE events.
+
+<Tabs items={["NestJS Adapter Subscription", 'tRPC Subscription']}>
+  <Tabs.Tab>
+    ```typescript filename="events.router.ts" copy
+    import { Router, Subscription, Input, Options } from 'nestjs-trpc';
+    import { Inject } from '@nestjs/common';
+    import { z } from 'zod';
+    import { EventService } from './event.service';
+
+    @Router({ alias: 'events' })
+    export class EventRouter {
+      constructor(@Inject(EventService) private eventService: EventService) {}
+
+      @Subscription({
+        input: z.object({ channelId: z.string() }),
+      })
+      async *onMessage(
+        @Input('channelId') channelId: string,
+        @Options() opts: { signal?: AbortSignal },
+      ) {
+        for await (const event of this.eventService.listen(channelId, opts.signal)) {
+          yield event;
+        }
+      }
+    }
+    ```
+  </Tabs.Tab>
+  <Tabs.Tab>
+    ```typescript filename="server.ts" copy
+    import { publicProcedure, router } from './trpc';
+    import { z } from 'zod';
+    import { eventService } from './event.service';
+
+    const appRouter = router({
+      events: {
+        onMessage: publicProcedure
+          .input(z.object({ channelId: z.string() }))
+          .subscription(async function* (opts) {
+            for await (const event of eventService.listen(
+              opts.input.channelId,
+              opts.signal,
+            )) {
+              yield event;
+            }
+          }),
+      },
+    });
+    ```
+  </Tabs.Tab>
+</Tabs>
+
+The `@Subscription(){:tsx}` decorator works identically to `@Query(){:tsx}` and `@Mutation(){:tsx}` — it accepts `input` and `output` schemas for validation and type inference.
+
+<Callout>
+  Subscriptions require **tRPC v11** or later. The existing Express and Fastify adapters handle SSE transport automatically — no additional setup or WebSocket configuration is needed.
+</Callout>
+
+#### Cleanup with AbortSignal
+
+When a client disconnects, tRPC signals the generator to stop via `opts.signal`. Use this to clean up resources:
+
+```typescript filename="events.router.ts" copy
+@Subscription({
+  input: z.object({ channelId: z.string() }),
+})
+async *onMessage(
+  @Input('channelId') channelId: string,
+  @Options() opts: { signal?: AbortSignal },
+) {
+  let count = 0;
+  while (!opts.signal?.aborted) {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    yield { message: `Event ${count++}`, timestamp: Date.now() };
+  }
+}
+```
+
+#### Input Validation
+
+Subscription input is validated the same way as queries and mutations — pass a Zod schema to the `input` option:
+
+```typescript copy
+@Subscription({
+  input: z.object({
+    channelId: z.string(),
+    since: z.date().optional(),
+  }),
+})
+async *onMessage(
+  @Input('channelId') channelId: string,
+  @Input('since') since: Date | undefined,
+) {
+  // ...
+}
+```
+
+#### Client Usage
+
+On the client side, subscriptions are consumed using the `subscription` method from your tRPC client. The exact API depends on your client framework — refer to the <Link href={"https://trpc.io/docs/client/subscribing"} target="blank" className="underline">tRPC client subscription docs</Link> for framework-specific examples.
+
+```typescript copy
+// React example with @trpc/react-query
+const { data } = trpc.events.onMessage.useSubscription(
+  { channelId: 'general' },
+  {
+    onData(event) {
+      console.log('Received:', event);
+    },
+  },
+);
+```
+
+#### Middlewares
+
+Subscriptions support the same `@UseMiddlewares(){:tsx}` decorator as queries and mutations. Middlewares execute before the generator starts:
+
+```typescript copy
+@UseMiddlewares(AuthMiddleware)
+@Subscription({
+  input: z.object({ channelId: z.string() }),
+})
+async *onMessage(@Input('channelId') channelId: string) {
+  // Only authenticated users reach this point
+}
+```
+
+#### Dependency Injection
+
+Subscription routers fully support Dependency Injection, just like query and mutation routers. Inject services through the `constructor` to access your business logic.

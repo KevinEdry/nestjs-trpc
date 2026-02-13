@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { TRPCProcedureBuilder, TRPCError, initTRPC } from '@trpc/server';
 import { ProcedureFactoryMetadata, ProcedureParamDecoratorType } from '../../interfaces/factory.interface';
 import { TRPCMiddleware } from '../../interfaces';
-import { Ctx, Input, UseMiddlewares, Options, Query, Mutation } from '../../decorators';
+import { Ctx, Input, UseMiddlewares, Options, Query, Mutation, Subscription } from '../../decorators';
 import { ProcedureType } from '../../trpc.enum';
 import { TRPC_LOGGER } from '../../trpc.constants';
 
@@ -197,7 +197,7 @@ describe('ProcedureFactory', () => {
           input: z.object({ userId: z.string() }),
           output: userSchema,
           meta: undefined,
-          type: 'query',
+          type: ProcedureType.Query,
           middlewares: [ProtectedMiddleware],
           name: 'getUserById',
           implementation: jest.fn(),
@@ -254,7 +254,7 @@ describe('ProcedureFactory', () => {
           input: z.object({ id: z.string() }),
           output: undefined,
           meta: procedureMeta,
-          type: 'query',
+          type: ProcedureType.Query,
           middlewares: [],
           name: 'getProtectedData',
           implementation: jest.fn(),
@@ -291,7 +291,7 @@ describe('ProcedureFactory', () => {
           input: undefined,
           output: undefined,
           meta: undefined,
-          type: 'query',
+          type: ProcedureType.Query,
           middlewares: [],
           name: 'getPublicData',
           implementation: jest.fn(),
@@ -328,7 +328,7 @@ describe('ProcedureFactory', () => {
           input: z.object({ name: z.string() }),
           output: undefined,
           meta: procedureMeta,
-          type: 'mutation',
+          type: ProcedureType.Mutation,
           middlewares: [],
           name: 'createItem',
           implementation: jest.fn(),
@@ -356,6 +356,75 @@ describe('ProcedureFactory', () => {
       expect(result.createItem._def.meta).toEqual(procedureMeta);
     });
 
+    it('should serialize a subscription procedure', () => {
+      const t = initTRPC.context().create();
+      const mockProcedureBuilder = t.procedure;
+
+      const mockProcedures: Array<ProcedureFactoryMetadata> = [
+        {
+          input: z.object({ channelId: z.string() }),
+          output: z.object({ message: z.string() }),
+          meta: undefined,
+          type: ProcedureType.Subscription,
+          middlewares: [],
+          name: 'onMessage',
+          implementation: jest.fn(),
+          params: [
+            { type: ProcedureParamDecoratorType.Input, index: 0, key: 'channelId' },
+          ],
+        },
+      ];
+
+      const mockInstance = {
+        constructor: class EventRouter {},
+        onMessage: jest.fn(),
+      };
+
+      (moduleRef.get as jest.Mock).mockReturnValue(mockInstance);
+
+      const result = procedureFactory.serializeProcedures(
+        mockProcedures,
+        mockInstance,
+        'events',
+        mockProcedureBuilder,
+        [],
+      );
+
+      expect(result).toHaveProperty('onMessage');
+      expect(typeof result.onMessage).toBe('function');
+      expect(result.onMessage._def).toBeDefined();
+      expect(result.onMessage._def.type).toBe('subscription');
+      expect(result.onMessage._def.inputs[0]).toEqual(mockProcedures[0].input);
+      expect(result.onMessage._def.output).toEqual(mockProcedures[0].output);
+    });
+
+    it('should extract subscription procedure from getProcedures', () => {
+      class EventRouter {
+        @Subscription({
+          input: z.object({ channelId: z.string() }),
+          output: z.object({ message: z.string() }),
+        })
+        async *onMessage(@Input("channelId") channelId: string): AsyncGenerator<any> {
+          yield { message: 'test' };
+        }
+      }
+
+      const mockInstance = new EventRouter();
+      const mockPrototype = Object.getPrototypeOf(mockInstance);
+
+      metadataScanner.getAllMethodNames.mockImplementation(() => ['onMessage']);
+
+      const result = procedureFactory.getProcedures(mockInstance, mockPrototype);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        name: 'onMessage',
+        type: ProcedureType.Subscription,
+        input: expect.any(Object),
+        output: expect.any(Object),
+      });
+    });
+
     it('should attach meta alongside input, output, and middlewares', () => {
       const t = initTRPC.context().create();
       const mockProcedureBuilder = t.procedure;
@@ -375,7 +444,7 @@ describe('ProcedureFactory', () => {
           input: inputSchema,
           output: outputSchema,
           meta: procedureMeta,
-          type: 'query',
+          type: ProcedureType.Query,
           middlewares: [AuthMiddleware],
           name: 'getProtectedItem',
           implementation: jest.fn(),

@@ -65,6 +65,7 @@ pub struct ProcedureMetadata {
 pub enum ProcedureType {
     Query,
     Mutation,
+    Subscription,
 }
 
 impl std::fmt::Display for ProcedureType {
@@ -72,6 +73,7 @@ impl std::fmt::Display for ProcedureType {
         match self {
             Self::Query => write!(f, "query"),
             Self::Mutation => write!(f, "mutation"),
+            Self::Subscription => write!(f, "subscription"),
         }
     }
 }

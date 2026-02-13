@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { UserRouter } from './user.router';
+import { EventRouter } from './event.router';
 import { TRPCModule } from 'nestjs-trpc';
 import { UserService } from './user.service';
 import { ProtectedMiddleware } from './protected.middleware';
@@ -13,6 +14,12 @@ import { TrpcPanelController } from './trpc-panel.controller';
     }),
   ],
   controllers: [TrpcPanelController],
-  providers: [UserRouter, AppContext, UserService, ProtectedMiddleware],
+  providers: [
+    UserRouter,
+    EventRouter,
+    AppContext,
+    UserService,
+    ProtectedMiddleware,
+  ],
 })
 export class AppModule {}

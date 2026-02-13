@@ -22,7 +22,6 @@ import { TRPCFactory } from './factories/trpc.factory';
 import { RouterFactory } from './factories/router.factory';
 import { ProcedureFactory } from './factories/procedure.factory';
 import { MiddlewareFactory } from './factories/middleware.factory';
-import { ScannerModule } from './scanners/scanner.module';
 
 @Module({})
 export class TRPCModule implements NestModule, OnModuleInit {
@@ -44,7 +43,7 @@ export class TRPCModule implements NestModule, OnModuleInit {
   static forRoot(options: TRPCModuleOptions = {}): DynamicModule {
     return {
       module: TRPCModule,
-      imports: [ScannerModule],
+      imports: [],
       providers: [
         { provide: TRPC_MODULE_OPTIONS, useValue: options },
         {

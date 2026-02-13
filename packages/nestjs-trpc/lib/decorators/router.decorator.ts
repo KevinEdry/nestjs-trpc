@@ -1,8 +1,5 @@
-import { applyDecorators, SetMetadata } from '@nestjs/common';
+import { SetMetadata } from '@nestjs/common';
 import { ROUTER_METADATA_KEY } from '../trpc.constants';
-import { FileScanner } from '../scanners/file.scanner';
-
-const fileScanner = new FileScanner();
 
 /**
  * Decorator that marks a class as a TRPC router that can receive inbound
@@ -21,8 +18,5 @@ const fileScanner = new FileScanner();
  * @publicApi
  */
 export function Router(args?: { alias?: string }): ClassDecorator {
-  const path = fileScanner.getCallerFilePath();
-  return applyDecorators(
-    ...[SetMetadata(ROUTER_METADATA_KEY, { alias: args?.alias, path })],
-  );
+  return SetMetadata(ROUTER_METADATA_KEY, { alias: args?.alias });
 }

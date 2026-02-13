@@ -47,7 +47,7 @@ describe('MiddlewareFactory', () => {
       const result = middlewareFactory.getMiddlewares();
 
       expect(result).toHaveLength(1);
-      expect(result[0]).toStrictEqual({"instance": mockProcedure.middlewares[0], "path": undefined });
+      expect(result[0]).toStrictEqual({"instance": mockProcedure.middlewares[0]});
     });
 
     it('should handle procedures without middlewares', () => {

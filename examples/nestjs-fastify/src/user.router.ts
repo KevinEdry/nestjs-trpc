@@ -15,9 +15,7 @@ import { RolesMiddleware } from './roles.middleware';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { User, userSchema } from './user.schema';
-import { LoggingMiddleware } from './logging.middleware';
 
-@UseMiddlewares(LoggingMiddleware)
 @Router({ alias: 'users' })
 export class UserRouter {
   constructor(@Inject(UserService) private readonly userService: UserService) {}

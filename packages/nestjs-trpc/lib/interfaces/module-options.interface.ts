@@ -6,6 +6,7 @@ import type {
 } from '@trpc/server';
 import type { LoggerService } from '@nestjs/common';
 import { TRPCContext } from './context.interface';
+import type { TRPCErrorHandler } from './error-handler.interface';
 import type { TRPCMiddleware } from './middleware.interface';
 import type { Class, Constructor } from 'type-fest';
 
@@ -37,6 +38,13 @@ export interface TRPCModuleOptions {
    * @link https://docs.nestjs.com/techniques/logger
    */
   logger?: LoggerService;
+
+  /**
+   * Injectable error handler invoked whenever a tRPC procedure throws.
+   * Must implement the `TRPCErrorHandler` interface.
+   * @link https://trpc.io/docs/server/error-handling#handling-errors
+   */
+  onError?: Class<TRPCErrorHandler>;
 
   globalMiddlewares?: Array<
     Class<TRPCMiddleware> | Constructor<TRPCMiddleware>

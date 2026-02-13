@@ -3,7 +3,12 @@ import type { LoggerService } from '@nestjs/common';
 import { HttpAdapterHost, ModuleRef } from '@nestjs/core';
 import type { Application as ExpressApplication } from 'express';
 import type { FastifyInstance as FastifyApplication } from 'fastify';
-import { TRPCContext, TRPCMiddleware, TRPCModuleOptions } from './interfaces';
+import {
+  TRPCContext,
+  TRPCErrorHandler,
+  TRPCMiddleware,
+  TRPCModuleOptions,
+} from './interfaces';
 import type { TRPCPublicProcedure } from './interfaces';
 import { AnyRouter, initTRPC } from '@trpc/server';
 import { TRPCFactory } from './factories/trpc.factory';
@@ -77,6 +82,15 @@ export class TRPCDriver<
           })
         : null;
 
+    const onErrorClass = options.onError;
+    const onErrorInstance =
+      onErrorClass != null
+        ? this.moduleRef.get<Type<TRPCErrorHandler>, TRPCErrorHandler>(
+            onErrorClass,
+            { strict: false },
+          )
+        : null;
+
     const { httpAdapter } = this.httpAdapterHost;
     const platformName = httpAdapter.getType();
 
@@ -85,9 +99,21 @@ export class TRPCDriver<
     >();
 
     if (platformName === 'express' && isExpressApplication(app)) {
-      await this.expressDriver.start(options, app, appRouter, contextInstance);
+      await this.expressDriver.start(
+        options,
+        app,
+        appRouter,
+        contextInstance,
+        onErrorInstance,
+      );
     } else if (platformName === 'fastify' && isFastifyApplication(app)) {
-      await this.fastifyDriver.start(options, app, appRouter, contextInstance);
+      await this.fastifyDriver.start(
+        options,
+        app,
+        appRouter,
+        contextInstance,
+        onErrorInstance,
+      );
     } else {
       throw new Error(`Unsupported http adapter: ${platformName}`);
     }

@@ -6,6 +6,7 @@ import { UserService } from './user.service';
 import { ProtectedMiddleware } from './protected.middleware';
 import { RolesMiddleware } from './roles.middleware';
 import { AppContext } from './app.context';
+import { AppErrorHandler } from './app.error-handler';
 import { TrpcPanelController } from './trpc-panel.controller';
 import { LoggingMiddleware } from './logging.middleware';
 
@@ -13,6 +14,7 @@ import { LoggingMiddleware } from './logging.middleware';
   imports: [
     TRPCModule.forRoot({
       context: AppContext,
+      onError: AppErrorHandler,
       globalMiddlewares: [LoggingMiddleware],
     }),
   ],
@@ -21,6 +23,7 @@ import { LoggingMiddleware } from './logging.middleware';
     UserRouter,
     EventRouter,
     AppContext,
+    AppErrorHandler,
     UserService,
     ProtectedMiddleware,
     RolesMiddleware,

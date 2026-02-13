@@ -1,0 +1,69 @@
+---
+title: "NestJS-tRPC Documentation - Error Handling"
+---
+
+import { Callout, Steps } from 'nextra/components';
+import TrpcIcon from '../../public/icons/trpc.svg';
+import Link from 'next/link';
+
+# Error Handling
+
+The `onError` handler is invoked whenever a tRPC procedure throws an error.
+It is useful for reporting errors to external services, logging, or performing side-effects on failures.
+
+<Callout emoji={<TrpcIcon width={25} height={50} className="m-1"/>}>
+  If you are not sure about how tRPC handles errors, you can dive deeper into those concepts in their <Link href={"https://trpc.io/docs/server/error-handling#handling-errors"} target="blank" className="underline"> official documentation</Link>.
+</Callout>
+
+Setting up an error handler can be done in 3 steps, defining the error handler class, registering it with your module, and passing it to the `onError` option of the TRPCModule.
+
+<Steps>
+  ### Defining an Error Handler
+  To define a new error handler, create a class that implements `TRPCErrorHandler` and its method `onError(){:tsx}`.
+  ```typescript filename="app.error-handler.ts" copy
+  import { Inject, Injectable } from '@nestjs/common';
+  import { OnErrorOptions, TRPCErrorHandler } from 'nestjs-trpc';
+
+  @Injectable()
+  export class AppErrorHandler implements TRPCErrorHandler {
+    constructor(@Inject('LogService') private readonly logService: LogService) {}
+
+    onError(opts: OnErrorOptions): void {
+      this.logService.error(`[${opts.type}] ${opts.path}: ${opts.error.message}`);
+    }
+  }
+  ```
+
+  <Callout>
+  The `OnErrorOptions` type exposes `error`, `type`, `path`, `input`, `ctx`, and `req` properties.
+  The `error` property is a `TRPCError` instance from `@trpc/server`.
+  </Callout>
+
+  ### Error Handler Registration
+  Similar to NestJS providers, we need to register the error handler with Nest so that it can perform the injection.
+  We do this by editing our module file and adding the error handler to the `providers` array of the `@Module(){:tsx}` decorator.
+
+  ### Including in Options
+  Lastly we need to pass the error handler class to the `onError` option in our `TRPCModule` import definition.
+
+  ```typescript {8} filename="app.module.ts" copy
+  import { Module } from '@nestjs/common';
+  import { TRPCModule } from 'nestjs-trpc';
+  import { AppErrorHandler } from 'app.error-handler';
+
+  @Module({
+    imports: [
+      TRPCModule.forRoot({
+        onError: AppErrorHandler,
+      }),
+    ],
+    providers: [AppErrorHandler],
+  })
+  export class AppModule {}
+  ```
+  Now that the error handler is applied, it will be invoked whenever a procedure throws an error.
+</Steps>
+
+### Dependency Injection
+The error handler class fully supports Dependency Injection. Just as with NestJS providers and controllers,
+it is able to inject dependencies that are available within the same module. As usual, this is done through the `constructor`.

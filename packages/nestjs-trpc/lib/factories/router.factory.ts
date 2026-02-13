@@ -66,7 +66,6 @@ export class RouterFactory {
     return {
       name,
       instance,
-      path: router.path,
       alias: router.alias,
       middlewares: middlewares,
     };

@@ -119,7 +119,6 @@ describe('RouterFactory', () => {
         instance: userRouterInstance,
         alias: 'users',
         middlewares: [],
-        path: undefined,
       });
     });
   });

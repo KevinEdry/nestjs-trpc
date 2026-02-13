@@ -57,7 +57,6 @@ export interface CustomProcedureFactoryMetadata {
 
 export interface RouterInstance {
   name: string;
-  path: string;
   instance: unknown;
   middlewares: Array<Class<TRPCMiddleware> | Constructor<TRPCMiddleware>>;
   alias?: string;
@@ -65,7 +64,6 @@ export interface RouterInstance {
 
 export interface RoutersFactoryMetadata {
   name: string;
-  path: string;
   alias?: string;
   instance: RouterInstance;
   procedures: Array<ProcedureFactoryMetadata>;

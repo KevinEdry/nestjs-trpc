@@ -6,7 +6,6 @@ import { ProcedureFactory } from './procedure.factory';
 import { isEqual, uniqWith } from 'lodash';
 
 interface MiddlewareMetadata {
-  path: string;
   instance: Class<TRPCMiddleware> | Constructor<TRPCMiddleware>;
 }
 
@@ -21,7 +20,7 @@ export class MiddlewareFactory {
     const routers = this.routerFactory.getRouters();
 
     const middlewaresMetadata = routers.flatMap((router) => {
-      const { instance, middlewares, path } = router;
+      const { instance, middlewares } = router;
       const prototype = Object.getPrototypeOf(instance);
       const procedures = this.procedureFactory.getProcedures(
         instance,
@@ -33,12 +32,10 @@ export class MiddlewareFactory {
       });
 
       return [...middlewares, ...procedureMiddleware].map((middleware) => ({
-        path,
         instance: middleware,
       }));
     });
 
-    // Return a unique array of middlewares based on both path and instances
     return uniqWith(middlewaresMetadata, isEqual);
   }
 }

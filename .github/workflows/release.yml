@@ -118,7 +118,7 @@ jobs:
         id: changelog
         run: |
           git-cliff --tag "v${{ steps.version.outputs.version }}" -o CHANGELOG.md
-          git-cliff --unreleased --tag "v${{ steps.version.outputs.version }}" > RELEASE_NOTES.md
+          git-cliff --latest > RELEASE_NOTES.md
 
           {
             echo 'changelog<<EOF'

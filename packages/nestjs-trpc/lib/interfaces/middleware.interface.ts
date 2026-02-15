@@ -6,8 +6,8 @@ export type MiddlewareResponse = Promise<
 
 export type MiddlewareOptions<
   TContext extends object = object,
+  TReturnContext = Record<string, unknown>,
   TMeta = unknown,
-  TRetContext = Record<string, unknown>,
 > = {
   ctx: TContext;
   type: TRPCProcedureType;
@@ -16,11 +16,11 @@ export type MiddlewareOptions<
   getRawInput: () => Promise<unknown>;
   meta: TMeta;
   signal: AbortSignal | undefined;
-  next: (opts?: { ctx?: TRetContext }) => MiddlewareResponse;
+  next: (opts?: { ctx?: TReturnContext }) => MiddlewareResponse;
 };
 
 export interface TRPCMiddleware<TMeta = unknown> {
   use(
-    opts: MiddlewareOptions<object, TMeta>,
+    opts: MiddlewareOptions<object, Record<string, unknown>, TMeta>,
   ): MiddlewareResponse | Promise<MiddlewareResponse>;
 }

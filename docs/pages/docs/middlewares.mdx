@@ -261,7 +261,7 @@ export class AdminRouter {
 
 ##### Reading Meta in Middleware
 
-The `TRPCMiddleware` interface accepts a generic type parameter for `meta`, and `MiddlewareOptions` accepts generics for both context and meta — giving you full type safety without assertions:
+The `TRPCMiddleware` interface accepts a generic type parameter for `meta`, and `MiddlewareOptions` accepts generics for context, return context, and meta — giving you full type safety without assertions:
 
 ```typescript filename="roles.middleware.ts" copy
 import {
@@ -279,7 +279,7 @@ interface RolesMeta {
 
 @Injectable()
 export class RolesMiddleware implements TRPCMiddleware<RolesMeta> {
-  async use(opts: MiddlewareOptions<AuthMiddlewareContext, RolesMeta>): Promise<MiddlewareResponse> {
+  async use(opts: MiddlewareOptions<AuthMiddlewareContext, Record<string, unknown>, RolesMeta>): Promise<MiddlewareResponse> {
     const { meta, ctx, next } = opts;
 
     if (!meta.roles.includes(ctx.auth.userId)) {

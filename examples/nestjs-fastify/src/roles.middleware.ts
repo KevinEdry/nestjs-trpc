@@ -19,7 +19,7 @@ interface AuthContext {
 @Injectable()
 export class RolesMiddleware implements TRPCMiddleware<RolesMeta> {
   async use(
-    opts: MiddlewareOptions<AuthContext, RolesMeta>,
+    opts: MiddlewareOptions<AuthContext, Record<string, unknown>, RolesMeta>,
   ): Promise<MiddlewareResponse> {
     const { meta, ctx, next } = opts;
 

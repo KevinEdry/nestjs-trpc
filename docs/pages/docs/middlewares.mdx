@@ -148,6 +148,20 @@ Global middlewares have full dependency injection support — they work exactly 
 #### Modified Context
 With middlewares you can change and inject certain parameters in the context to be available to the procedure, this can be done by using the `next(){:tsx}` method available from the `opts` parameter.
 
+##### Typed Return Context
+
+`MiddlewareOptions` accepts a second generic, `TReturnContext`, that types the `ctx` object you pass to `next()`. This gives you compile-time safety on the context shape your middleware provides to downstream procedures:
+
+```typescript
+MiddlewareOptions<TContext, TReturnContext, TMeta>
+```
+
+| Generic | Default | Description |
+| --- | --- | --- |
+| `TContext` | `object` | The incoming context type available via `opts.ctx` |
+| `TReturnContext` | `Record<string, unknown>` | The context shape passed to `opts.next({ ctx })` |
+| `TMeta` | `unknown` | The procedure metadata type available via `opts.meta` |
+
 ##### Generated Context
 When you modify the base context with a middleware, a new type will be generated with the middleware name and a `Context` suffix, for example if you have an `AuthMiddleware`, the generated type would be named `AuthMiddlewareContext`.
 
@@ -193,17 +207,22 @@ import { AuthService } from './auth.service';
 import { TRPCError } from '@trpc/server';
 import type { Context } from 'nestjs-trpc/types';
 
+interface AuthReturnContext {
+  auth: { userId: string };
+}
+
 @Injectable()
 export class AuthMiddleware implements TRPCMiddleware {
   constructor(@Inject(AuthService) private readonly authService: AuthService) {}
-  async use(opts: MiddlewareOptions<Context>): Promise<MiddlewareResponse> {
-      const { req, next } = opts;
-      const session = await this.authService.getSession({ req });
+  async use(opts: MiddlewareOptions<Context, AuthReturnContext>): Promise<MiddlewareResponse> {
+      const { ctx, next } = opts;
+      const session = await this.authService.getSession({ req: ctx.req });
 
       if(session == null) {
         throw new TRPCError("No session found.", "UNAUTHORIZED");
       }
 
+      // `ctx` is now typed as AuthReturnContext — only valid shapes are accepted
       return next({
         ctx: {
           auth: {
@@ -225,6 +244,10 @@ export interface AuthMiddlewareContext extends Context {
 ```
   </Tabs.Tab>
 </Tabs>
+
+<Callout>
+  The `TReturnContext` generic defaults to `Record<string, unknown>`, so existing middlewares that don't use it continue to work without changes.
+</Callout>
 
 #### Procedure Metadata
 

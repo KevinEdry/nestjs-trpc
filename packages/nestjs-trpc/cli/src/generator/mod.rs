@@ -187,6 +187,9 @@ impl StaticGenerator {
             |p| p.to_string_lossy().to_string(),
         );
 
+        // Windows paths use backslashes which aren't valid in ES module import specifiers
+        let relative = relative.replace('\\', "/");
+
         let without_ext = relative
             .strip_suffix(".ts")
             .or_else(|| relative.strip_suffix(".tsx"))
@@ -228,7 +231,8 @@ fn group_schema_names_by_path<'a, I>(
 fn resolve_import_path(output_dir: &Path, source_path: &Path) -> String {
     let is_external_package = output_dir.is_absolute() && !source_path.is_absolute();
     if is_external_package {
-        source_path.to_string_lossy().to_string()
+        // Windows paths use backslashes which aren't valid in ES module import specifiers
+        source_path.to_string_lossy().replace('\\', "/")
     } else {
         StaticGenerator::calculate_relative_path(output_dir, source_path)
     }
@@ -380,6 +384,23 @@ mod tests {
             Path::new("src/schemas/user.ts"),
         );
         assert_eq!(result, "../schemas/user");
+    }
+
+    #[test]
+    fn test_resolve_import_path_normalizes_backslashes() {
+        // On Unix, backslash is a valid filename char so this creates a single component.
+        // On Windows, it creates a two-component path. Either way, the output must use
+        // forward slashes since backslashes aren't valid in ES module import specifiers.
+        let output_directory = Path::new("/absolute/path");
+        let source_path = Path::new("schemas\\user.schema");
+
+        let result = resolve_import_path(output_directory, source_path);
+
+        assert!(
+            !result.contains('\\'),
+            "Import path must not contain backslashes, got: {result}"
+        );
+        assert_eq!(result, "schemas/user.schema");
     }
 
     #[test]

@@ -1,7 +1,7 @@
-import { ZodSchema } from 'zod';
 import { applyDecorators, SetMetadata } from '@nestjs/common';
 import { PROCEDURE_METADATA_KEY, PROCEDURE_TYPE_KEY } from '../trpc.constants';
 import { ProcedureType } from '../trpc.enum';
+import type { Parser } from '../interfaces/parser.interface';
 
 /**
  * Decorator that marks a router class method as a TRPC subscription procedure that can receive inbound
@@ -11,16 +11,16 @@ import { ProcedureType } from '../trpc.enum';
  * for example `Subscription /trpc/eventRouter.onMessage`.
  *
  * @param {object} args configuration object specifying:
- * - `input` - defines a `ZodSchema` validation logic for the input.
- * - `output` - defines a `ZodSchema` validation logic for the output.
+ * - `input` - defines a schema validation logic for the input.
+ * - `output` - defines a schema validation logic for the output.
  *
  * @see [Method Decorators](https://nestjs-trpc.io/docs/routers#procedures)
  *
  * @publicApi
  */
 export function Subscription(args?: {
-  input?: ZodSchema;
-  output?: ZodSchema;
+  input?: Parser;
+  output?: Parser;
   meta?: Record<string, unknown>;
 }) {
   return applyDecorators(

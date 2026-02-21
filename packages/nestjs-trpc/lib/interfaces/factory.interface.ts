@@ -3,10 +3,10 @@ import type {
   AnyRouter,
   TRPCProcedureBuilder,
 } from '@trpc/server';
-import type { ZodSchema, ZodType, ZodTypeDef } from 'zod';
 import type { TRPCMiddleware } from './middleware.interface';
 import type { Class, Constructor } from 'type-fest';
 import type { ProcedureType } from '../trpc.enum';
+import type { Parser } from './parser.interface';
 
 export enum ProcedureParamDecoratorType {
   Options = 'options',
@@ -21,8 +21,8 @@ export type ProcedureImplementation = ({
   input,
   output,
 }: {
-  input?: ZodType<any, ZodTypeDef, any>;
-  output?: ZodType<any, ZodTypeDef, any>;
+  input?: Parser;
+  output?: Parser;
 }) => any;
 
 interface ProcedureParamDecoratorBase {
@@ -41,8 +41,8 @@ export type ProcedureParamDecorator =
 
 export interface ProcedureFactoryMetadata {
   type: ProcedureType;
-  input: ZodSchema | undefined;
-  output: ZodSchema | undefined;
+  input: Parser | undefined;
+  output: Parser | undefined;
   meta: Record<string, unknown> | undefined;
   middlewares: Array<Constructor<TRPCMiddleware> | Class<TRPCMiddleware>>;
   name: string;

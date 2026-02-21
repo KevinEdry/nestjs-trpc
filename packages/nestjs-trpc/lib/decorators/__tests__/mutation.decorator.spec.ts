@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { Mutation } from '../mutation.decorator';
 import { PROCEDURE_METADATA_KEY, PROCEDURE_TYPE_KEY } from '../../trpc.constants';
 import { ProcedureType } from '../../trpc.enum';
-import { ZodSchema, z } from 'zod';
+import { z } from 'zod';
 
 describe('Mutation Decorator', () => {
   it('should set procedure type metadata', () => {
@@ -16,8 +16,8 @@ describe('Mutation Decorator', () => {
   });
 
   it('should set procedure metadata with input and output schemas', () => {
-    const inputSchema: ZodSchema = z.string();
-    const outputSchema: ZodSchema = z.number();
+    const inputSchema = z.string();
+    const outputSchema = z.number();
 
     class TestClass {
       @Mutation({ input: inputSchema, output: outputSchema })
@@ -39,7 +39,7 @@ describe('Mutation Decorator', () => {
   });
 
   it('should set procedure metadata with only input schema', () => {
-    const inputSchema: ZodSchema = z.string();
+    const inputSchema = z.string();
 
     class TestClass {
       @Mutation({ input: inputSchema })
@@ -51,7 +51,7 @@ describe('Mutation Decorator', () => {
   });
 
   it('should set procedure metadata with only output schema', () => {
-    const outputSchema: ZodSchema = z.number();
+    const outputSchema = z.number();
 
     class TestClass {
       @Mutation({ output: outputSchema })
@@ -63,7 +63,7 @@ describe('Mutation Decorator', () => {
   });
 
   it('should set procedure metadata with meta', () => {
-    const inputSchema: ZodSchema = z.string();
+    const inputSchema = z.string();
     const meta = { roles: ['admin'] };
 
     class TestClass {

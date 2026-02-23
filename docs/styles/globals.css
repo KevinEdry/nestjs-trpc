@@ -60,6 +60,98 @@ button[aria-selected="true"] {
     background: transparent !important;
 }
 
+/* Remove Nextra's content constraints on the homepage */
+.nextra-content:has(> .home-layout) {
+    max-width: none !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+.nextra-content:has(> .home-layout) + div {
+    max-width: none !important;
+}
+
+/* Remove Nextra's max-width content wrapper on the homepage (not the nav) */
+body:has(.home-layout) .nx-max-w-\[90rem\]:has(.nextra-content) {
+    max-width: none !important;
+}
+
 .router-cards > .nextra-cards {
     --rows: 2 !important;
+}
+
+/* Dot grid background pattern */
+.dot-grid-bg {
+    background-image: radial-gradient(circle, #ffffff08 1px, transparent 1px);
+    background-size: 24px 24px;
+}
+
+/* FAQ accordion styles */
+details.faq-item {
+    border: 1px solid #1A1A1A;
+    border-left: 2px solid #1A1A1A;
+    border-radius: 0.75rem;
+    background: #0D0D0D;
+    transition: all 0.25s ease;
+}
+
+details.faq-item:hover {
+    border-color: #262626;
+    border-left-color: #398CCB60;
+    background: #111111;
+}
+
+details.faq-item[open] {
+    border-color: #398CCB30;
+    border-left-color: #398CCB;
+    background: #0F1215;
+}
+
+details.faq-item summary {
+    cursor: pointer;
+    padding: 1.25rem 1.5rem;
+    font-weight: 500;
+    font-size: 0.95rem;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+details.faq-item summary::-webkit-details-marker {
+    display: none;
+}
+
+details.faq-item summary::after {
+    content: '+';
+    font-size: 1.1rem;
+    color: #788188;
+    transition: all 0.25s ease;
+    flex-shrink: 0;
+    width: 1.5rem;
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #181818;
+}
+
+details.faq-item:hover summary::after {
+    background: #1E1E1E;
+    color: #a0adb8;
+}
+
+details.faq-item[open] summary::after {
+    content: '−';
+    color: #398CCB;
+    background: #398CCB15;
+}
+
+details.faq-item .faq-content {
+    padding: 0 1.5rem 1.25rem;
+    color: #8BA1B2;
+    line-height: 1.7;
+    font-size: 0.9rem;
 }

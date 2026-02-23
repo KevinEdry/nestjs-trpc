@@ -1,6 +1,6 @@
 {
   "index": {
-    "title": "Introduction",
+    "title": "NestJS tRPC - End-to-End Type-Safe APIs",
     "display": "hidden",
     "theme": {
       "breadcrumb": false,

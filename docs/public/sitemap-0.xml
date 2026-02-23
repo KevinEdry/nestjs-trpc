@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
-<url><loc>https://nestjs-trpc.io</loc><lastmod>2026-02-09T05:31:11.215Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://nestjs-trpc.io/docs</loc><lastmod>2026-02-09T05:31:11.216Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://nestjs-trpc.io/docs/client</loc><lastmod>2026-02-09T05:31:11.216Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://nestjs-trpc.io/docs/context</loc><lastmod>2026-02-09T05:31:11.216Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://nestjs-trpc.io/docs/dependency-injection</loc><lastmod>2026-02-09T05:31:11.216Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://nestjs-trpc.io/docs/graphql</loc><lastmod>2026-02-09T05:31:11.216Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://nestjs-trpc.io/docs/integrations</loc><lastmod>2026-02-09T05:31:11.216Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://nestjs-trpc.io/docs/middlewares</loc><lastmod>2026-02-09T05:31:11.216Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://nestjs-trpc.io/docs/nestjs</loc><lastmod>2026-02-09T05:31:11.216Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://nestjs-trpc.io/docs/routers</loc><lastmod>2026-02-09T05:31:11.216Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://nestjs-trpc.io/docs/structure</loc><lastmod>2026-02-09T05:31:11.216Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://nestjs-trpc.io/docs/trpc</loc><lastmod>2026-02-09T05:31:11.216Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nestjs-trpc.io</loc><lastmod>2026-02-21T02:30:18.057Z</lastmod><changefreq>weekly</changefreq><priority>1</priority></url>
+<url><loc>https://nestjs-trpc.io/docs</loc><lastmod>2026-02-21T02:30:18.058Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nestjs-trpc.io/docs/client</loc><lastmod>2026-02-21T02:30:18.058Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nestjs-trpc.io/docs/context</loc><lastmod>2026-02-21T02:30:18.058Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nestjs-trpc.io/docs/dependency-injection</loc><lastmod>2026-02-21T02:30:18.058Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nestjs-trpc.io/docs/error-handling</loc><lastmod>2026-02-21T02:30:18.058Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nestjs-trpc.io/docs/graphql</loc><lastmod>2026-02-21T02:30:18.058Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nestjs-trpc.io/docs/integrations</loc><lastmod>2026-02-21T02:30:18.058Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nestjs-trpc.io/docs/middlewares</loc><lastmod>2026-02-21T02:30:18.058Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nestjs-trpc.io/docs/nestjs</loc><lastmod>2026-02-21T02:30:18.058Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nestjs-trpc.io/docs/routers</loc><lastmod>2026-02-21T02:30:18.058Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nestjs-trpc.io/docs/structure</loc><lastmod>2026-02-21T02:30:18.058Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nestjs-trpc.io/docs/subscriptions</loc><lastmod>2026-02-21T02:30:18.058Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nestjs-trpc.io/docs/trpc</loc><lastmod>2026-02-21T02:30:18.058Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
 </urlset>

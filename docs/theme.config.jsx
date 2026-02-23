@@ -14,7 +14,7 @@ export default {
     key: '2.0.0-release',
     text: (
       <a href="https://github.com/KevinEdry/nestjs-trpc/releases" target="_blank">
-        🎉 NestJS tRPC 2.0.0 is released. Read more →
+        NestJS tRPC 2.0.0 is released — Rust CLI, tRPC v11 & Zod 4 support. Read more →
       </a>
     ),
     dismissible: true
@@ -35,7 +35,8 @@ export default {
   },
   useNextSeoProps() {
     return {
-      defaultTitle: "NestJS-tRPC: Bringing type-safety to NestJS",
+      defaultTitle: "NestJS tRPC - End-to-End Type-Safe APIs for NestJS with tRPC v11",
+      description: "Build end-to-end type-safe APIs in NestJS using tRPC decorators. Rust-powered CLI, dependency injection, Express & Fastify support. Zero boilerplate.",
       additionalLinkTags: [
         {
           rel: "apple-touch-icon",
@@ -66,28 +67,44 @@ export default {
           charset: "utf-8",
         },
         {
+          name: "keywords",
+          content: "nestjs trpc, nestjs type-safe api, trpc nestjs adapter, trpc nestjs integration, nestjs api framework, type-safe node api, nestjs end-to-end typesafe, trpc decorator nestjs"
+        },
+        {
+          name: "description",
+          content: "Build end-to-end type-safe APIs in NestJS using tRPC decorators. Rust-powered CLI, dependency injection, Express & Fastify support. Zero boilerplate."
+        },
+        {
           property: "og:image",
-          content: "/og.jpg"
+          content: "https://nestjs-trpc.io/banner.png"
+        },
+        {
+          property: "og:image:width",
+          content: "1200"
+        },
+        {
+          property: "og:image:height",
+          content: "630"
+        },
+        {
+          property: "og:image:alt",
+          content: "NestJS tRPC - End-to-End Type-Safe APIs"
         },
         {
           property: "og:type",
-          content: "object"
+          content: "website"
         },
         {
           property: "og:title",
-          content: "NestJS-tRPC: Bringing type-safety to NestJS",
+          content: "NestJS tRPC - End-to-End Type-Safe APIs for NestJS with tRPC v11",
         },
         {
           property: "og:description",
-          content: "NestJS tRPC is a library designed to integrate the capabilities of tRPC into the NestJS framework. It aims to provide native support for decorators and implement an opinionated approach that aligns with NestJS conventions."
-        },
-        {
-          property: "description",
-          content: "NestJS tRPC is a library designed to integrate the capabilities of tRPC into the NestJS framework. It aims to provide native support for decorators and implement an opinionated approach that aligns with NestJS conventions."
+          content: "Build end-to-end type-safe APIs in NestJS using tRPC decorators. Rust-powered CLI, dependency injection, Express & Fastify support. Zero boilerplate."
         },
         {
           property: "og:site_name",
-          content: "NestJS-tRPC: Bringing type-safety to NestJS"
+          content: "NestJS tRPC"
         },
         {
           property: "og:url",
@@ -95,7 +112,7 @@ export default {
         },
         {
           name: "twitter:card",
-          content: "summary"
+          content: "summary_large_image"
         },
         {
           name: "twitter:image",
@@ -103,11 +120,11 @@ export default {
         },
         {
           name: "twitter:title",
-          content: "NestJS-tRPC: Bringing type-safety to NestJS"
+          content: "NestJS tRPC - End-to-End Type-Safe APIs for NestJS"
         },
         {
           name: "twitter:description",
-          content: "NestJS-tRPC: Bringing type-safety to NestJS"
+          content: "Build end-to-end type-safe APIs in NestJS using tRPC decorators. Rust-powered CLI, dependency injection, Express & Fastify support."
         },
         {
           name: "twitter:site",

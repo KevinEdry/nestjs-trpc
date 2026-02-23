@@ -67,7 +67,7 @@ try {
     env: process.env,
   });
 } catch (error) {
-  if (error.status !== undefined) {
+  if (error.status != null) {
     process.exit(error.status);
   }
   console.error('Failed to execute nestjs-trpc CLI:', error.message);

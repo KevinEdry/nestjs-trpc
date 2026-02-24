@@ -3,7 +3,28 @@ title: "NestJS-tRPC Documentation - NestJS Quickstart Guide"
 ---
 
 import {Steps} from 'nextra/components';
-import Link from 'next/link'
+import Link from 'next/link';
+import JsonLd from '../../components/JsonLd';
+
+<JsonLd data={{
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: 'NestJS Quickstart',
+  description: 'Get started with NestJS — install the CLI, create a project, and understand the modular architecture before adding tRPC.',
+  url: 'https://nestjs-trpc.io/docs/nestjs',
+  author: { '@type': 'Person', name: 'Kevin Edry', url: 'https://kevin-edry.com' },
+  publisher: { '@type': 'Organization', name: 'NestJS tRPC', url: 'https://nestjs-trpc.io' },
+  proficiencyLevel: 'Beginner',
+}} />
+<JsonLd data={{
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://nestjs-trpc.io' },
+    { '@type': 'ListItem', position: 2, name: 'Docs', item: 'https://nestjs-trpc.io/docs' },
+    { '@type': 'ListItem', position: 3, name: 'NestJS Quickstart', item: 'https://nestjs-trpc.io/docs/nestjs' },
+  ],
+}} />
 
 # NestJS Quickstart Guide
 <Link href="https://nestjs.com/" rel={"nofollow"} target={"_blank"} className={"underline text-primary"}>NestJS</Link> is a progressive Node.js framework for building efficient, reliable, and scalable server-side applications. It uses TypeScript by default, which enhances productivity and maintainability. NestJS incorporates elements from Object-Oriented Programming, Functional Programming, and Functional Reactive Programming.

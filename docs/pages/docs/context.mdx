@@ -7,6 +7,27 @@ import Table from "../../components/Table";
 import NestJSIcon from '../../public/icons/nestjs.svg';
 import TrpcIcon from '../../public/icons/trpc.svg';
 import Link from 'next/link';
+import JsonLd from '../../components/JsonLd';
+
+<JsonLd data={{
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: 'Context',
+  description: 'Set up tRPC context in NestJS — share authentication data, request config, and services across all procedures.',
+  url: 'https://nestjs-trpc.io/docs/context',
+  author: { '@type': 'Person', name: 'Kevin Edry', url: 'https://kevin-edry.com' },
+  publisher: { '@type': 'Organization', name: 'NestJS tRPC', url: 'https://nestjs-trpc.io' },
+  proficiencyLevel: 'Expert',
+}} />
+<JsonLd data={{
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://nestjs-trpc.io' },
+    { '@type': 'ListItem', position: 2, name: 'Docs', item: 'https://nestjs-trpc.io/docs' },
+    { '@type': 'ListItem', position: 3, name: 'Context', item: 'https://nestjs-trpc.io/docs/context' },
+  ],
+}} />
 
 # Context
 Your context holds data that all of your tRPC procedures will have access to, 

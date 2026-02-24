@@ -1,6 +1,28 @@
 import { Footer } from './components/Footer';
 
 export default {
+  head: (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: 'NestJS tRPC',
+        url: 'https://nestjs-trpc.io',
+        description: 'Build end-to-end type-safe APIs in NestJS using tRPC decorators.',
+        publisher: { '@type': 'Person', name: 'Kevin Edry', url: 'https://kevin-edry.com' },
+      })}} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: 'NestJS tRPC',
+        applicationCategory: 'DeveloperApplication',
+        operatingSystem: 'Cross-platform',
+        url: 'https://nestjs-trpc.io',
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+        author: { '@type': 'Person', name: 'Kevin Edry', url: 'https://kevin-edry.com' },
+      })}} />
+    </>
+  ),
   logo: <div className={"md:nx-inline-flex nx-gap-2 nx-items-center nx-font-bold"}><img src={'/logo.png'} alt={'nestjs-trpc logo'} width={40} /> NestJS tRPC</div>,
   primaryHue: 200,
   primarySaturation: 100,

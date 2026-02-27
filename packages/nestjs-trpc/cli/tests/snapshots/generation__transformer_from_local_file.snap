@@ -1,5 +1,6 @@
 ---
 source: tests/generation.rs
+assertion_line: 203
 expression: output
 ---
 /**
@@ -18,12 +19,36 @@ import { customTransformer } from "./my-transformer";
 
 const t = initTRPC.create({ transformer: customTransformer });
 const publicProcedure = t.procedure;
+type __ItemsRouterModule_655b26 = typeof import("<FIXTURES>/transformer-local/items.router");
+
+type __ResolveProcedureReturnType<
+  TModule,
+  TOwnerName extends string,
+  TMethodName extends string,
+> = TModule extends { readonly [K in TOwnerName]: infer TClass }
+  ? TClass extends abstract new (...args: any[]) => any
+    ? TMethodName extends keyof InstanceType<TClass>
+      ? InstanceType<TClass>[TMethodName] extends (...args: any[]) => any
+        ? ReturnType<InstanceType<TClass>[TMethodName]>
+        : any
+      : any
+    : any
+  : TModule extends { readonly default: infer TDefault }
+    ? TDefault extends abstract new (...args: any[]) => any
+      ? TMethodName extends keyof InstanceType<TDefault>
+        ? InstanceType<TDefault>[TMethodName] extends (...args: any[]) => any
+          ? ReturnType<InstanceType<TDefault>[TMethodName]>
+          : any
+        : any
+      : any
+    : any;
+
 
 const appRouter = t.router({
   items: t.router({
     getItem: publicProcedure
       .input(z.object({ id: z.string() }))
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<__ResolveProcedureReturnType<__ItemsRouterModule_655b26, "ItemsRouter", "getItem">>)
     })
 });
 

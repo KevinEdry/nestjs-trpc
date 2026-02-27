@@ -1,6 +1,6 @@
 ---
 source: tests/generation.rs
-assertion_line: 86
+assertion_line: 94
 expression: output
 ---
 /**
@@ -20,6 +20,30 @@ const t = initTRPC.create();
 const publicProcedure = t.procedure;
 import { orderSchema } from "shared-schemas";
 import { paymentSchema } from "@myorg/payment-types";
+type __OrdersRouterModule_863148 = typeof import("<FIXTURES>/external-imports/orders.router");
+
+type __ResolveProcedureReturnType<
+  TModule,
+  TOwnerName extends string,
+  TMethodName extends string,
+> = TModule extends { readonly [K in TOwnerName]: infer TClass }
+  ? TClass extends abstract new (...args: any[]) => any
+    ? TMethodName extends keyof InstanceType<TClass>
+      ? InstanceType<TClass>[TMethodName] extends (...args: any[]) => any
+        ? ReturnType<InstanceType<TClass>[TMethodName]>
+        : any
+      : any
+    : any
+  : TModule extends { readonly default: infer TDefault }
+    ? TDefault extends abstract new (...args: any[]) => any
+      ? TMethodName extends keyof InstanceType<TDefault>
+        ? InstanceType<TDefault>[TMethodName] extends (...args: any[]) => any
+          ? ReturnType<InstanceType<TDefault>[TMethodName]>
+          : any
+        : any
+      : any
+    : any;
+
 
 const appRouter = t.router({
   orders: t.router({
@@ -29,7 +53,7 @@ const appRouter = t.router({
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     processPayment: publicProcedure
       .input(paymentSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<__ResolveProcedureReturnType<__OrdersRouterModule_863148, "OrdersRouter", "processPayment">>)
     })
 });
 

@@ -1,5 +1,6 @@
 ---
 source: tests/generation.rs
+assertion_line: 100
 expression: output
 ---
 /**

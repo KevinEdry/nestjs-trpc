@@ -1,5 +1,6 @@
 use super::{DecoratorParser, ParsedFile};
 use crate::ProcedureMetadata;
+use swc_common::Spanned;
 use swc_ecma_ast::{Class, ClassMember, Decl, ModuleDecl, ModuleItem, Stmt};
 
 #[must_use]
@@ -12,7 +13,7 @@ pub fn extract_procedures_from_class(
         return Vec::new();
     };
 
-    extract_procedures_from_class_body(class, decorator_parser, parsed_file)
+    extract_procedures_from_class_body(class, class_name, decorator_parser, parsed_file)
 }
 
 fn find_class_by_name<'a>(body: &'a [ModuleItem], target_name: &str) -> Option<&'a Class> {
@@ -78,6 +79,7 @@ fn match_default_exported_class<'a>(
 
 fn extract_procedures_from_class_body(
     class: &Class,
+    class_name: &str,
     decorator_parser: &DecoratorParser,
     parsed_file: &ParsedFile,
 ) -> Vec<ProcedureMetadata> {
@@ -105,6 +107,9 @@ fn extract_procedures_from_class_body(
                 procedure_type: info.procedure_type,
                 input_schema: info.input,
                 output_schema: info.output,
+                method_return_type: extract_method_return_type(method, parsed_file),
+                owner_class_name: Some(class_name.to_string()),
+                owner_file_path: Some(parsed_file.file_path.clone()),
                 input_schema_ref: info.input_ref,
                 output_schema_ref: info.output_ref,
                 schema_identifiers: info.schema_identifiers,
@@ -113,6 +118,23 @@ fn extract_procedures_from_class_body(
     }
 
     procedures
+}
+
+fn extract_method_return_type(
+    method: &swc_ecma_ast::ClassMethod,
+    parsed_file: &ParsedFile,
+) -> Option<String> {
+    let return_type = method.function.return_type.as_ref()?;
+    let source = parsed_file
+        .get_source_text(return_type.type_ann.span())
+        .trim()
+        .to_string();
+
+    if source.is_empty() {
+        None
+    } else {
+        Some(source)
+    }
 }
 
 #[cfg(test)]

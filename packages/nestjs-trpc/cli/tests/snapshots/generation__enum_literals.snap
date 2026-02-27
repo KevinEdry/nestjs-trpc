@@ -1,5 +1,6 @@
 ---
 source: tests/generation.rs
+assertion_line: 76
 expression: output
 ---
 /**
@@ -18,6 +19,30 @@ import { z } from "zod";
 const t = initTRPC.create();
 const publicProcedure = t.procedure;
 import { Priority, Status, TypeEnum } from "<FIXTURES>/enum-literals/types";
+type __ItemsRouterModule_5957f5 = typeof import("<FIXTURES>/enum-literals/items.router");
+
+type __ResolveProcedureReturnType<
+  TModule,
+  TOwnerName extends string,
+  TMethodName extends string,
+> = TModule extends { readonly [K in TOwnerName]: infer TClass }
+  ? TClass extends abstract new (...args: any[]) => any
+    ? TMethodName extends keyof InstanceType<TClass>
+      ? InstanceType<TClass>[TMethodName] extends (...args: any[]) => any
+        ? ReturnType<InstanceType<TClass>[TMethodName]>
+        : any
+      : any
+    : any
+  : TModule extends { readonly default: infer TDefault }
+    ? TDefault extends abstract new (...args: any[]) => any
+      ? TMethodName extends keyof InstanceType<TDefault>
+        ? InstanceType<TDefault>[TMethodName] extends (...args: any[]) => any
+          ? ReturnType<InstanceType<TDefault>[TMethodName]>
+          : any
+        : any
+      : any
+    : any;
+
 
 const appRouter = t.router({
   items: t.router({
@@ -34,7 +59,7 @@ const appRouter = t.router({
       .input(z.object({
             type: z.enum([TypeEnum.Normal, TypeEnum.Special]),
         }))
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<__ResolveProcedureReturnType<__ItemsRouterModule_5957f5, "ItemsRouter", "createItem">>)
     })
 });
 

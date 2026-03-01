@@ -152,6 +152,32 @@ mod tests {
         (temp_dir, file_path)
     }
 
+    fn parse_source(source: &str) -> ParsedFile {
+        let (_temp, path) = create_temp_file(source);
+        let parser = TsParser::new();
+        parser.parse_file(&path).expect("Failed to parse")
+    }
+
+    fn find_class_method<'a>(
+        parsed_file: &'a ParsedFile,
+        class_name: &str,
+        method_name: &str,
+    ) -> &'a swc_ecma_ast::ClassMethod {
+        let class = find_class_by_name(&parsed_file.module.body, class_name)
+            .expect("Expected class to exist in source");
+
+        class
+            .body
+            .iter()
+            .find_map(|member| match member {
+                ClassMember::Method(method) => method.key.as_ident().and_then(|identifier| {
+                    (identifier.sym.as_ref() == method_name).then_some(method)
+                }),
+                _ => None,
+            })
+            .expect("Expected method to exist in class")
+    }
+
     #[test]
     fn test_extract_procedures_from_exported_class() {
         let source = r"
@@ -436,5 +462,43 @@ mod tests {
 
         assert_eq!(procedures.len(), 1);
         assert_eq!(procedures[0].name, "normalMethod");
+    }
+
+    #[test]
+    fn test_extract_method_return_type_variants() {
+        let source = r"
+            type Foo = { id: string };
+            type Bar = { message: string };
+
+            export class ReturnTypesRouter {
+                promiseArray(): Promise<Foo[]> {}
+                text(): string {}
+                inferred() {}
+                genericComplex(): Promise<Map<string, Foo>> {}
+                unionType(): Foo | Bar {}
+                noResult(): void {}
+            }
+        ";
+        let parsed = parse_source(source);
+
+        let cases = [
+            ("promiseArray", Some("Promise<Foo[]>")),
+            ("text", Some("string")),
+            ("inferred", None),
+            ("genericComplex", Some("Promise<Map<string, Foo>>")),
+            ("unionType", Some("Foo | Bar")),
+            ("noResult", Some("void")),
+        ];
+
+        for (method_name, expected) in cases {
+            let method = find_class_method(&parsed, "ReturnTypesRouter", method_name);
+            let actual = extract_method_return_type(method, &parsed);
+            let expected = expected.map(str::to_string);
+
+            assert_eq!(
+                actual, expected,
+                "Unexpected return type extraction for method: {method_name}"
+            );
+        }
     }
 }

@@ -283,3 +283,23 @@ fn generation_without_transformer_has_plain_create() {
         "Without transformer, output should not mention 'transformer'"
     );
 }
+
+#[test]
+fn generates_owner_return_type_helper_file_when_needed() {
+    let fixture_path = fixtures_directory().join("enum-literals");
+    let temporary_directory = TempDir::new().expect("Failed to create temp directory");
+    let output_path = temporary_directory.path();
+
+    run_generation(&fixture_path, output_path, "**/*.router.ts", None).expect("Generation failed");
+
+    let helper_file = output_path.join("__nestjs-trpc-type-helpers.ts");
+    assert!(
+        helper_file.exists(),
+        "Expected shared type helper file to be generated"
+    );
+
+    let helper_content =
+        fs::read_to_string(&helper_file).expect("Failed to read generated helper file");
+    assert!(helper_content.contains("Requires TypeScript 4.5+."));
+    assert!(helper_content.contains("export type __ResolveProcedureReturnType<"));
+}

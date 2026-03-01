@@ -42,6 +42,10 @@
 - Native support for `express`, `fastify`, and `zod` with more drivers to come
 - Examples are available in the ./examples folder
 
+## Requirements
+
+- TypeScript `>= 4.5` is required when generated routers infer procedure outputs from owner methods (procedures without explicit `output` schema).
+
 ## Quickstart
 
 ### Installation

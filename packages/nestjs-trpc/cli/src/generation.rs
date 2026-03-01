@@ -554,6 +554,29 @@ fn write_server_file(
         )
     })?;
 
+    let helper_file_path = server_file_path
+        .parent()
+        .unwrap_or_else(|| Path::new("."))
+        .join(ServerGenerator::OWNER_RETURN_TYPE_HELPER_FILE_NAME);
+    if ServerGenerator::needs_owner_return_type_helper(routers) {
+        let helper_content = server_generator.generate_owner_return_type_helper_file();
+        fs::write(&helper_file_path, &helper_content).with_context(|| {
+            format!(
+                "Failed to write generated helper file to '{}'",
+                helper_file_path.display()
+            )
+        })?;
+        info!(output = %helper_file_path.display(), "Generated type helpers file");
+    } else if helper_file_path.exists() {
+        fs::remove_file(&helper_file_path).with_context(|| {
+            format!(
+                "Failed to remove stale generated helper file '{}'",
+                helper_file_path.display()
+            )
+        })?;
+        info!(output = %helper_file_path.display(), "Removed stale type helpers file");
+    }
+
     info!(output = %server_file_path.display(), "Generated server.ts");
 
     Ok(server_file_path)

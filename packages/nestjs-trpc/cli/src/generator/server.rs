@@ -29,6 +29,8 @@ impl Default for ServerGenerator {
 }
 
 impl ServerGenerator {
+    pub const OWNER_RETURN_TYPE_HELPER_FILE_NAME: &str = "__nestjs-trpc-type-helpers.ts";
+
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -104,8 +106,7 @@ impl ServerGenerator {
         let owner_imports = self.collect_owner_imports(routers, output_file_path);
         self.append_owner_module_type_aliases(&mut output, &owner_imports);
         if !owner_imports.is_empty() {
-            output.push_str(&self.generate_owner_return_type_helper());
-            output.push('\n');
+            self.append_owner_return_type_helper_import(&mut output, output_file_path);
         }
 
         output.push('\n');
@@ -256,12 +257,7 @@ impl ServerGenerator {
             );
         }
 
-        procedure
-            .method_return_type
-            .as_deref()
-            .map_or("any".to_string(), |return_type| {
-                format!("Awaited<{return_type}>")
-            })
+        "any".to_string()
     }
 
     #[must_use]
@@ -362,14 +358,57 @@ impl ServerGenerator {
                 "type {alias} = typeof import({quote}{import_path}{quote}){term}\n"
             ));
         }
-
-        output.push('\n');
     }
 
-    fn generate_owner_return_type_helper(&self) -> String {
+    fn append_owner_return_type_helper_import(&self, output: &mut String, output_file_path: &Path) {
+        let output_dir = output_file_path.parent().unwrap_or_else(|| Path::new("."));
+        let helper_path = output_dir.join(Self::OWNER_RETURN_TYPE_HELPER_FILE_NAME);
+        let helper_import_path = calculate_relative_import_path(output_dir, &helper_path);
+
+        let quote = if self.static_generator.use_single_quotes {
+            '\''
+        } else {
+            '"'
+        };
         let term = self.terminator();
-        let type_body = "\
-type __ResolveProcedureReturnType<
+
+        output.push_str(&format!(
+            "import type {{ __ResolveProcedureReturnType }} from {quote}{helper_import_path}{quote}{term}\n"
+        ));
+    }
+
+    #[must_use]
+    pub fn needs_owner_return_type_helper(routers: &[RouterMetadata]) -> bool {
+        routers
+            .iter()
+            .flat_map(|router| &router.procedures)
+            .any(|procedure| {
+                procedure.output_schema.is_none()
+                    && procedure.owner_file_path.is_some()
+                    && procedure.owner_class_name.is_some()
+            })
+    }
+
+    #[must_use]
+    pub fn generate_owner_return_type_helper_file(&self) -> String {
+        let term = self.terminator();
+        let type_body = self.owner_return_type_helper_type();
+        format!(
+            "\
+/**
+ * AUTO-GENERATED FILE - DO NOT EDIT!
+ *
+ * Shared type helpers used by generated server.ts files.
+ * Requires TypeScript 4.5+.
+ */
+{type_body}{term}
+"
+        )
+    }
+
+    fn owner_return_type_helper_type(&self) -> &'static str {
+        "\
+export type __ResolveProcedureReturnType<
   TModule,
   TOwnerName extends string,
   TMethodName extends string,
@@ -389,8 +428,7 @@ type __ResolveProcedureReturnType<
           : any
         : any
       : any
-    : any";
-        format!("{type_body}{term}\n")
+    : any"
     }
 }
 
@@ -585,8 +623,7 @@ mod tests {
         assert!(output.contains("onMessage: publicProcedure"));
         assert!(output.contains(".input(z.object({ channelId: z.string() }))"));
         assert!(output.contains(".output(z.object({ message: z.string() }))"));
-        assert!(output
-            .contains(".subscription(async () => \"PLACEHOLDER_DO_NOT_REMOVE\" as any)"));
+        assert!(output.contains(".subscription(async () => \"PLACEHOLDER_DO_NOT_REMOVE\" as any)"));
     }
 
     #[test]
@@ -645,7 +682,7 @@ mod tests {
     }
 
     #[test]
-    fn test_generate_procedure_string_uses_method_return_type_when_owner_missing() {
+    fn test_generate_procedure_string_falls_back_to_any_when_owner_missing() {
         let generator = ServerGenerator::new();
         let mut procedure = create_test_procedure("getAll", ProcedureType::Query, None, None);
         procedure.method_return_type = Some("Promise<FooDto[]>".to_string());
@@ -655,13 +692,13 @@ mod tests {
         assert!(!output.contains(".output"));
         assert!(
             output.contains(
-                ".query(async () => \"PLACEHOLDER_DO_NOT_REMOVE\" as unknown as Awaited<Promise<FooDto[]>>)"
+                ".query(async () => \"PLACEHOLDER_DO_NOT_REMOVE\" as unknown as any)"
             )
         );
     }
 
     #[test]
-    fn test_generate_with_schema_imports_adds_owner_type_import_and_helper() {
+    fn test_generate_with_schema_imports_adds_owner_type_import_and_helper_import() {
         let generator = ServerGenerator::new();
         let mut procedure = create_test_procedure("list", ProcedureType::Query, None, None);
         procedure.owner_class_name = Some("UserRouter".to_string());
@@ -682,7 +719,47 @@ mod tests {
         assert!(output.contains(&format!(
             "type {owner_alias} = typeof import(\"../src/user.router\");"
         )));
-        assert!(output.contains("type __ResolveProcedureReturnType<"));
+        assert!(output.contains(
+            "import type { __ResolveProcedureReturnType } from \"./__nestjs-trpc-type-helpers\";"
+        ));
+        assert!(!output.contains("export type __ResolveProcedureReturnType<"));
+    }
+
+    #[test]
+    fn test_generate_owner_return_type_helper_file_contains_ts_requirement() {
+        let generator = ServerGenerator::new();
+
+        let helper_file_content = generator.generate_owner_return_type_helper_file();
+
+        assert!(helper_file_content.contains("Requires TypeScript 4.5+."));
+        assert!(helper_file_content.contains("export type __ResolveProcedureReturnType<"));
+    }
+
+    #[test]
+    fn test_needs_owner_return_type_helper_is_true_when_owner_is_resolvable() {
+        let mut procedure = create_test_procedure("list", ProcedureType::Query, None, None);
+        procedure.owner_class_name = Some("UserRouter".to_string());
+        procedure.owner_file_path = Some(std::path::PathBuf::from("/workspace/src/user.router.ts"));
+
+        let routers = vec![create_test_router(
+            "UserRouter",
+            Some("users"),
+            vec![procedure],
+        )];
+
+        assert!(ServerGenerator::needs_owner_return_type_helper(&routers));
+    }
+
+    #[test]
+    fn test_needs_owner_return_type_helper_is_false_without_owner_metadata() {
+        let procedure = create_test_procedure("list", ProcedureType::Query, None, None);
+        let routers = vec![create_test_router(
+            "UserRouter",
+            Some("users"),
+            vec![procedure],
+        )];
+
+        assert!(!ServerGenerator::needs_owner_return_type_helper(&routers));
     }
 
     #[test]

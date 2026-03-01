@@ -20,29 +20,7 @@ import superjson from "superjson";
 const t = initTRPC.create({ transformer: superjson });
 const publicProcedure = t.procedure;
 type __ItemsRouterModule_5ef16e = typeof import("<FIXTURES>/transformer-library/items.router");
-
-type __ResolveProcedureReturnType<
-  TModule,
-  TOwnerName extends string,
-  TMethodName extends string,
-> = TModule extends { readonly [K in TOwnerName]: infer TClass }
-  ? TClass extends abstract new (...args: any[]) => any
-    ? TMethodName extends keyof InstanceType<TClass>
-      ? InstanceType<TClass>[TMethodName] extends (...args: any[]) => any
-        ? ReturnType<InstanceType<TClass>[TMethodName]>
-        : any
-      : any
-    : any
-  : TModule extends { readonly default: infer TDefault }
-    ? TDefault extends abstract new (...args: any[]) => any
-      ? TMethodName extends keyof InstanceType<TDefault>
-        ? InstanceType<TDefault>[TMethodName] extends (...args: any[]) => any
-          ? ReturnType<InstanceType<TDefault>[TMethodName]>
-          : any
-        : any
-      : any
-    : any;
-
+import type { __ResolveProcedureReturnType } from "./__nestjs-trpc-type-helpers";
 
 const appRouter = t.router({
   items: t.router({

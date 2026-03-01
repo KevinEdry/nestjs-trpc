@@ -42,6 +42,10 @@
 - 📦&nbsp; Out of the box support for **Dependency Injection** within the routes and procedures.
 - 👀&nbsp; Native support for `express`, `fastify`, and `zod` with more drivers to come!
 
+## Requirements
+
+- TypeScript `>= 4.5` is required when generated routers infer procedure outputs from owner methods (procedures without explicit `output` schema).
+
 ## Quickstart
 
 ### Installation

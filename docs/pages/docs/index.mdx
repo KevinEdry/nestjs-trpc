@@ -101,6 +101,10 @@ This scans your routers and creates a TypeScript file with your complete router 
 npx nestjs-trpc watch
 ```
 
+<Callout type={'info'} emoji={'ℹ️'}>
+  If your generated router infers procedure output types from owner methods (no explicit `output` schema), use TypeScript 4.5 or newer.
+</Callout>
+
 By default, types are generated to `./src/@generated/server.ts`. You can customize this with the `--output` flag:
 
 ```bash copy

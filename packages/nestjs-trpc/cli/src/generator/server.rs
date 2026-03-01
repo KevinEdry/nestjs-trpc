@@ -29,6 +29,152 @@ impl Default for ServerGenerator {
     }
 }
 
+struct ServerRenderSession<'a> {
+    generator: &'a ServerGenerator,
+    output_file_path: Option<&'a Path>,
+    owner_alias_lookup: Option<&'a OwnerAliasLookup>,
+}
+
+impl<'a> ServerRenderSession<'a> {
+    const fn new(
+        generator: &'a ServerGenerator,
+        output_file_path: Option<&'a Path>,
+        owner_alias_lookup: Option<&'a OwnerAliasLookup>,
+    ) -> Self {
+        Self {
+            generator,
+            output_file_path,
+            owner_alias_lookup,
+        }
+    }
+
+    fn generate_app_router(&self, routers: &[RouterMetadata]) -> String {
+        let term = self.generator.terminator();
+
+        if routers.is_empty() {
+            return format!("const appRouter = t.router({{}}){term}\n");
+        }
+
+        let merged = merge_routers_by_key(routers);
+        let router_strings: Vec<String> = merged
+            .iter()
+            .map(|(key, procedures)| self.generate_merged_router_string(key, procedures, 1))
+            .collect();
+
+        let routers_content = router_strings.join(",\n");
+
+        format!("const appRouter = t.router({{\n{routers_content}\n}}){term}\n")
+    }
+
+    fn generate_merged_router_string(
+        &self,
+        router_key: &str,
+        procedures: &[&ProcedureMetadata],
+        depth: usize,
+    ) -> String {
+        let indent = self.generator.indent.repeat(depth);
+        let inner_indent = self.generator.indent.repeat(depth + 1);
+
+        if procedures.is_empty() {
+            return format!("{indent}{router_key}: t.router({{}})");
+        }
+
+        let procedure_strings: Vec<String> = procedures
+            .iter()
+            .map(|procedure| self.generate_procedure_string(procedure, depth + 1))
+            .collect();
+
+        let procedures_content = procedure_strings.join(",\n");
+
+        format!("{indent}{router_key}: t.router({{\n{procedures_content}\n{inner_indent}}})")
+    }
+
+    fn generate_router_string(&self, router: &RouterMetadata, depth: usize) -> String {
+        let indent = self.generator.indent.repeat(depth);
+        let inner_indent = self.generator.indent.repeat(depth + 1);
+
+        let router_key = router
+            .alias
+            .clone()
+            .unwrap_or_else(|| to_camel_case(&router.name));
+
+        if router.procedures.is_empty() {
+            return format!("{indent}{router_key}: t.router({{}})");
+        }
+
+        let procedure_strings: Vec<String> = router
+            .procedures
+            .iter()
+            .map(|procedure| self.generate_procedure_string(procedure, depth + 1))
+            .collect();
+
+        let procedures_content = procedure_strings.join(",\n");
+
+        format!("{indent}{router_key}: t.router({{\n{procedures_content}\n{inner_indent}}})")
+    }
+
+    fn generate_procedure_string(&self, procedure: &ProcedureMetadata, depth: usize) -> String {
+        let indent = self.generator.indent.repeat(depth);
+        let chain_indent = self.generator.indent.repeat(depth + 1);
+
+        let mut chain_parts: Vec<String> = Vec::new();
+
+        chain_parts.push(format!("{indent}{}: publicProcedure", procedure.name));
+
+        if let Some(input) = &procedure.input_schema {
+            chain_parts.push(format!("{chain_indent}.input({input})"));
+        }
+
+        if let Some(output) = &procedure.output_schema {
+            chain_parts.push(format!("{chain_indent}.output({output})"));
+        }
+
+        let resolver_cast = if procedure.output_schema.is_some() {
+            "as any".to_string()
+        } else {
+            format!(
+                "as unknown as {}",
+                self.generate_return_type_expression(procedure)
+            )
+        };
+        let proc_type = procedure.procedure_type.to_string();
+        chain_parts.push(format!(
+            "{chain_indent}.{proc_type}(async () => \"PLACEHOLDER_DO_NOT_REMOVE\" {resolver_cast})"
+        ));
+
+        chain_parts.join("\n")
+    }
+
+    fn generate_return_type_expression(&self, procedure: &ProcedureMetadata) -> String {
+        if let (Some(output_file_path), Some(owner_file_path), Some(owner_class_name)) = (
+            self.output_file_path,
+            procedure.owner_file_path.as_deref(),
+            procedure.owner_class_name.as_deref(),
+        ) {
+            let output_dir = output_file_path.parent().unwrap_or_else(|| Path::new("."));
+            let import_path =
+                owner_inference::calculate_relative_import_path(output_dir, owner_file_path);
+            let owner_alias = self
+                .owner_alias_lookup
+                .and_then(|lookup| {
+                    lookup
+                        .get(&(owner_class_name.to_string(), import_path.clone()))
+                        .cloned()
+                })
+                .unwrap_or_else(|| {
+                    owner_inference::owner_module_alias(owner_class_name, &import_path)
+                });
+
+            return format!(
+                "Awaited<__ResolveProcedureReturnType<{owner_alias}, \"{owner_class_name}\", \"{}\">>",
+                procedure.name
+            );
+        }
+
+        "any".to_string()
+    }
+}
+
 impl ServerGenerator {
     pub const OWNER_RETURN_TYPE_HELPER_FILE_NAME: &str =
         owner_inference::OWNER_RETURN_TYPE_HELPER_FILE_NAME;
@@ -69,7 +215,7 @@ impl ServerGenerator {
 
         output.push('\n');
 
-        output.push_str(&self.generate_app_router(routers, None));
+        output.push_str(&self.generate_app_router(routers));
 
         output.push('\n');
 
@@ -124,11 +270,8 @@ impl ServerGenerator {
 
         output.push('\n');
 
-        output.push_str(&self.generate_app_router_with_owner_aliases(
-            routers,
-            Some(output_file_path),
-            Some(&owner_alias_lookup),
-        ));
+        let render_session = self.render_session(Some(output_file_path), Some(&owner_alias_lookup));
+        output.push_str(&render_session.generate_app_router(routers));
 
         output.push('\n');
 
@@ -138,197 +281,20 @@ impl ServerGenerator {
     }
 
     #[must_use]
-    pub fn generate_app_router(
-        &self,
-        routers: &[RouterMetadata],
-        output_file_path: Option<&Path>,
-    ) -> String {
-        self.generate_app_router_with_owner_aliases(routers, output_file_path, None)
-    }
-
-    fn generate_app_router_with_owner_aliases(
-        &self,
-        routers: &[RouterMetadata],
-        output_file_path: Option<&Path>,
-        owner_alias_lookup: Option<&OwnerAliasLookup>,
-    ) -> String {
-        let term = self.terminator();
-
-        if routers.is_empty() {
-            return format!("const appRouter = t.router({{}}){term}\n");
-        }
-
-        let merged = merge_routers_by_key(routers);
-        let router_strings: Vec<String> = merged
-            .iter()
-            .map(|(key, procedures)| {
-                self.generate_merged_router_string(
-                    key,
-                    procedures,
-                    1,
-                    output_file_path,
-                    owner_alias_lookup,
-                )
-            })
-            .collect();
-
-        let routers_content = router_strings.join(",\n");
-
-        format!("const appRouter = t.router({{\n{routers_content}\n}}){term}\n")
-    }
-
-    fn generate_merged_router_string(
-        &self,
-        router_key: &str,
-        procedures: &[&ProcedureMetadata],
-        depth: usize,
-        output_file_path: Option<&Path>,
-        owner_alias_lookup: Option<&OwnerAliasLookup>,
-    ) -> String {
-        let indent = self.indent.repeat(depth);
-        let inner_indent = self.indent.repeat(depth + 1);
-
-        if procedures.is_empty() {
-            return format!("{indent}{router_key}: t.router({{}})");
-        }
-
-        let procedure_strings: Vec<String> = procedures
-            .iter()
-            .map(|procedure| {
-                self.generate_procedure_string_with_owner_aliases(
-                    procedure,
-                    depth + 1,
-                    output_file_path,
-                    owner_alias_lookup,
-                )
-            })
-            .collect();
-
-        let procedures_content = procedure_strings.join(",\n");
-
-        format!("{indent}{router_key}: t.router({{\n{procedures_content}\n{inner_indent}}})")
+    pub fn generate_app_router(&self, routers: &[RouterMetadata]) -> String {
+        self.render_session(None, None).generate_app_router(routers)
     }
 
     #[must_use]
-    pub fn generate_router_string(
-        &self,
-        router: &RouterMetadata,
-        depth: usize,
-        output_file_path: Option<&Path>,
-    ) -> String {
-        let indent = self.indent.repeat(depth);
-        let inner_indent = self.indent.repeat(depth + 1);
-
-        let router_key = router
-            .alias
-            .clone()
-            .unwrap_or_else(|| to_camel_case(&router.name));
-
-        if router.procedures.is_empty() {
-            return format!("{indent}{router_key}: t.router({{}})");
-        }
-
-        let procedure_strings: Vec<String> = router
-            .procedures
-            .iter()
-            .map(|proc| {
-                self.generate_procedure_string_with_owner_aliases(
-                    proc,
-                    depth + 1,
-                    output_file_path,
-                    None,
-                )
-            })
-            .collect();
-
-        let procedures_content = procedure_strings.join(",\n");
-
-        format!("{indent}{router_key}: t.router({{\n{procedures_content}\n{inner_indent}}})")
+    pub fn generate_router_string(&self, router: &RouterMetadata, depth: usize) -> String {
+        self.render_session(None, None)
+            .generate_router_string(router, depth)
     }
 
     #[must_use]
-    pub fn generate_procedure_string(
-        &self,
-        procedure: &ProcedureMetadata,
-        depth: usize,
-        output_file_path: Option<&Path>,
-    ) -> String {
-        self.generate_procedure_string_with_owner_aliases(procedure, depth, output_file_path, None)
-    }
-
-    fn generate_procedure_string_with_owner_aliases(
-        &self,
-        procedure: &ProcedureMetadata,
-        depth: usize,
-        output_file_path: Option<&Path>,
-        owner_alias_lookup: Option<&OwnerAliasLookup>,
-    ) -> String {
-        let indent = self.indent.repeat(depth);
-        let chain_indent = self.indent.repeat(depth + 1);
-
-        let mut chain_parts: Vec<String> = Vec::new();
-
-        chain_parts.push(format!("{indent}{}: publicProcedure", procedure.name));
-
-        if let Some(input) = &procedure.input_schema {
-            chain_parts.push(format!("{chain_indent}.input({input})"));
-        }
-
-        if let Some(output) = &procedure.output_schema {
-            chain_parts.push(format!("{chain_indent}.output({output})"));
-        }
-
-        let resolver_cast = if procedure.output_schema.is_some() {
-            "as any".to_string()
-        } else {
-            format!(
-                "as unknown as {}",
-                self.generate_return_type_expression(
-                    procedure,
-                    output_file_path,
-                    owner_alias_lookup,
-                )
-            )
-        };
-        let proc_type = procedure.procedure_type.to_string();
-        chain_parts.push(format!(
-            "{chain_indent}.{proc_type}(async () => \"PLACEHOLDER_DO_NOT_REMOVE\" {resolver_cast})"
-        ));
-
-        chain_parts.join("\n")
-    }
-
-    fn generate_return_type_expression(
-        &self,
-        procedure: &ProcedureMetadata,
-        output_file_path: Option<&Path>,
-        owner_alias_lookup: Option<&OwnerAliasLookup>,
-    ) -> String {
-        if let (Some(output_file_path), Some(owner_file_path), Some(owner_class_name)) = (
-            output_file_path,
-            procedure.owner_file_path.as_deref(),
-            procedure.owner_class_name.as_deref(),
-        ) {
-            let output_dir = output_file_path.parent().unwrap_or_else(|| Path::new("."));
-            let import_path =
-                owner_inference::calculate_relative_import_path(output_dir, owner_file_path);
-            let owner_alias = owner_alias_lookup
-                .and_then(|lookup| {
-                    lookup
-                        .get(&(owner_class_name.to_string(), import_path.clone()))
-                        .cloned()
-                })
-                .unwrap_or_else(|| {
-                    owner_inference::owner_module_alias(owner_class_name, &import_path)
-                });
-
-            return format!(
-                "Awaited<__ResolveProcedureReturnType<{owner_alias}, \"{owner_class_name}\", \"{}\">>",
-                procedure.name
-            );
-        }
-
-        "any".to_string()
+    pub fn generate_procedure_string(&self, procedure: &ProcedureMetadata, depth: usize) -> String {
+        self.render_session(None, None)
+            .generate_procedure_string(procedure, depth)
     }
 
     #[must_use]
@@ -343,6 +309,14 @@ impl ServerGenerator {
         } else {
             ""
         }
+    }
+
+    fn render_session<'a>(
+        &'a self,
+        output_file_path: Option<&'a Path>,
+        owner_alias_lookup: Option<&'a OwnerAliasLookup>,
+    ) -> ServerRenderSession<'a> {
+        ServerRenderSession::new(self, output_file_path, owner_alias_lookup)
     }
 
     fn extract_schema_refs(procedure: &ProcedureMetadata) -> Vec<&str> {
@@ -492,7 +466,7 @@ mod tests {
             Some("z.object({ name: z.string() })"),
         );
 
-        let output = generator.generate_procedure_string(&procedure, 2, None);
+        let output = generator.generate_procedure_string(&procedure, 2);
 
         assert!(output.contains("getUserById: publicProcedure"));
         assert!(output.contains(".input(z.object({ userId: z.string() }))"));
@@ -510,7 +484,7 @@ mod tests {
             None,
         );
 
-        let output = generator.generate_procedure_string(&procedure, 2, None);
+        let output = generator.generate_procedure_string(&procedure, 2);
 
         assert!(output.contains("createUser: publicProcedure"));
         assert!(output.contains(".input(z.object({ name: z.string() }))"));
@@ -529,7 +503,7 @@ mod tests {
             Some("z.object({ message: z.string() })"),
         );
 
-        let output = generator.generate_procedure_string(&procedure, 2, None);
+        let output = generator.generate_procedure_string(&procedure, 2);
 
         assert!(output.contains("onMessage: publicProcedure"));
         assert!(output.contains(".input(z.object({ channelId: z.string() }))"));
@@ -542,7 +516,7 @@ mod tests {
         let generator = ServerGenerator::new();
         let procedure = create_test_procedure("getAll", ProcedureType::Query, None, None);
 
-        let output = generator.generate_procedure_string(&procedure, 2, None);
+        let output = generator.generate_procedure_string(&procedure, 2);
 
         assert!(output.contains("getAll: publicProcedure"));
         assert!(!output.contains(".input"));
@@ -560,7 +534,9 @@ mod tests {
         procedure.owner_file_path = Some(std::path::PathBuf::from("/workspace/src/user.router.ts"));
 
         let output_file_path = std::path::PathBuf::from("/workspace/generated/server.ts");
-        let output = generator.generate_procedure_string(&procedure, 2, Some(&output_file_path));
+        let output = generator
+            .render_session(Some(&output_file_path), None)
+            .generate_procedure_string(&procedure, 2);
         let owner_alias = owner_inference::owner_module_alias("UserRouter", "../src/user.router");
 
         assert!(
@@ -586,7 +562,9 @@ mod tests {
         procedure.owner_file_path = Some(std::path::PathBuf::from("/workspace/src/user.router.ts"));
 
         let output_file_path = std::path::PathBuf::from("/workspace/generated/server.ts");
-        let output = generator.generate_procedure_string(&procedure, 2, Some(&output_file_path));
+        let output = generator
+            .render_session(Some(&output_file_path), None)
+            .generate_procedure_string(&procedure, 2);
 
         assert!(output.contains(".output(z.array(z.string()))"));
         assert!(output.contains(".query(async () => \"PLACEHOLDER_DO_NOT_REMOVE\" as any)"));
@@ -598,7 +576,7 @@ mod tests {
         let mut procedure = create_test_procedure("getAll", ProcedureType::Query, None, None);
         procedure.method_return_type = Some("Promise<FooDto[]>".to_string());
 
-        let output = generator.generate_procedure_string(&procedure, 2, None);
+        let output = generator.generate_procedure_string(&procedure, 2);
 
         assert!(!output.contains(".output"));
         assert!(
@@ -648,7 +626,7 @@ mod tests {
             )],
         );
 
-        let output = generator.generate_router_string(&router, 1, None);
+        let output = generator.generate_router_string(&router, 1);
 
         assert!(output.contains("users: t.router({"));
         assert!(output.contains("getUser: publicProcedure"));
@@ -668,7 +646,7 @@ mod tests {
             )],
         );
 
-        let output = generator.generate_router_string(&router, 1, None);
+        let output = generator.generate_router_string(&router, 1);
 
         // Should use camelCase class name
         assert!(output.contains("userRouter: t.router({"));
@@ -679,7 +657,7 @@ mod tests {
         let generator = ServerGenerator::new();
         let router = create_test_router("EmptyRouter", Some("empty"), vec![]);
 
-        let output = generator.generate_router_string(&router, 1, None);
+        let output = generator.generate_router_string(&router, 1);
 
         assert!(output.contains("empty: t.router({})"));
     }
@@ -687,7 +665,7 @@ mod tests {
     #[test]
     fn test_generate_app_router_empty() {
         let generator = ServerGenerator::new();
-        let output = generator.generate_app_router(&[], None);
+        let output = generator.generate_app_router(&[]);
 
         assert!(output.contains("const appRouter = t.router({});"));
     }
@@ -706,7 +684,7 @@ mod tests {
             )],
         )];
 
-        let output = generator.generate_app_router(&routers, None);
+        let output = generator.generate_app_router(&routers);
 
         assert!(output.contains("const appRouter = t.router({"));
         assert!(output.contains("users: t.router({"));
@@ -739,7 +717,7 @@ mod tests {
             ),
         ];
 
-        let output = generator.generate_app_router(&routers, None);
+        let output = generator.generate_app_router(&routers);
 
         assert!(output.contains("users: t.router({"));
         assert!(output.contains("posts: t.router({"));
@@ -825,7 +803,7 @@ mod tests {
         let procedure =
             create_test_procedure("getUser", ProcedureType::Query, Some("z.string()"), None);
 
-        let output = generator.generate_procedure_string(&procedure, 1, None);
+        let output = generator.generate_procedure_string(&procedure, 1);
 
         assert!(output.contains("\t\t.input(z.string())"));
     }
@@ -866,7 +844,7 @@ mod tests {
             ],
         );
 
-        let output = generator.generate_router_string(&router, 1, None);
+        let output = generator.generate_router_string(&router, 1);
 
         assert!(output.contains("getUser: publicProcedure"));
         assert!(output.contains("createUser: publicProcedure"));
@@ -927,7 +905,7 @@ mod tests {
             Some("z.number()"),
         );
 
-        let output = generator.generate_procedure_string(&procedure, 2, None);
+        let output = generator.generate_procedure_string(&procedure, 2);
 
         // At depth 2, the procedure name should have 4 spaces (2 * "  ")
         // The chain methods should have 6 spaces (3 * "  ")
@@ -965,7 +943,7 @@ mod tests {
             )],
         );
 
-        let output = generator.generate_router_string(&router, 1, None);
+        let output = generator.generate_router_string(&router, 1);
         // camelCase of SpecialRouter is specialRouter
         assert!(output.contains("specialRouter: t.router({"));
     }
@@ -984,7 +962,7 @@ mod tests {
             )],
         );
 
-        let output = generator.generate_router_string(&router, 1, None);
+        let output = generator.generate_router_string(&router, 1);
         assert!(output.contains("utilisateur: t.router({"));
     }
 
@@ -1006,7 +984,7 @@ mod tests {
             None,
         );
 
-        let output = generator.generate_procedure_string(&procedure, 1, None);
+        let output = generator.generate_procedure_string(&procedure, 1);
         assert!(output.contains(&long_schema));
     }
 
@@ -1022,7 +1000,7 @@ mod tests {
             None,
         );
 
-        let output = generator.generate_procedure_string(&procedure, 1, None);
+        let output = generator.generate_procedure_string(&procedure, 1);
         assert!(output.contains(nested_schema));
     }
 
@@ -1042,7 +1020,7 @@ mod tests {
             schema_identifiers: Vec::new(),
         };
 
-        let output = generator.generate_procedure_string(&procedure, 1, None);
+        let output = generator.generate_procedure_string(&procedure, 1);
         assert!(output.contains(": publicProcedure"));
     }
 
@@ -1056,7 +1034,7 @@ mod tests {
             procedures: vec![],
         };
 
-        let output = generator.generate_router_string(&router, 1, None);
+        let output = generator.generate_router_string(&router, 1);
         assert!(output.contains(": t.router({})"));
     }
 
@@ -1099,7 +1077,7 @@ mod tests {
             create_test_router("MRouter", Some("m"), vec![]),
         ];
 
-        let output = generator.generate_app_router(&routers, None);
+        let output = generator.generate_app_router(&routers);
 
         let z_pos = output.find("z: t.router").unwrap_or(0);
         let a_pos = output.find("a: t.router").unwrap_or(0);
@@ -1119,7 +1097,7 @@ mod tests {
             Some("z.object({ name: z.string() })"),
         );
 
-        let output = generator.generate_procedure_string(&procedure, 1, None);
+        let output = generator.generate_procedure_string(&procedure, 1);
 
         assert!(!output.contains(".input("));
         assert!(output.contains(".output(z.object({ name: z.string() }))"));
@@ -1152,7 +1130,7 @@ mod tests {
             None,
         );
 
-        let output = generator.generate_procedure_string(&procedure, 1, None);
+        let output = generator.generate_procedure_string(&procedure, 1);
         assert!(output.contains(r#"z.enum(["active", "inactive"])"#));
     }
 
@@ -1161,7 +1139,7 @@ mod tests {
         let generator = ServerGenerator::new();
         let procedure = create_test_procedure("deep", ProcedureType::Query, None, None);
 
-        let output = generator.generate_procedure_string(&procedure, 10, None);
+        let output = generator.generate_procedure_string(&procedure, 10);
 
         let first_line = output.lines().next().unwrap();
         let expected_indent = "  ".repeat(10);
@@ -1247,7 +1225,7 @@ mod tests {
             ),
         ];
 
-        let output = generator.generate_app_router(&routers, None);
+        let output = generator.generate_app_router(&routers);
 
         assert_eq!(
             output.matches("users: t.router(").count(),
@@ -1284,7 +1262,7 @@ mod tests {
             ),
         ];
 
-        let output = generator.generate_app_router(&routers, None);
+        let output = generator.generate_app_router(&routers);
 
         assert_eq!(
             output.matches("userRouter: t.router(").count(),
@@ -1331,7 +1309,7 @@ mod tests {
             ),
         ];
 
-        let output = generator.generate_app_router(&routers, None);
+        let output = generator.generate_app_router(&routers);
 
         let posts_pos = output.find("posts: t.router(").unwrap();
         let users_pos = output.find("users: t.router(").unwrap();
@@ -1383,7 +1361,7 @@ mod tests {
             ),
         ];
 
-        let output = generator.generate_app_router(&routers, None);
+        let output = generator.generate_app_router(&routers);
 
         assert_eq!(output.matches("users: t.router(").count(), 1);
         assert_eq!(output.matches("posts: t.router(").count(), 1);
@@ -1423,7 +1401,7 @@ mod tests {
             ),
         ];
 
-        let output = generator.generate_app_router(&routers, None);
+        let output = generator.generate_app_router(&routers);
 
         assert_eq!(output.matches("shared: t.router(").count(), 1);
         assert!(output.contains("a: publicProcedure"));
@@ -1449,7 +1427,7 @@ mod tests {
             ),
         ];
 
-        let output = generator.generate_app_router(&routers, None);
+        let output = generator.generate_app_router(&routers);
 
         assert_eq!(output.matches("shared: t.router(").count(), 1);
         assert!(output.contains("action: publicProcedure"));

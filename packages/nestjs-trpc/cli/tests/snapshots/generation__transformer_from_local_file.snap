@@ -1,6 +1,6 @@
 ---
 source: tests/generation.rs
-assertion_line: 203
+assertion_line: 258
 expression: output
 ---
 /**
@@ -19,14 +19,14 @@ import { customTransformer } from "./my-transformer";
 
 const t = initTRPC.create({ transformer: customTransformer });
 const publicProcedure = t.procedure;
-type __ItemsRouterModule_655b26 = typeof import("<FIXTURES>/transformer-local/items.router");
+type __ItemsRouterModule_fixtures_root_transformer_local_items_router = typeof import("<FIXTURES>/transformer-local/items.router");
 import type { __ResolveProcedureReturnType } from "./__nestjs-trpc-type-helpers";
 
 const appRouter = t.router({
   items: t.router({
     getItem: publicProcedure
       .input(z.object({ id: z.string() }))
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<__ResolveProcedureReturnType<__ItemsRouterModule_655b26, "ItemsRouter", "getItem">>)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<__ResolveProcedureReturnType<__ItemsRouterModule_fixtures_root_transformer_local_items_router, "ItemsRouter", "getItem">>)
     })
 });
 

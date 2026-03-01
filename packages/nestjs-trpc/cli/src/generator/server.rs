@@ -22,6 +22,8 @@ pub struct ServerGenerator {
     indent: String,
 }
 
+type OwnerAliasLookup = HashMap<(String, String), String>;
+
 impl Default for ServerGenerator {
     fn default() -> Self {
         Self::new()
@@ -103,7 +105,8 @@ impl ServerGenerator {
             output_file_path,
         );
 
-        let owner_imports = self.collect_owner_imports(routers, output_file_path);
+        let (owner_imports, owner_alias_lookup) =
+            self.collect_owner_imports(routers, output_file_path);
         self.append_owner_module_type_aliases(&mut output, &owner_imports);
         if !owner_imports.is_empty() {
             self.append_owner_return_type_helper_import(&mut output, output_file_path);
@@ -111,7 +114,11 @@ impl ServerGenerator {
 
         output.push('\n');
 
-        output.push_str(&self.generate_app_router(routers, Some(output_file_path)));
+        output.push_str(&self.generate_app_router_with_owner_aliases(
+            routers,
+            Some(output_file_path),
+            Some(&owner_alias_lookup),
+        ));
 
         output.push('\n');
 
@@ -126,6 +133,15 @@ impl ServerGenerator {
         routers: &[RouterMetadata],
         output_file_path: Option<&Path>,
     ) -> String {
+        self.generate_app_router_with_owner_aliases(routers, output_file_path, None)
+    }
+
+    fn generate_app_router_with_owner_aliases(
+        &self,
+        routers: &[RouterMetadata],
+        output_file_path: Option<&Path>,
+        owner_alias_lookup: Option<&OwnerAliasLookup>,
+    ) -> String {
         let term = self.terminator();
 
         if routers.is_empty() {
@@ -136,7 +152,13 @@ impl ServerGenerator {
         let router_strings: Vec<String> = merged
             .iter()
             .map(|(key, procedures)| {
-                self.generate_merged_router_string(key, procedures, 1, output_file_path)
+                self.generate_merged_router_string(
+                    key,
+                    procedures,
+                    1,
+                    output_file_path,
+                    owner_alias_lookup,
+                )
             })
             .collect();
 
@@ -151,6 +173,7 @@ impl ServerGenerator {
         procedures: &[&ProcedureMetadata],
         depth: usize,
         output_file_path: Option<&Path>,
+        owner_alias_lookup: Option<&OwnerAliasLookup>,
     ) -> String {
         let indent = self.indent.repeat(depth);
         let inner_indent = self.indent.repeat(depth + 1);
@@ -161,7 +184,14 @@ impl ServerGenerator {
 
         let procedure_strings: Vec<String> = procedures
             .iter()
-            .map(|procedure| self.generate_procedure_string(procedure, depth + 1, output_file_path))
+            .map(|procedure| {
+                self.generate_procedure_string_with_owner_aliases(
+                    procedure,
+                    depth + 1,
+                    output_file_path,
+                    owner_alias_lookup,
+                )
+            })
             .collect();
 
         let procedures_content = procedure_strings.join(",\n");
@@ -191,7 +221,14 @@ impl ServerGenerator {
         let procedure_strings: Vec<String> = router
             .procedures
             .iter()
-            .map(|proc| self.generate_procedure_string(proc, depth + 1, output_file_path))
+            .map(|proc| {
+                self.generate_procedure_string_with_owner_aliases(
+                    proc,
+                    depth + 1,
+                    output_file_path,
+                    None,
+                )
+            })
             .collect();
 
         let procedures_content = procedure_strings.join(",\n");
@@ -205,6 +242,16 @@ impl ServerGenerator {
         procedure: &ProcedureMetadata,
         depth: usize,
         output_file_path: Option<&Path>,
+    ) -> String {
+        self.generate_procedure_string_with_owner_aliases(procedure, depth, output_file_path, None)
+    }
+
+    fn generate_procedure_string_with_owner_aliases(
+        &self,
+        procedure: &ProcedureMetadata,
+        depth: usize,
+        output_file_path: Option<&Path>,
+        owner_alias_lookup: Option<&OwnerAliasLookup>,
     ) -> String {
         let indent = self.indent.repeat(depth);
         let chain_indent = self.indent.repeat(depth + 1);
@@ -226,7 +273,11 @@ impl ServerGenerator {
         } else {
             format!(
                 "as unknown as {}",
-                self.generate_return_type_expression(procedure, output_file_path)
+                self.generate_return_type_expression(
+                    procedure,
+                    output_file_path,
+                    owner_alias_lookup,
+                )
             )
         };
         let proc_type = procedure.procedure_type.to_string();
@@ -241,6 +292,7 @@ impl ServerGenerator {
         &self,
         procedure: &ProcedureMetadata,
         output_file_path: Option<&Path>,
+        owner_alias_lookup: Option<&OwnerAliasLookup>,
     ) -> String {
         if let (Some(output_file_path), Some(owner_file_path), Some(owner_class_name)) = (
             output_file_path,
@@ -249,7 +301,13 @@ impl ServerGenerator {
         ) {
             let output_dir = output_file_path.parent().unwrap_or_else(|| Path::new("."));
             let import_path = calculate_relative_import_path(output_dir, owner_file_path);
-            let owner_alias = owner_module_alias(owner_class_name, &import_path);
+            let owner_alias = owner_alias_lookup
+                .and_then(|lookup| {
+                    lookup
+                        .get(&(owner_class_name.to_string(), import_path.clone()))
+                        .cloned()
+                })
+                .unwrap_or_else(|| owner_module_alias(owner_class_name, &import_path));
 
             return format!(
                 "Awaited<__ResolveProcedureReturnType<{owner_alias}, \"{owner_class_name}\", \"{}\">>",
@@ -308,9 +366,11 @@ impl ServerGenerator {
         &self,
         routers: &[RouterMetadata],
         output_file_path: &Path,
-    ) -> Vec<(String, String)> {
+    ) -> (Vec<(String, String)>, OwnerAliasLookup) {
         let output_dir = output_file_path.parent().unwrap_or_else(|| Path::new("."));
-        let mut seen_aliases: HashSet<String> = HashSet::new();
+        let mut seen_owners: HashSet<(String, String)> = HashSet::new();
+        let mut alias_occurrences: HashMap<String, usize> = HashMap::new();
+        let mut owner_alias_lookup: OwnerAliasLookup = HashMap::new();
         let mut imports = Vec::new();
 
         for router in routers {
@@ -327,14 +387,24 @@ impl ServerGenerator {
                 };
 
                 let import_path = calculate_relative_import_path(output_dir, owner_file_path);
-                let alias = owner_module_alias(owner_class_name, &import_path);
-                if seen_aliases.insert(alias.clone()) {
+                let owner_key = (owner_class_name.to_string(), import_path.clone());
+                if seen_owners.insert(owner_key.clone()) {
+                    let base_alias = owner_module_alias(owner_class_name, &import_path);
+                    let suffix = alias_occurrences.entry(base_alias.clone()).or_insert(0);
+                    *suffix += 1;
+                    let alias = if *suffix == 1 {
+                        base_alias
+                    } else {
+                        format!("{base_alias}_{suffix}")
+                    };
+
+                    owner_alias_lookup.insert(owner_key, alias.clone());
                     imports.push((alias, import_path));
                 }
             }
         }
 
-        imports
+        (imports, owner_alias_lookup)
     }
 
     fn append_owner_module_type_aliases(
@@ -481,30 +551,70 @@ fn calculate_relative_import_path(from_dir: &Path, to_file: &Path) -> String {
     }
 }
 
-const FNV_OFFSET_BASIS: u64 = 0xcbf29ce484222325;
-const FNV_PRIME: u64 = 0x100000001b3;
-const ALIAS_HASH_MASK: u64 = 0x00ff_ffff;
-
 fn owner_module_alias(owner_class_name: &str, import_path: &str) -> String {
-    let mut hash: u64 = FNV_OFFSET_BASIS;
-    for byte in import_path.bytes() {
-        hash ^= u64::from(byte);
-        hash = hash.wrapping_mul(FNV_PRIME);
-    }
-
-    let sanitized_class_name: String = owner_class_name
-        .chars()
-        .filter(|ch| ch.is_ascii_alphanumeric() || *ch == '_')
-        .collect();
-
-    let class_name_part = if sanitized_class_name.is_empty() {
+    let class_name_part = sanitize_class_name_for_alias(owner_class_name);
+    let class_name_part = if class_name_part.is_empty() {
         "Owner".to_string()
     } else {
-        sanitized_class_name
+        class_name_part
     };
 
-    let short_hash = hash & ALIAS_HASH_MASK;
-    format!("__{class_name_part}Module_{short_hash:06x}")
+    let sanitized_path = sanitize_import_path_for_alias(import_path);
+    let path_part = if sanitized_path.is_empty() {
+        "root".to_string()
+    } else {
+        sanitized_path
+    };
+
+    format!("__{class_name_part}Module_{path_part}")
+}
+
+fn sanitize_class_name_for_alias(owner_class_name: &str) -> String {
+    owner_class_name
+        .chars()
+        .filter(|ch| ch.is_ascii_alphanumeric() || *ch == '_')
+        .collect::<String>()
+        .trim_matches('_')
+        .to_string()
+}
+
+fn sanitize_import_path_for_alias(import_path: &str) -> String {
+    let mut normalized = import_path.replace('\\', "/");
+    while let Some(stripped) = normalized.strip_prefix("../") {
+        normalized = stripped.to_string();
+    }
+    if let Some(stripped) = normalized.strip_prefix("./") {
+        normalized = stripped.to_string();
+    }
+
+    let normalized = normalized.trim_start_matches('/');
+    let without_ext = normalized
+        .strip_suffix(".ts")
+        .or_else(|| normalized.strip_suffix(".tsx"))
+        .unwrap_or(normalized);
+
+    let mut sanitized = String::new();
+    let mut previous_was_separator = false;
+
+    for ch in without_ext.chars() {
+        let mapped = if ch.is_ascii_alphanumeric() {
+            ch.to_ascii_lowercase()
+        } else {
+            '_'
+        };
+
+        if mapped == '_' {
+            if !previous_was_separator {
+                sanitized.push('_');
+            }
+            previous_was_separator = true;
+        } else {
+            sanitized.push(mapped);
+            previous_was_separator = false;
+        }
+    }
+
+    sanitized.trim_matches('_').to_string()
 }
 
 #[must_use]
@@ -1073,6 +1183,58 @@ mod tests {
 
         let static_ref = generator.static_generator();
         assert!(static_ref.use_single_quotes);
+    }
+
+    #[test]
+    fn test_owner_module_alias_includes_readable_path_segments() {
+        let alias = owner_module_alias("UserRouter", "../src/user.router");
+
+        assert_eq!(alias, "__UserRouterModule_src_user_router");
+    }
+
+    #[test]
+    fn test_collect_owner_imports_adds_suffix_when_aliases_collide() {
+        let generator = ServerGenerator::new();
+        let mut dashed = create_test_procedure("getByDash", ProcedureType::Query, None, None);
+        dashed.owner_class_name = Some("UserRouter".to_string());
+        dashed.owner_file_path = Some(std::path::PathBuf::from("/workspace/src/user-router.ts"));
+
+        let mut underscored =
+            create_test_procedure("getByUnderscore", ProcedureType::Query, None, None);
+        underscored.owner_class_name = Some("UserRouter".to_string());
+        underscored.owner_file_path = Some(std::path::PathBuf::from("/workspace/src/user_router.ts"));
+
+        let routers = vec![create_test_router(
+            "UserRouter",
+            Some("users"),
+            vec![dashed, underscored],
+        )];
+        let output_path = std::path::PathBuf::from("/workspace/generated/server.ts");
+
+        let (imports, owner_alias_lookup) = generator.collect_owner_imports(&routers, &output_path);
+
+        assert_eq!(imports.len(), 2);
+        assert_eq!(imports[0].0, "__UserRouterModule_src_user_router");
+        assert_eq!(imports[1].0, "__UserRouterModule_src_user_router_2");
+
+        let output_dir = output_path.parent().unwrap_or_else(|| Path::new("."));
+        let dashed_import_path =
+            calculate_relative_import_path(output_dir, Path::new("/workspace/src/user-router.ts"));
+        let underscored_import_path =
+            calculate_relative_import_path(output_dir, Path::new("/workspace/src/user_router.ts"));
+
+        assert_eq!(
+            owner_alias_lookup
+                .get(&("UserRouter".to_string(), dashed_import_path))
+                .map(String::as_str),
+            Some("__UserRouterModule_src_user_router")
+        );
+        assert_eq!(
+            owner_alias_lookup
+                .get(&("UserRouter".to_string(), underscored_import_path))
+                .map(String::as_str),
+            Some("__UserRouterModule_src_user_router_2")
+        );
     }
 
     // ========================================================================

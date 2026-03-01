@@ -1,6 +1,6 @@
 ---
 source: tests/generation.rs
-assertion_line: 197
+assertion_line: 252
 expression: output
 ---
 /**
@@ -19,7 +19,7 @@ import superjson from "superjson";
 
 const t = initTRPC.create({ transformer: superjson });
 const publicProcedure = t.procedure;
-type __ItemsRouterModule_5ef16e = typeof import("<FIXTURES>/transformer-library/items.router");
+type __ItemsRouterModule_fixtures_root_transformer_library_items_router = typeof import("<FIXTURES>/transformer-library/items.router");
 import type { __ResolveProcedureReturnType } from "./__nestjs-trpc-type-helpers";
 
 const appRouter = t.router({
@@ -30,7 +30,7 @@ const appRouter = t.router({
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     createItem: publicProcedure
       .input(z.object({ name: z.string() }))
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<__ResolveProcedureReturnType<__ItemsRouterModule_5ef16e, "ItemsRouter", "createItem">>)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<__ResolveProcedureReturnType<__ItemsRouterModule_fixtures_root_transformer_library_items_router, "ItemsRouter", "createItem">>)
     })
 });
 

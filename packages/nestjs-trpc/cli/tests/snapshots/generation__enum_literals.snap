@@ -1,6 +1,6 @@
 ---
 source: tests/generation.rs
-assertion_line: 76
+assertion_line: 131
 expression: output
 ---
 /**
@@ -19,7 +19,7 @@ import { z } from "zod";
 const t = initTRPC.create();
 const publicProcedure = t.procedure;
 import { Priority, Status, TypeEnum } from "<FIXTURES>/enum-literals/types";
-type __ItemsRouterModule_5957f5 = typeof import("<FIXTURES>/enum-literals/items.router");
+type __ItemsRouterModule_fixtures_root_enum_literals_items_router = typeof import("<FIXTURES>/enum-literals/items.router");
 import type { __ResolveProcedureReturnType } from "./__nestjs-trpc-type-helpers";
 
 const appRouter = t.router({
@@ -37,7 +37,7 @@ const appRouter = t.router({
       .input(z.object({
             type: z.enum([TypeEnum.Normal, TypeEnum.Special]),
         }))
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<__ResolveProcedureReturnType<__ItemsRouterModule_5957f5, "ItemsRouter", "createItem">>)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<__ResolveProcedureReturnType<__ItemsRouterModule_fixtures_root_enum_literals_items_router, "ItemsRouter", "createItem">>)
     })
 });
 

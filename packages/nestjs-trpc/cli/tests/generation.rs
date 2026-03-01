@@ -54,7 +54,8 @@ fn normalize_owner_alias_paths(content: &str) -> String {
         .expect("Failed to canonicalize fixtures directory");
     let fixtures_str = fixtures_dir.to_string_lossy().replace('\\', "/");
     let encoded_fixtures_path = sanitize_import_path_for_alias(&fixtures_str);
-    let encoded_fixtures_suffix = sanitize_import_path_for_alias(fixtures_str.trim_start_matches('/'));
+    let encoded_fixtures_suffix =
+        sanitize_import_path_for_alias(fixtures_str.trim_start_matches('/'));
 
     let content = content
         .replace(&encoded_fixtures_path, "fixtures_root")

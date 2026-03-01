@@ -131,11 +131,11 @@ impl<'a> ServerRenderSession<'a> {
 
         let resolver_cast = if procedure.output_schema.is_some() {
             "as any".to_string()
+        } else if let Some(return_type_expression) = self.generate_return_type_expression(procedure)
+        {
+            format!("as unknown as {return_type_expression}")
         } else {
-            format!(
-                "as unknown as {}",
-                self.generate_return_type_expression(procedure)
-            )
+            "as any".to_string()
         };
         let proc_type = procedure.procedure_type.to_string();
         chain_parts.push(format!(
@@ -145,7 +145,7 @@ impl<'a> ServerRenderSession<'a> {
         chain_parts.join("\n")
     }
 
-    fn generate_return_type_expression(&self, procedure: &ProcedureMetadata) -> String {
+    fn generate_return_type_expression(&self, procedure: &ProcedureMetadata) -> Option<String> {
         if let (Some(output_file_path), Some(owner_file_path), Some(owner_class_name)) = (
             self.output_file_path,
             procedure.owner_file_path.as_deref(),
@@ -165,13 +165,13 @@ impl<'a> ServerRenderSession<'a> {
                     owner_inference::owner_module_alias(owner_class_name, &import_path)
                 });
 
-            return format!(
+            return Some(format!(
                 "Awaited<__ResolveProcedureReturnType<{owner_alias}, \"{owner_class_name}\", \"{}\">>",
                 procedure.name
-            );
+            ));
         }
 
-        "any".to_string()
+        None
     }
 }
 
@@ -489,8 +489,7 @@ mod tests {
         assert!(output.contains("createUser: publicProcedure"));
         assert!(output.contains(".input(z.object({ name: z.string() }))"));
         assert!(!output.contains(".output"));
-        assert!(output
-            .contains(".mutation(async () => \"PLACEHOLDER_DO_NOT_REMOVE\" as unknown as any)"));
+        assert!(output.contains(".mutation(async () => \"PLACEHOLDER_DO_NOT_REMOVE\" as any)"));
     }
 
     #[test]
@@ -521,9 +520,7 @@ mod tests {
         assert!(output.contains("getAll: publicProcedure"));
         assert!(!output.contains(".input"));
         assert!(!output.contains(".output"));
-        assert!(
-            output.contains(".query(async () => \"PLACEHOLDER_DO_NOT_REMOVE\" as unknown as any)")
-        );
+        assert!(output.contains(".query(async () => \"PLACEHOLDER_DO_NOT_REMOVE\" as any)"));
     }
 
     #[test]
@@ -579,9 +576,7 @@ mod tests {
         let output = generator.generate_procedure_string(&procedure, 2);
 
         assert!(!output.contains(".output"));
-        assert!(
-            output.contains(".query(async () => \"PLACEHOLDER_DO_NOT_REMOVE\" as unknown as any)")
-        );
+        assert!(output.contains(".query(async () => \"PLACEHOLDER_DO_NOT_REMOVE\" as any)"));
     }
 
     #[test]

@@ -9,6 +9,7 @@ use std::path::Path;
 use crate::parser::module::TransformerInfo;
 
 pub use server::{generate_server_file, ServerGenerator};
+pub use owner_inference::sanitize_import_path_for_alias;
 pub use types::{generate_types_file, TypesGenerator};
 
 pub type GeneratorResult<T> = std::result::Result<T, crate::error::GeneratorError>;

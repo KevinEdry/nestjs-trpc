@@ -2,7 +2,8 @@
 
 use insta::assert_snapshot;
 use nestjs_trpc::{
-    extract_trpc_options, resolve_transformer_import, run_generation, TransformerInfo, TsParser,
+    extract_trpc_options, generator::sanitize_import_path_for_alias, resolve_transformer_import,
+    run_generation, TransformerInfo, TsParser,
 };
 use std::fs;
 use std::path::PathBuf;
@@ -61,45 +62,6 @@ fn normalize_owner_alias_paths(content: &str) -> String {
         .replace(&encoded_fixtures_path, "fixtures_root")
         .replace(&encoded_fixtures_suffix, "fixtures_root");
     content
-}
-
-fn sanitize_import_path_for_alias(import_path: &str) -> String {
-    let mut normalized = import_path.replace('\\', "/");
-    while let Some(stripped) = normalized.strip_prefix("../") {
-        normalized = stripped.to_string();
-    }
-    if let Some(stripped) = normalized.strip_prefix("./") {
-        normalized = stripped.to_string();
-    }
-
-    let normalized = normalized.trim_start_matches('/');
-    let without_ext = normalized
-        .strip_suffix(".ts")
-        .or_else(|| normalized.strip_suffix(".tsx"))
-        .unwrap_or(normalized);
-
-    let mut sanitized = String::new();
-    let mut previous_was_separator = false;
-
-    for ch in without_ext.chars() {
-        let mapped = if ch.is_ascii_alphanumeric() {
-            ch.to_ascii_lowercase()
-        } else {
-            '_'
-        };
-
-        if mapped == '_' {
-            if !previous_was_separator {
-                sanitized.push('_');
-            }
-            previous_was_separator = true;
-        } else {
-            sanitized.push(mapped);
-            previous_was_separator = false;
-        }
-    }
-
-    sanitized.trim_matches('_').to_string()
 }
 
 #[test]

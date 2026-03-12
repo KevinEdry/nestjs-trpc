@@ -190,7 +190,8 @@ fn sanitize_class_name_for_alias(owner_class_name: &str) -> String {
         .to_string()
 }
 
-fn sanitize_import_path_for_alias(import_path: &str) -> String {
+#[must_use]
+pub fn sanitize_import_path_for_alias(import_path: &str) -> String {
     let mut normalized = import_path.replace('\\', "/");
     while let Some(stripped) = normalized.strip_prefix("../") {
         normalized = stripped.to_string();
@@ -241,7 +242,6 @@ mod tests {
             procedure_type: ProcedureType::Query,
             input_schema: None,
             output_schema: output.map(std::string::ToString::to_string),
-            method_return_type: None,
             owner_class_name: None,
             owner_file_path: None,
             input_schema_ref: None,

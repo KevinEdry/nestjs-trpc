@@ -1,41 +1,37 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use nestjs_trpc::run_generation;
+use nestjs_trpc::{find_tsc, run_generation, run_tsc_validation};
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use tempfile::TempDir;
-
-fn nestjs_trpc_package() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .expect("Failed to find nestjs-trpc package")
-        .to_path_buf()
-}
 
 fn fixtures_directory() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures")
 }
 
 fn project_root() -> PathBuf {
-    nestjs_trpc_package()
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
-        .expect("Failed to find packages dir")
+        .expect("Failed to find nestjs-trpc package")
+        .parent()
+        .expect("Failed to find packages directory")
         .parent()
         .expect("Failed to find workspace root")
         .to_path_buf()
 }
 
 fn find_tsc_binary() -> Option<PathBuf> {
-    let workspace_tsc = project_root().join("node_modules/.bin/tsc");
-    if workspace_tsc.exists() {
-        return Some(workspace_tsc);
-    }
-
-    None
+    find_tsc(&project_root())
 }
 
-fn build_tsconfig(nestjs_trpc_node_modules: &std::path::Path) -> String {
+fn build_tsconfig(files: &[&str]) -> String {
+    let files_json = files
+        .iter()
+        .map(|file| format!("\"{file}\""))
+        .collect::<Vec<_>>()
+        .join(", ");
+
     format!(
         r#"{{
     "compilerOptions": {{
@@ -46,23 +42,16 @@ fn build_tsconfig(nestjs_trpc_node_modules: &std::path::Path) -> String {
         "noEmit": true,
         "esModuleInterop": true,
         "moduleResolution": "node",
-        "typeRoots": ["{}/node_modules/@types"],
-        "baseUrl": ".",
-        "paths": {{
-            "@trpc/server": ["{}/node_modules/@trpc/server"],
-            "zod": ["{}/node_modules/zod"]
-        }}
+        "experimentalDecorators": true
     }},
     "include": ["server.ts"],
-    "files": ["stubs.d.ts"]
+    "files": [{}]
 }}"#,
-        nestjs_trpc_node_modules.display(),
-        nestjs_trpc_node_modules.display(),
-        nestjs_trpc_node_modules.display()
+        files_json
     )
 }
 
-fn create_stub_declarations(output_directory: &std::path::Path, generated_content: &str) {
+fn create_stub_declarations(output_directory: &Path, generated_content: &str) {
     use std::fmt::Write;
 
     let stub_names = extract_schema_references(generated_content);
@@ -70,6 +59,23 @@ fn create_stub_declarations(output_directory: &std::path::Path, generated_conten
 
     let mut declarations = String::from("// Auto-generated stub declarations for validation\n");
     declarations.push_str("// Using any type to allow all Zod schema methods\n\n");
+    declarations.push_str("declare module \"@trpc/server\" {\n");
+    declarations.push_str("  export const initTRPC: any;\n");
+    declarations.push_str("}\n\n");
+    declarations.push_str("declare module \"zod\" {\n");
+    declarations.push_str("  export const z: any;\n");
+    declarations.push_str("  export namespace z {\n");
+    declarations.push_str("    export type infer<T> = any;\n");
+    declarations.push_str("  }\n");
+    declarations.push_str("}\n\n");
+    declarations.push_str("declare module \"nestjs-trpc\" {\n");
+    declarations.push_str("  export function Router(...args: any[]): any;\n");
+    declarations.push_str("  export function Query(...args: any[]): any;\n");
+    declarations.push_str("  export function Mutation(...args: any[]): any;\n");
+    declarations.push_str("  export function Subscription(...args: any[]): any;\n");
+    declarations.push_str("  export const TRPCModule: any;\n");
+    declarations.push_str("}\n\n");
+
     for name in stub_names {
         writeln!(declarations, "declare const {name}: any;").unwrap();
     }
@@ -263,6 +269,46 @@ fn extract_identifier(text: &str) -> Option<String> {
     }
 }
 
+fn run_tsc_and_assert_success(tsconfig_path: &Path, context: &str) {
+    let Some(_tsc_binary) = find_tsc_binary() else {
+        eprintln!("Warning: tsc not found in workspace, skipping validation test for '{context}'");
+        return;
+    };
+
+    let tsc_result =
+        run_tsc_validation(&project_root(), tsconfig_path).expect("Failed to run tsc validation");
+
+    assert!(
+        tsc_result.success,
+        "TypeScript validation failed for '{context}':\n{}",
+        format_tsc_errors(
+            &tsconfig_path.parent().unwrap_or_else(|| Path::new(".")),
+            &tsc_result
+        )
+    );
+}
+
+fn format_tsc_errors(output_directory: &Path, result: &nestjs_trpc::TscResult) -> String {
+    if result.errors.is_empty() {
+        return format!(
+            "tsc exited unsuccessfully with no parsed diagnostics in {}",
+            output_directory.display()
+        );
+    }
+
+    result
+        .errors
+        .iter()
+        .map(|error| {
+            format!(
+                "{}({},{}) {:?} {}: {}",
+                error.file, error.line, error.column, error.severity, error.code, error.message
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
 fn generate_and_validate_typescript(fixture_name: &str) {
     let fixture_path = fixtures_directory().join(fixture_name);
 
@@ -276,40 +322,99 @@ fn generate_and_validate_typescript(fixture_name: &str) {
 
     create_stub_declarations(output_path, &generated_content);
 
-    let nestjs_trpc_node_modules = nestjs_trpc_package();
-    let tsconfig_content = build_tsconfig(&nestjs_trpc_node_modules);
+    let tsconfig_content = build_tsconfig(&["stubs.d.ts"]);
     let tsconfig_path = temporary_directory.path().join("tsconfig.json");
     fs::write(&tsconfig_path, &tsconfig_content).expect("Failed to write tsconfig");
 
-    let Some(tsc_binary) = find_tsc_binary() else {
-        eprintln!(
-            "Warning: tsc not found in workspace, skipping validation test for '{fixture_name}'"
-        );
-        return;
-    };
+    run_tsc_and_assert_success(&tsconfig_path, fixture_name);
+}
 
-    let tsc_result = Command::new(&tsc_binary)
-        .args(["--noEmit", "--project", tsconfig_path.to_str().unwrap()])
-        .output();
+fn relative_typescript_import_path(from_dir: &Path, to_file: &Path) -> String {
+    let relative = pathdiff::diff_paths(to_file, from_dir).unwrap_or_else(|| to_file.to_path_buf());
+    let relative = relative.to_string_lossy().replace('\\', "/");
+    let without_ext = relative
+        .strip_suffix(".ts")
+        .or_else(|| relative.strip_suffix(".tsx"))
+        .unwrap_or(&relative);
 
-    match tsc_result {
-        Ok(output) => {
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            let stderr = String::from_utf8_lossy(&output.stderr);
-
-            assert!(
-                output.status.success(),
-                "TypeScript validation failed for fixture '{fixture_name}':\nstdout: {stdout}\nstderr: {stderr}"
-            );
-        }
-        Err(error) => {
-            if error.kind() == std::io::ErrorKind::NotFound {
-                eprintln!("Warning: tsc not found, skipping validation test for '{fixture_name}'");
-                return;
-            }
-            panic!("Failed to run tsc: {error}");
-        }
+    if without_ext.starts_with('.') || without_ext.starts_with('/') {
+        without_ext.to_string()
+    } else {
+        format!("./{without_ext}")
     }
+}
+
+fn create_owner_return_type_assertions(
+    output_directory: &Path,
+    fixture_router_path: &Path,
+    owner_class_name: &str,
+) {
+    let import_path = relative_typescript_import_path(output_directory, fixture_router_path);
+    let assertions = format!(
+        r#"import type {{ __ResolveProcedureReturnType }} from "./__nestjs-trpc-type-helpers";
+
+type FixtureModule = typeof import("{import_path}");
+
+type Equal<A, B> =
+    (<T>() => T extends A ? 1 : 2) extends
+    (<T>() => T extends B ? 1 : 2) ? true : false;
+
+type Expect<T extends true> = T;
+type IsAny<T> = 0 extends (1 & T) ? true : false;
+type ExpectFalse<T extends false> = T;
+
+type SyncResolved =
+    __ResolveProcedureReturnType<FixtureModule, "{owner_class_name}", "getUser">;
+type AsyncResolved =
+    __ResolveProcedureReturnType<FixtureModule, "{owner_class_name}", "createItem">;
+
+type _SyncMatches = Expect<Equal<SyncResolved, {{ id: string; role: "admin" }}>>;
+type _SyncNotAny = ExpectFalse<IsAny<SyncResolved>>;
+
+type _AsyncMatches = Expect<
+    Equal<AsyncResolved, Promise<{{ ok: true; count: number }}>>
+>;
+type _AsyncAwaitedMatches = Expect<
+    Equal<Awaited<AsyncResolved>, {{ ok: true; count: number }}>
+>;
+type _AsyncNotAny = ExpectFalse<IsAny<AsyncResolved>>;
+"#
+    );
+
+    let assertions_path = output_directory.join("assertions.ts");
+    fs::write(assertions_path, assertions).expect("Failed to write owner return type assertions");
+}
+
+fn generate_and_validate_owner_return_types(
+    fixture_name: &str,
+    router_file_name: &str,
+    owner_class_name: &str,
+) {
+    let fixture_path = fixtures_directory().join(fixture_name);
+    let fixture_router_path = fixture_path.join(router_file_name);
+
+    let temporary_directory = TempDir::new().expect("Failed to create temp directory");
+    let output_path = temporary_directory.path();
+
+    run_generation(&fixture_path, output_path, "**/*.router.ts", None).expect("Generation failed");
+
+    let server_file = output_path.join("server.ts");
+    let generated_content = fs::read_to_string(&server_file).expect("Failed to read server.ts");
+
+    create_stub_declarations(output_path, &generated_content);
+    create_owner_return_type_assertions(output_path, &fixture_router_path, owner_class_name);
+
+    let helper_file = output_path.join("__nestjs-trpc-type-helpers.ts");
+    assert!(
+        helper_file.exists(),
+        "Expected shared helper file to exist for fixture '{fixture_name}'"
+    );
+
+    let tsconfig_content = build_tsconfig(&["stubs.d.ts", "assertions.ts"]);
+    let tsconfig_path = temporary_directory.path().join("tsconfig.json");
+    fs::write(&tsconfig_path, &tsconfig_content).expect("Failed to write tsconfig");
+
+    run_tsc_and_assert_success(&tsconfig_path, fixture_name);
 }
 
 #[test]
@@ -340,6 +445,15 @@ fn validate_enum_literals_compile() {
 #[test]
 fn validate_external_imports_compile() {
     generate_and_validate_typescript("external-imports");
+}
+
+#[test]
+fn validate_owner_return_type_helper_resolves_known_types() {
+    generate_and_validate_owner_return_types(
+        "owner-return-types",
+        "typed.router.ts",
+        "TypedRouter",
+    );
 }
 
 #[test]

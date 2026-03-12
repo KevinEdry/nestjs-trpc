@@ -1,3 +1,4 @@
+use super::import_path::calculate_relative_import_path;
 use super::owner_inference::{self, OwnerAliasLookup};
 use crate::generator::StaticGenerator;
 use crate::{ProcedureMetadata, RouterMetadata};
@@ -152,8 +153,7 @@ impl<'a> ServerRenderSession<'a> {
             procedure.owner_class_name.as_deref(),
         ) {
             let output_dir = output_file_path.parent().unwrap_or_else(|| Path::new("."));
-            let import_path =
-                owner_inference::calculate_relative_import_path(output_dir, owner_file_path);
+            let import_path = calculate_relative_import_path(output_dir, owner_file_path);
             let owner_alias = self
                 .owner_alias_lookup
                 .and_then(|lookup| {

@@ -1,3 +1,4 @@
+use super::import_path::calculate_relative_import_path;
 use crate::RouterMetadata;
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
@@ -115,26 +116,6 @@ pub(crate) fn generate_owner_return_type_helper_file(use_semicolons: bool) -> St
 {type_body}{term}
 "
     )
-}
-
-#[must_use]
-pub(crate) fn calculate_relative_import_path(from_dir: &Path, to_file: &Path) -> String {
-    let relative = pathdiff::diff_paths(to_file, from_dir).map_or_else(
-        || to_file.to_string_lossy().to_string(),
-        |p| p.to_string_lossy().to_string(),
-    );
-
-    let relative = relative.replace('\\', "/");
-    let without_ext = relative
-        .strip_suffix(".ts")
-        .or_else(|| relative.strip_suffix(".tsx"))
-        .unwrap_or(&relative);
-
-    if without_ext.starts_with('.') || without_ext.starts_with('/') {
-        without_ext.to_string()
-    } else {
-        format!("./{without_ext}")
-    }
 }
 
 #[must_use]

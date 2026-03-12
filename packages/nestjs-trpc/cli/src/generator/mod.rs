@@ -1,3 +1,4 @@
+mod import_path;
 mod owner_inference;
 pub mod server;
 pub mod types;
@@ -7,9 +8,10 @@ use std::fmt::Write;
 use std::path::Path;
 
 use crate::parser::module::TransformerInfo;
+use import_path::calculate_relative_import_path;
 
-pub use server::{generate_server_file, ServerGenerator};
 pub use owner_inference::sanitize_import_path_for_alias;
+pub use server::{generate_server_file, ServerGenerator};
 pub use types::{generate_types_file, TypesGenerator};
 
 pub type GeneratorResult<T> = std::result::Result<T, crate::error::GeneratorError>;
@@ -182,27 +184,6 @@ impl StaticGenerator {
             })
             .collect()
     }
-
-    fn calculate_relative_path(from_dir: &Path, to_file: &Path) -> String {
-        let relative = pathdiff::diff_paths(to_file, from_dir).map_or_else(
-            || to_file.to_string_lossy().to_string(),
-            |p| p.to_string_lossy().to_string(),
-        );
-
-        // Windows paths use backslashes which aren't valid in ES module import specifiers
-        let relative = relative.replace('\\', "/");
-
-        let without_ext = relative
-            .strip_suffix(".ts")
-            .or_else(|| relative.strip_suffix(".tsx"))
-            .unwrap_or(&relative);
-
-        if without_ext.starts_with('.') || without_ext.starts_with('/') {
-            without_ext.to_string()
-        } else {
-            format!("./{without_ext}")
-        }
-    }
 }
 
 fn group_schema_names_by_path<'a, I>(
@@ -236,7 +217,7 @@ fn resolve_import_path(output_dir: &Path, source_path: &Path) -> String {
         // Windows paths use backslashes which aren't valid in ES module import specifiers
         source_path.to_string_lossy().replace('\\', "/")
     } else {
-        StaticGenerator::calculate_relative_path(output_dir, source_path)
+        calculate_relative_import_path(output_dir, source_path)
     }
 }
 
@@ -369,23 +350,6 @@ mod tests {
         );
 
         assert!(output.is_empty());
-    }
-
-    #[test]
-    fn test_calculate_relative_path() {
-        // Same directory
-        let result = StaticGenerator::calculate_relative_path(
-            Path::new("src/@generated"),
-            Path::new("src/@generated/types.ts"),
-        );
-        assert_eq!(result, "./types");
-
-        // Parent directory
-        let result = StaticGenerator::calculate_relative_path(
-            Path::new("src/@generated"),
-            Path::new("src/schemas/user.ts"),
-        );
-        assert_eq!(result, "../schemas/user");
     }
 
     #[test]

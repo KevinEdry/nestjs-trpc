@@ -1,6 +1,5 @@
 use super::{DecoratorParser, ParsedFile};
 use crate::ProcedureMetadata;
-use swc_common::Spanned;
 use swc_ecma_ast::{Class, ClassMember, Decl, ModuleDecl, ModuleItem, Stmt};
 
 #[must_use]
@@ -107,7 +106,6 @@ fn extract_procedures_from_class_body(
                 procedure_type: info.procedure_type,
                 input_schema: info.input,
                 output_schema: info.output,
-                method_return_type: extract_method_return_type(method, parsed_file),
                 owner_class_name: Some(class_name.to_string()),
                 owner_file_path: Some(parsed_file.file_path.clone()),
                 input_schema_ref: info.input_ref,
@@ -119,24 +117,6 @@ fn extract_procedures_from_class_body(
 
     procedures
 }
-
-fn extract_method_return_type(
-    method: &swc_ecma_ast::ClassMethod,
-    parsed_file: &ParsedFile,
-) -> Option<String> {
-    let return_type = method.function.return_type.as_ref()?;
-    let source = parsed_file
-        .get_source_text(return_type.type_ann.span())
-        .trim()
-        .to_string();
-
-    if source.is_empty() {
-        None
-    } else {
-        Some(source)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -150,32 +130,6 @@ mod tests {
         let file_path = temp_dir.path().join("test.ts");
         fs::write(&file_path, content).expect("Failed to write test file");
         (temp_dir, file_path)
-    }
-
-    fn parse_source(source: &str) -> ParsedFile {
-        let (_temp, path) = create_temp_file(source);
-        let parser = TsParser::new();
-        parser.parse_file(&path).expect("Failed to parse")
-    }
-
-    fn find_class_method<'a>(
-        parsed_file: &'a ParsedFile,
-        class_name: &str,
-        method_name: &str,
-    ) -> &'a swc_ecma_ast::ClassMethod {
-        let class = find_class_by_name(&parsed_file.module.body, class_name)
-            .expect("Expected class to exist in source");
-
-        class
-            .body
-            .iter()
-            .find_map(|member| match member {
-                ClassMember::Method(method) => method.key.as_ident().and_then(|identifier| {
-                    (identifier.sym.as_ref() == method_name).then_some(method)
-                }),
-                _ => None,
-            })
-            .expect("Expected method to exist in class")
     }
 
     #[test]
@@ -462,43 +416,5 @@ mod tests {
 
         assert_eq!(procedures.len(), 1);
         assert_eq!(procedures[0].name, "normalMethod");
-    }
-
-    #[test]
-    fn test_extract_method_return_type_variants() {
-        let source = r"
-            type Foo = { id: string };
-            type Bar = { message: string };
-
-            export class ReturnTypesRouter {
-                promiseArray(): Promise<Foo[]> {}
-                text(): string {}
-                inferred() {}
-                genericComplex(): Promise<Map<string, Foo>> {}
-                unionType(): Foo | Bar {}
-                noResult(): void {}
-            }
-        ";
-        let parsed = parse_source(source);
-
-        let cases = [
-            ("promiseArray", Some("Promise<Foo[]>")),
-            ("text", Some("string")),
-            ("inferred", None),
-            ("genericComplex", Some("Promise<Map<string, Foo>>")),
-            ("unionType", Some("Foo | Bar")),
-            ("noResult", Some("void")),
-        ];
-
-        for (method_name, expected) in cases {
-            let method = find_class_method(&parsed, "ReturnTypesRouter", method_name);
-            let actual = extract_method_return_type(method, &parsed);
-            let expected = expected.map(str::to_string);
-
-            assert_eq!(
-                actual, expected,
-                "Unexpected return type extraction for method: {method_name}"
-            );
-        }
     }
 }

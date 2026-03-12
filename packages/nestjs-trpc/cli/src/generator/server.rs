@@ -413,7 +413,6 @@ mod tests {
             procedure_type: proc_type,
             input_schema: input.map(std::string::ToString::to_string),
             output_schema: output.map(std::string::ToString::to_string),
-            method_return_type: None,
             owner_class_name: None,
             owner_file_path: None,
             input_schema_ref: None,
@@ -554,7 +553,6 @@ mod tests {
             None,
             Some("z.array(z.string())"),
         );
-        procedure.method_return_type = Some("Promise<number[]>".to_string());
         procedure.owner_class_name = Some("UserRouter".to_string());
         procedure.owner_file_path = Some(std::path::PathBuf::from("/workspace/src/user.router.ts"));
 
@@ -570,8 +568,7 @@ mod tests {
     #[test]
     fn test_generate_procedure_string_falls_back_to_any_when_owner_missing() {
         let generator = ServerGenerator::new();
-        let mut procedure = create_test_procedure("getAll", ProcedureType::Query, None, None);
-        procedure.method_return_type = Some("Promise<FooDto[]>".to_string());
+        let procedure = create_test_procedure("getAll", ProcedureType::Query, None, None);
 
         let output = generator.generate_procedure_string(&procedure, 2);
 
@@ -1007,7 +1004,6 @@ mod tests {
             procedure_type: ProcedureType::Query,
             input_schema: None,
             output_schema: None,
-            method_return_type: None,
             owner_class_name: None,
             owner_file_path: None,
             input_schema_ref: None,
@@ -1044,7 +1040,6 @@ mod tests {
                 procedure_type: ProcedureType::Query,
                 input_schema: Some("userInputSchema".to_string()),
                 output_schema: None,
-                method_return_type: None,
                 owner_class_name: None,
                 owner_file_path: None,
                 input_schema_ref: Some("userInputSchema".to_string()),
@@ -1148,7 +1143,6 @@ mod tests {
             procedure_type: ProcedureType::Query,
             input_schema: Some("inputSchema".to_string()),
             output_schema: Some("outputSchema".to_string()),
-            method_return_type: None,
             owner_class_name: None,
             owner_file_path: None,
             input_schema_ref: Some("InputRef".to_string()),
@@ -1169,7 +1163,6 @@ mod tests {
             procedure_type: ProcedureType::Query,
             input_schema: None,
             output_schema: None,
-            method_return_type: None,
             owner_class_name: None,
             owner_file_path: None,
             input_schema_ref: None,

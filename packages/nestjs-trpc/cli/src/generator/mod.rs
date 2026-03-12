@@ -1,5 +1,5 @@
 mod import_path;
-mod owner_inference;
+mod router_inference;
 pub mod server;
 pub mod types;
 
@@ -10,7 +10,7 @@ use std::path::Path;
 use crate::parser::module::TransformerInfo;
 use import_path::calculate_relative_import_path;
 
-pub use owner_inference::sanitize_import_path_for_alias;
+pub use router_inference::sanitize_import_path_for_alias;
 pub use server::{generate_server_file, ServerGenerator};
 pub use types::{generate_types_file, TypesGenerator};
 

@@ -44,7 +44,7 @@
 
 ## Requirements
 
-- TypeScript `>= 4.5` is required when generated routers infer procedure outputs from owner methods (procedures without explicit `output` schema).
+- TypeScript `>= 4.5` is required when generated routers infer procedure outputs from router methods (procedures without explicit `output` schema).
 
 ## Quickstart
 

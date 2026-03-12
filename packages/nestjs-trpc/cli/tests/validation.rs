@@ -344,10 +344,10 @@ fn relative_typescript_import_path(from_dir: &Path, to_file: &Path) -> String {
     }
 }
 
-fn create_owner_return_type_assertions(
+fn create_router_return_type_assertions(
     output_directory: &Path,
     fixture_router_path: &Path,
-    owner_class_name: &str,
+    router_class_name: &str,
 ) {
     let import_path = relative_typescript_import_path(output_directory, fixture_router_path);
     let assertions = format!(
@@ -364,9 +364,9 @@ type IsAny<T> = 0 extends (1 & T) ? true : false;
 type ExpectFalse<T extends false> = T;
 
 type SyncResolved =
-    __ResolveProcedureReturnType<FixtureModule, "{owner_class_name}", "getUser">;
+    __ResolveProcedureReturnType<FixtureModule, "{router_class_name}", "getUser">;
 type AsyncResolved =
-    __ResolveProcedureReturnType<FixtureModule, "{owner_class_name}", "createItem">;
+    __ResolveProcedureReturnType<FixtureModule, "{router_class_name}", "createItem">;
 
 type _SyncMatches = Expect<Equal<SyncResolved, {{ id: string; role: "admin" }}>>;
 type _SyncNotAny = ExpectFalse<IsAny<SyncResolved>>;
@@ -382,13 +382,13 @@ type _AsyncNotAny = ExpectFalse<IsAny<AsyncResolved>>;
     );
 
     let assertions_path = output_directory.join("assertions.ts");
-    fs::write(assertions_path, assertions).expect("Failed to write owner return type assertions");
+    fs::write(assertions_path, assertions).expect("Failed to write router return type assertions");
 }
 
-fn generate_and_validate_owner_return_types(
+fn generate_and_validate_router_return_types(
     fixture_name: &str,
     router_file_name: &str,
-    owner_class_name: &str,
+    router_class_name: &str,
 ) {
     let fixture_path = fixtures_directory().join(fixture_name);
     let fixture_router_path = fixture_path.join(router_file_name);
@@ -402,7 +402,7 @@ fn generate_and_validate_owner_return_types(
     let generated_content = fs::read_to_string(&server_file).expect("Failed to read server.ts");
 
     create_stub_declarations(output_path, &generated_content);
-    create_owner_return_type_assertions(output_path, &fixture_router_path, owner_class_name);
+    create_router_return_type_assertions(output_path, &fixture_router_path, router_class_name);
 
     let helper_file = output_path.join("__nestjs-trpc-type-helpers.ts");
     assert!(
@@ -448,8 +448,8 @@ fn validate_external_imports_compile() {
 }
 
 #[test]
-fn validate_owner_return_type_helper_resolves_known_types() {
-    generate_and_validate_owner_return_types(
+fn validate_router_return_type_helper_resolves_known_types() {
+    generate_and_validate_router_return_types(
         "owner-return-types",
         "typed.router.ts",
         "TypedRouter",

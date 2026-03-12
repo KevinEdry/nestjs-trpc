@@ -557,9 +557,9 @@ fn write_server_file(
     let helper_file_path = server_file_path
         .parent()
         .unwrap_or_else(|| Path::new("."))
-        .join(ServerGenerator::OWNER_RETURN_TYPE_HELPER_FILE_NAME);
-    if ServerGenerator::needs_owner_return_type_helper(routers) {
-        let helper_content = server_generator.generate_owner_return_type_helper_file();
+        .join(ServerGenerator::ROUTER_RETURN_TYPE_HELPER_FILE_NAME);
+    if ServerGenerator::needs_router_return_type_helper(routers) {
+        let helper_content = server_generator.generate_router_return_type_helper_file();
         fs::write(&helper_file_path, &helper_content).with_context(|| {
             format!(
                 "Failed to write generated helper file to '{}'",

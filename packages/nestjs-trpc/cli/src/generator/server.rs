@@ -1,5 +1,5 @@
 use super::import_path::calculate_relative_import_path;
-use super::owner_inference::{self, OwnerAliasLookup};
+use super::router_inference::{self, RouterAliasLookup};
 use crate::generator::StaticGenerator;
 use crate::{ProcedureMetadata, RouterMetadata};
 use std::collections::HashMap;
@@ -33,19 +33,19 @@ impl Default for ServerGenerator {
 struct ServerRenderSession<'a> {
     generator: &'a ServerGenerator,
     output_file_path: Option<&'a Path>,
-    owner_alias_lookup: Option<&'a OwnerAliasLookup>,
+    router_alias_lookup: Option<&'a RouterAliasLookup>,
 }
 
 impl<'a> ServerRenderSession<'a> {
     const fn new(
         generator: &'a ServerGenerator,
         output_file_path: Option<&'a Path>,
-        owner_alias_lookup: Option<&'a OwnerAliasLookup>,
+        router_alias_lookup: Option<&'a RouterAliasLookup>,
     ) -> Self {
         Self {
             generator,
             output_file_path,
-            owner_alias_lookup,
+            router_alias_lookup,
         }
     }
 
@@ -147,26 +147,26 @@ impl<'a> ServerRenderSession<'a> {
     }
 
     fn generate_return_type_expression(&self, procedure: &ProcedureMetadata) -> Option<String> {
-        if let (Some(output_file_path), Some(owner_file_path), Some(owner_class_name)) = (
+        if let (Some(output_file_path), Some(router_file_path), Some(router_class_name)) = (
             self.output_file_path,
-            procedure.owner_file_path.as_deref(),
-            procedure.owner_class_name.as_deref(),
+            procedure.router_file_path.as_deref(),
+            procedure.router_class_name.as_deref(),
         ) {
             let output_dir = output_file_path.parent().unwrap_or_else(|| Path::new("."));
-            let import_path = calculate_relative_import_path(output_dir, owner_file_path);
-            let owner_alias = self
-                .owner_alias_lookup
+            let import_path = calculate_relative_import_path(output_dir, router_file_path);
+            let router_alias = self
+                .router_alias_lookup
                 .and_then(|lookup| {
                     lookup
-                        .get(&(owner_class_name.to_string(), import_path.clone()))
+                        .get(&(router_class_name.to_string(), import_path.clone()))
                         .cloned()
                 })
                 .unwrap_or_else(|| {
-                    owner_inference::owner_module_alias(owner_class_name, &import_path)
+                    router_inference::router_module_alias(router_class_name, &import_path)
                 });
 
             return Some(format!(
-                "Awaited<__ResolveProcedureReturnType<{owner_alias}, \"{owner_class_name}\", \"{}\">>",
+                "Awaited<__ResolveProcedureReturnType<{router_alias}, \"{router_class_name}\", \"{}\">>",
                 procedure.name
             ));
         }
@@ -176,8 +176,8 @@ impl<'a> ServerRenderSession<'a> {
 }
 
 impl ServerGenerator {
-    pub const OWNER_RETURN_TYPE_HELPER_FILE_NAME: &str =
-        owner_inference::OWNER_RETURN_TYPE_HELPER_FILE_NAME;
+    pub const ROUTER_RETURN_TYPE_HELPER_FILE_NAME: &str =
+        router_inference::ROUTER_RETURN_TYPE_HELPER_FILE_NAME;
 
     #[must_use]
     pub fn new() -> Self {
@@ -251,16 +251,16 @@ impl ServerGenerator {
             output_file_path,
         );
 
-        let (owner_imports, owner_alias_lookup) =
-            owner_inference::collect_owner_imports(routers, output_file_path);
-        owner_inference::append_owner_module_type_aliases(
+        let (router_imports, router_alias_lookup) =
+            router_inference::collect_router_imports(routers, output_file_path);
+        router_inference::append_router_module_type_aliases(
             &mut output,
-            &owner_imports,
+            &router_imports,
             self.static_generator.use_single_quotes,
             self.static_generator.use_semicolons,
         );
-        if !owner_imports.is_empty() {
-            owner_inference::append_owner_return_type_helper_import(
+        if !router_imports.is_empty() {
+            router_inference::append_router_return_type_helper_import(
                 &mut output,
                 output_file_path,
                 self.static_generator.use_single_quotes,
@@ -270,7 +270,8 @@ impl ServerGenerator {
 
         output.push('\n');
 
-        let render_session = self.render_session(Some(output_file_path), Some(&owner_alias_lookup));
+        let render_session =
+            self.render_session(Some(output_file_path), Some(&router_alias_lookup));
         output.push_str(&render_session.generate_app_router(routers));
 
         output.push('\n');
@@ -314,9 +315,9 @@ impl ServerGenerator {
     fn render_session<'a>(
         &'a self,
         output_file_path: Option<&'a Path>,
-        owner_alias_lookup: Option<&'a OwnerAliasLookup>,
+        router_alias_lookup: Option<&'a RouterAliasLookup>,
     ) -> ServerRenderSession<'a> {
-        ServerRenderSession::new(self, output_file_path, owner_alias_lookup)
+        ServerRenderSession::new(self, output_file_path, router_alias_lookup)
     }
 
     fn extract_schema_refs(procedure: &ProcedureMetadata) -> Vec<&str> {
@@ -350,13 +351,13 @@ impl ServerGenerator {
     }
 
     #[must_use]
-    pub fn needs_owner_return_type_helper(routers: &[RouterMetadata]) -> bool {
-        owner_inference::needs_owner_return_type_helper(routers)
+    pub fn needs_router_return_type_helper(routers: &[RouterMetadata]) -> bool {
+        router_inference::needs_router_return_type_helper(routers)
     }
 
     #[must_use]
-    pub fn generate_owner_return_type_helper_file(&self) -> String {
-        owner_inference::generate_owner_return_type_helper_file(
+    pub fn generate_router_return_type_helper_file(&self) -> String {
+        router_inference::generate_router_return_type_helper_file(
             self.static_generator.use_semicolons,
         )
     }
@@ -413,8 +414,8 @@ mod tests {
             procedure_type: proc_type,
             input_schema: input.map(std::string::ToString::to_string),
             output_schema: output.map(std::string::ToString::to_string),
-            owner_class_name: None,
-            owner_file_path: None,
+            router_class_name: None,
+            router_file_path: None,
             input_schema_ref: None,
             output_schema_ref: None,
             schema_identifiers: Vec::new(),
@@ -523,22 +524,24 @@ mod tests {
     }
 
     #[test]
-    fn test_generate_procedure_string_infers_from_owner_method_when_output_missing() {
+    fn test_generate_procedure_string_infers_from_router_method_when_output_missing() {
         let generator = ServerGenerator::new();
         let mut procedure = create_test_procedure("list", ProcedureType::Query, None, None);
-        procedure.owner_class_name = Some("UserRouter".to_string());
-        procedure.owner_file_path = Some(std::path::PathBuf::from("/workspace/src/user.router.ts"));
+        procedure.router_class_name = Some("UserRouter".to_string());
+        procedure.router_file_path =
+            Some(std::path::PathBuf::from("/workspace/src/user.router.ts"));
 
         let output_file_path = std::path::PathBuf::from("/workspace/generated/server.ts");
         let output = generator
             .render_session(Some(&output_file_path), None)
             .generate_procedure_string(&procedure, 2);
-        let owner_alias = owner_inference::owner_module_alias("UserRouter", "../src/user.router");
+        let router_alias =
+            router_inference::router_module_alias("UserRouter", "../src/user.router");
 
         assert!(
             output.contains(
                 &format!(
-                    ".query(async () => \"PLACEHOLDER_DO_NOT_REMOVE\" as unknown as Awaited<__ResolveProcedureReturnType<{owner_alias}, \"UserRouter\", \"list\">>)"
+                    ".query(async () => \"PLACEHOLDER_DO_NOT_REMOVE\" as unknown as Awaited<__ResolveProcedureReturnType<{router_alias}, \"UserRouter\", \"list\">>)"
                 )
             )
         );
@@ -553,8 +556,9 @@ mod tests {
             None,
             Some("z.array(z.string())"),
         );
-        procedure.owner_class_name = Some("UserRouter".to_string());
-        procedure.owner_file_path = Some(std::path::PathBuf::from("/workspace/src/user.router.ts"));
+        procedure.router_class_name = Some("UserRouter".to_string());
+        procedure.router_file_path =
+            Some(std::path::PathBuf::from("/workspace/src/user.router.ts"));
 
         let output_file_path = std::path::PathBuf::from("/workspace/generated/server.ts");
         let output = generator
@@ -566,7 +570,7 @@ mod tests {
     }
 
     #[test]
-    fn test_generate_procedure_string_falls_back_to_any_when_owner_missing() {
+    fn test_generate_procedure_string_falls_back_to_any_when_router_missing() {
         let generator = ServerGenerator::new();
         let procedure = create_test_procedure("getAll", ProcedureType::Query, None, None);
 
@@ -577,11 +581,12 @@ mod tests {
     }
 
     #[test]
-    fn test_generate_with_schema_imports_adds_owner_type_import_and_helper_import() {
+    fn test_generate_with_schema_imports_adds_router_type_import_and_helper_import() {
         let generator = ServerGenerator::new();
         let mut procedure = create_test_procedure("list", ProcedureType::Query, None, None);
-        procedure.owner_class_name = Some("UserRouter".to_string());
-        procedure.owner_file_path = Some(std::path::PathBuf::from("/workspace/src/user.router.ts"));
+        procedure.router_class_name = Some("UserRouter".to_string());
+        procedure.router_file_path =
+            Some(std::path::PathBuf::from("/workspace/src/user.router.ts"));
 
         let routers = vec![create_test_router(
             "UserRouter",
@@ -593,10 +598,11 @@ mod tests {
 
         let output =
             generator.generate_with_schema_imports(&routers, &schema_locations, &output_path);
-        let owner_alias = owner_inference::owner_module_alias("UserRouter", "../src/user.router");
+        let router_alias =
+            router_inference::router_module_alias("UserRouter", "../src/user.router");
 
         assert!(output.contains(&format!(
-            "type {owner_alias} = typeof import(\"../src/user.router\");"
+            "type {router_alias} = typeof import(\"../src/user.router\");"
         )));
         assert!(output.contains(
             "import type { __ResolveProcedureReturnType } from \"./__nestjs-trpc-type-helpers\";"
@@ -1004,8 +1010,8 @@ mod tests {
             procedure_type: ProcedureType::Query,
             input_schema: None,
             output_schema: None,
-            owner_class_name: None,
-            owner_file_path: None,
+            router_class_name: None,
+            router_file_path: None,
             input_schema_ref: None,
             output_schema_ref: None,
             schema_identifiers: Vec::new(),
@@ -1040,8 +1046,8 @@ mod tests {
                 procedure_type: ProcedureType::Query,
                 input_schema: Some("userInputSchema".to_string()),
                 output_schema: None,
-                owner_class_name: None,
-                owner_file_path: None,
+                router_class_name: None,
+                router_file_path: None,
                 input_schema_ref: Some("userInputSchema".to_string()),
                 output_schema_ref: None,
                 schema_identifiers: Vec::new(),
@@ -1143,8 +1149,8 @@ mod tests {
             procedure_type: ProcedureType::Query,
             input_schema: Some("inputSchema".to_string()),
             output_schema: Some("outputSchema".to_string()),
-            owner_class_name: None,
-            owner_file_path: None,
+            router_class_name: None,
+            router_file_path: None,
             input_schema_ref: Some("InputRef".to_string()),
             output_schema_ref: Some("OutputRef".to_string()),
             schema_identifiers: Vec::new(),
@@ -1163,8 +1169,8 @@ mod tests {
             procedure_type: ProcedureType::Query,
             input_schema: None,
             output_schema: None,
-            owner_class_name: None,
-            owner_file_path: None,
+            router_class_name: None,
+            router_file_path: None,
             input_schema_ref: None,
             output_schema_ref: None,
             schema_identifiers: Vec::new(),

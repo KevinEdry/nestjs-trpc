@@ -46,10 +46,10 @@ fn normalize_paths(content: &str) -> String {
         .replace_all(&content, "<FIXTURES>")
         .to_string();
 
-    normalize_owner_alias_paths(&content)
+    normalize_router_alias_paths(&content)
 }
 
-fn normalize_owner_alias_paths(content: &str) -> String {
+fn normalize_router_alias_paths(content: &str) -> String {
     let fixtures_dir = fixtures_directory()
         .canonicalize()
         .expect("Failed to canonicalize fixtures directory");
@@ -303,7 +303,7 @@ fn generation_without_transformer_has_plain_create() {
 }
 
 #[test]
-fn generates_owner_return_type_helper_file_when_needed() {
+fn generates_router_return_type_helper_file_when_needed() {
     let fixture_path = fixtures_directory().join("enum-literals");
     let temporary_directory = TempDir::new().expect("Failed to create temp directory");
     let output_path = temporary_directory.path();

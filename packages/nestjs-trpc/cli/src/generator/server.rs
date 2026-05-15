@@ -147,31 +147,27 @@ impl<'a> ServerRenderSession<'a> {
     }
 
     fn generate_return_type_expression(&self, procedure: &ProcedureMetadata) -> Option<String> {
-        if let (Some(output_file_path), Some(router_file_path), Some(router_class_name)) = (
-            self.output_file_path,
-            procedure.router_file_path.as_deref(),
-            procedure.router_class_name.as_deref(),
-        ) {
-            let output_dir = output_file_path.parent().unwrap_or_else(|| Path::new("."));
-            let import_path = calculate_relative_import_path(output_dir, router_file_path);
-            let router_alias = self
-                .router_alias_lookup
-                .and_then(|lookup| {
-                    lookup
-                        .get(&(router_class_name.to_string(), import_path.clone()))
-                        .cloned()
-                })
-                .unwrap_or_else(|| {
-                    router_inference::router_module_alias(router_class_name, &import_path)
-                });
+        let output_file_path = self.output_file_path?;
+        let router_file_path = procedure.router_file_path.as_deref()?;
+        let router_class_name = procedure.router_class_name.as_deref()?;
 
-            return Some(format!(
-                "Awaited<__ResolveProcedureReturnType<{router_alias}, \"{router_class_name}\", \"{}\">>",
-                procedure.name
-            ));
-        }
+        let output_dir = output_file_path.parent().unwrap_or_else(|| Path::new("."));
+        let import_path = calculate_relative_import_path(output_dir, router_file_path);
+        let router_alias = self.resolve_router_alias(router_class_name, &import_path);
 
-        None
+        Some(format!(
+            "Awaited<__ResolveProcedureReturnType<{router_alias}, \"{router_class_name}\", \"{}\">>",
+            procedure.name
+        ))
+    }
+
+    fn resolve_router_alias(&self, router_class_name: &str, import_path: &str) -> String {
+        let lookup_key = (router_class_name.to_string(), import_path.to_string());
+        self.router_alias_lookup
+            .and_then(|lookup| lookup.get(&lookup_key).cloned())
+            .unwrap_or_else(|| {
+                router_inference::router_module_alias(router_class_name, import_path)
+            })
     }
 }
 
@@ -312,7 +308,7 @@ impl ServerGenerator {
         }
     }
 
-    fn render_session<'a>(
+    const fn render_session<'a>(
         &'a self,
         output_file_path: Option<&'a Path>,
         router_alias_lookup: Option<&'a RouterAliasLookup>,

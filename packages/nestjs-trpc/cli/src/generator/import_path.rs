@@ -1,7 +1,7 @@
 use std::path::Path;
 
 #[must_use]
-pub(crate) fn calculate_relative_import_path(from_dir: &Path, to_file: &Path) -> String {
+pub fn calculate_relative_import_path(from_dir: &Path, to_file: &Path) -> String {
     let relative = pathdiff::diff_paths(to_file, from_dir).map_or_else(
         || to_file.to_string_lossy().to_string(),
         |path| path.to_string_lossy().to_string(),

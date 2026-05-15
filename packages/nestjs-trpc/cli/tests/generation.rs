@@ -58,10 +58,9 @@ fn normalize_router_alias_paths(content: &str) -> String {
     let encoded_fixtures_suffix =
         sanitize_import_path_for_alias(fixtures_str.trim_start_matches('/'));
 
-    let content = content
-        .replace(&encoded_fixtures_path, "fixtures_root")
-        .replace(&encoded_fixtures_suffix, "fixtures_root");
     content
+        .replace(&encoded_fixtures_path, "fixtures_root")
+        .replace(&encoded_fixtures_suffix, "fixtures_root")
 }
 
 #[test]

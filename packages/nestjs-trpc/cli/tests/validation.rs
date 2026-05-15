@@ -45,9 +45,8 @@ fn build_tsconfig(files: &[&str]) -> String {
         "experimentalDecorators": true
     }},
     "include": ["server.ts"],
-    "files": [{}]
-}}"#,
-        files_json
+    "files": [{files_json}]
+}}"#
     )
 }
 
@@ -282,7 +281,7 @@ fn run_tsc_and_assert_success(tsconfig_path: &Path, context: &str) {
         tsc_result.success,
         "TypeScript validation failed for '{context}':\n{}",
         format_tsc_errors(
-            &tsconfig_path.parent().unwrap_or_else(|| Path::new(".")),
+            tsconfig_path.parent().unwrap_or_else(|| Path::new(".")),
             &tsc_result
         )
     );

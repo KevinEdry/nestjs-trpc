@@ -1,13 +1,14 @@
 use super::import_path::calculate_relative_import_path;
-use crate::RouterMetadata;
+use crate::{ProcedureMetadata, RouterMetadata};
 use std::collections::{HashMap, HashSet};
+use std::fmt::Write;
 use std::path::Path;
 
-pub(crate) type RouterAliasLookup = HashMap<(String, String), String>;
+pub type RouterAliasLookup = HashMap<(String, String), String>;
 
-pub(crate) const ROUTER_RETURN_TYPE_HELPER_FILE_NAME: &str = "__nestjs-trpc-type-helpers.ts";
+pub const ROUTER_RETURN_TYPE_HELPER_FILE_NAME: &str = "__nestjs-trpc-type-helpers.ts";
 
-pub(crate) fn collect_router_imports(
+pub fn collect_router_imports(
     routers: &[RouterMetadata],
     output_file_path: &Path,
 ) -> (Vec<(String, String)>, RouterAliasLookup) {
@@ -17,41 +18,52 @@ pub(crate) fn collect_router_imports(
     let mut router_alias_lookup: RouterAliasLookup = HashMap::new();
     let mut imports = Vec::new();
 
-    for router in routers {
-        for procedure in &router.procedures {
-            if procedure.output_schema.is_some() {
-                continue;
-            }
+    let resolvable_procedures = routers
+        .iter()
+        .flat_map(|router| &router.procedures)
+        .filter_map(resolve_router_source);
 
-            let (Some(router_file_path), Some(router_class_name)) = (
-                procedure.router_file_path.as_deref(),
-                procedure.router_class_name.as_deref(),
-            ) else {
-                continue;
-            };
-
-            let import_path = calculate_relative_import_path(output_dir, router_file_path);
-            let router_key = (router_class_name.to_string(), import_path.clone());
-            if seen_routers.insert(router_key.clone()) {
-                let base_alias = router_module_alias(router_class_name, &import_path);
-                let suffix = alias_occurrences.entry(base_alias.clone()).or_insert(0);
-                *suffix += 1;
-                let alias = if *suffix == 1 {
-                    base_alias
-                } else {
-                    format!("{base_alias}_{suffix}")
-                };
-
-                router_alias_lookup.insert(router_key, alias.clone());
-                imports.push((alias, import_path));
-            }
+    for (router_file_path, router_class_name) in resolvable_procedures {
+        let import_path = calculate_relative_import_path(output_dir, router_file_path);
+        let router_key = (router_class_name.to_string(), import_path.clone());
+        if !seen_routers.insert(router_key.clone()) {
+            continue;
         }
+
+        let alias = next_unique_alias(router_class_name, &import_path, &mut alias_occurrences);
+        router_alias_lookup.insert(router_key, alias.clone());
+        imports.push((alias, import_path));
     }
 
     (imports, router_alias_lookup)
 }
 
-pub(crate) fn append_router_module_type_aliases(
+fn resolve_router_source(procedure: &ProcedureMetadata) -> Option<(&Path, &str)> {
+    if procedure.output_schema.is_some() {
+        return None;
+    }
+
+    let router_file_path = procedure.router_file_path.as_deref()?;
+    let router_class_name = procedure.router_class_name.as_deref()?;
+    Some((router_file_path, router_class_name))
+}
+
+fn next_unique_alias(
+    router_class_name: &str,
+    import_path: &str,
+    alias_occurrences: &mut HashMap<String, usize>,
+) -> String {
+    let base_alias = router_module_alias(router_class_name, import_path);
+    let suffix = alias_occurrences.entry(base_alias.clone()).or_insert(0);
+    *suffix += 1;
+    if *suffix == 1 {
+        base_alias
+    } else {
+        format!("{base_alias}_{suffix}")
+    }
+}
+
+pub fn append_router_module_type_aliases(
     output: &mut String,
     router_imports: &[(String, String)],
     use_single_quotes: bool,
@@ -65,13 +77,14 @@ pub(crate) fn append_router_module_type_aliases(
     let term = if use_semicolons { ";" } else { "" };
 
     for (alias, import_path) in router_imports {
-        output.push_str(&format!(
-            "type {alias} = typeof import({quote}{import_path}{quote}){term}\n"
-        ));
+        let _ = writeln!(
+            output,
+            "type {alias} = typeof import({quote}{import_path}{quote}){term}"
+        );
     }
 }
 
-pub(crate) fn append_router_return_type_helper_import(
+pub fn append_router_return_type_helper_import(
     output: &mut String,
     output_file_path: &Path,
     use_single_quotes: bool,
@@ -84,13 +97,14 @@ pub(crate) fn append_router_return_type_helper_import(
     let quote = if use_single_quotes { '\'' } else { '"' };
     let term = if use_semicolons { ";" } else { "" };
 
-    output.push_str(&format!(
-        "import type {{ __ResolveProcedureReturnType }} from {quote}{helper_import_path}{quote}{term}\n"
-    ));
+    let _ = writeln!(
+        output,
+        "import type {{ __ResolveProcedureReturnType }} from {quote}{helper_import_path}{quote}{term}"
+    );
 }
 
 #[must_use]
-pub(crate) fn needs_router_return_type_helper(routers: &[RouterMetadata]) -> bool {
+pub fn needs_router_return_type_helper(routers: &[RouterMetadata]) -> bool {
     routers
         .iter()
         .flat_map(|router| &router.procedures)
@@ -102,7 +116,7 @@ pub(crate) fn needs_router_return_type_helper(routers: &[RouterMetadata]) -> boo
 }
 
 #[must_use]
-pub(crate) fn generate_router_return_type_helper_file(use_semicolons: bool) -> String {
+pub fn generate_router_return_type_helper_file(use_semicolons: bool) -> String {
     let term = if use_semicolons { ";" } else { "" };
     let type_body = router_return_type_helper_type();
     format!(
@@ -119,7 +133,7 @@ pub(crate) fn generate_router_return_type_helper_file(use_semicolons: bool) -> S
 }
 
 #[must_use]
-pub(crate) fn router_module_alias(router_class_name: &str, import_path: &str) -> String {
+pub fn router_module_alias(router_class_name: &str, import_path: &str) -> String {
     let class_name_part = sanitize_class_name_for_alias(router_class_name);
     let class_name_part = if class_name_part.is_empty() {
         "Router".to_string()
@@ -137,7 +151,7 @@ pub(crate) fn router_module_alias(router_class_name: &str, import_path: &str) ->
     format!("__{class_name_part}Module_{path_part}")
 }
 
-fn router_return_type_helper_type() -> &'static str {
+const fn router_return_type_helper_type() -> &'static str {
     "\
 export type __ResolveProcedureReturnType<
   TModule,
@@ -197,15 +211,13 @@ pub fn sanitize_import_path_for_alias(import_path: &str) -> String {
             '_'
         };
 
-        if mapped == '_' {
-            if !previous_was_separator {
-                sanitized.push('_');
-            }
-            previous_was_separator = true;
-        } else {
-            sanitized.push(mapped);
-            previous_was_separator = false;
+        let is_separator = mapped == '_';
+        if is_separator && previous_was_separator {
+            continue;
         }
+
+        sanitized.push(mapped);
+        previous_was_separator = is_separator;
     }
 
     sanitized.trim_matches('_').to_string()

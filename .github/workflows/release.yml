@@ -58,6 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -129,9 +130,7 @@ jobs:
       - name: Publish to npm
         if: ${{ github.event_name == 'push' || !inputs.dry_run }}
         working-directory: packages/nestjs-trpc
-        run: bun publish --access public
-        env:
-          NPM_CONFIG_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: bunx npm@latest publish --provenance --access public
 
       - name: Publish to npm (dry run)
         if: ${{ github.event_name != 'push' && inputs.dry_run }}

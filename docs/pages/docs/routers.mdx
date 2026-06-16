@@ -136,6 +136,21 @@ This can be done by using the right decorator, here is a list of the available p
 tRPC procedures may define validation logic for their input and/or output, and validators are also used to infer the types of inputs and outputs in the client-side.
 We can pass those schemas directly to the decorator as shown above.<br/>For more information on how tRPC procedure validation works, check their <Link href={"https://trpc.io/docs/server/validators"} className="underline" target="_blank">official documentation page</Link>.
 
+<Callout>
+  **`output` is optional.** When you omit it, the procedure's output type is inferred from the resolver method's return type — just like native tRPC — so you don't have to restate your service's return type as a schema:
+
+  ```typescript
+  @Query()
+  list() {
+    return this.folderService.getFolders(); // output type is inferred on the client
+  }
+  ```
+
+  A provided `output` still takes priority and adds runtime validation; inference only supplies the static type. A few caveats:
+  - Inference relies on TypeScript's `ReturnType<>`, so the resolver's return type must be **exported / nameable**. Returning a non-exported `interface`/`type` can break the generated `AppRouter` under `declaration: true` (`TS4023`/`TS2883`) — export the type or use an explicit `output` schema.
+  - It applies only to routers exported by name (`export class FooRouter`); non-exported and default-exported routers keep the previous behavior.
+</Callout>
+
 Procedures can also define a `meta` object that can be read by middlewares. This is the tRPC-idiomatic way to implement authorization and other cross-cutting concerns, similar to how NestJS guards use decorator metadata. See the <Link href={"/docs/middlewares#procedure-metadata"} className="underline">Procedure Metadata</Link> section in the Middlewares guide for details.
 
 ##### Middlewares

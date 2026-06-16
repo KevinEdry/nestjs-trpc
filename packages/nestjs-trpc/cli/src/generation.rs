@@ -10,8 +10,9 @@ use crate::parser::decorator::collect_schema_identifiers;
 use crate::parser::module::TransformerInfo;
 use crate::{
     build_imports_map, extract_procedures_from_class, flatten_zod_schema, DecoratorParser,
-    FileScanner, ParsedFile, ParserError, ProcedureMetadata, RouterMetadata, RouterParser,
-    ServerGenerator, StaticGenerator, SyntaxDiagnostic, TsParser,
+    FileScanner, OutputInference, ParsedFile, ParserError, ProcedureMetadata, RouterExportKind,
+    RouterInfo, RouterMetadata, RouterParser, ServerGenerator, StaticGenerator, SyntaxDiagnostic,
+    TsParser,
 };
 use std::collections::HashSet;
 use swc_ecma_ast::{Decl, ModuleDecl, ModuleItem, Stmt};
@@ -147,11 +148,13 @@ fn extract_routers(parsed_files: &[ParsedFile]) -> Result<Vec<RouterMetadata>> {
         let router_infos = router_parser.extract_routers(parsed_file);
 
         for router_info in router_infos {
-            let procedures = extract_procedures_from_class(
+            let mut procedures = extract_procedures_from_class(
                 parsed_file,
                 &router_info.class_name,
                 &decorator_parser,
             );
+
+            apply_output_inference(&mut procedures, &router_info);
 
             let router_metadata = RouterMetadata {
                 name: router_info.class_name,
@@ -186,6 +189,23 @@ fn extract_routers(parsed_files: &[ParsedFile]) -> Result<Vec<RouterMetadata>> {
     );
 
     Ok(routers)
+}
+
+fn apply_output_inference(procedures: &mut [ProcedureMetadata], router_info: &RouterInfo) {
+    if router_info.export_kind != RouterExportKind::Named {
+        return;
+    }
+
+    for procedure in procedures.iter_mut() {
+        if procedure.output_schema.is_some() {
+            continue;
+        }
+
+        procedure.output_inference = Some(OutputInference {
+            router_class_name: router_info.class_name.clone(),
+            router_file_path: router_info.file_path.clone(),
+        });
+    }
 }
 
 fn build_schema_locations(

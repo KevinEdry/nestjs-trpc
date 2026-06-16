@@ -1,7 +1,7 @@
 use crate::generator::StaticGenerator;
-use crate::{ProcedureMetadata, RouterMetadata};
+use crate::{OutputInference, ProcedureMetadata, RouterMetadata};
 use std::collections::HashMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 const GENERATED_FILE_HEADER: &str = "\
 /**
@@ -101,6 +101,8 @@ impl ServerGenerator {
             output_file_path,
         );
 
+        self.append_output_inference_imports(&mut output, routers, output_file_path);
+
         output.push('\n');
 
         output.push_str(&self.generate_app_router(routers));
@@ -197,11 +199,32 @@ impl ServerGenerator {
         }
 
         let proc_type = procedure.procedure_type.to_string();
+        let output_cast = self.output_cast(procedure);
         chain_parts.push(format!(
-            "{chain_indent}.{proc_type}(async () => \"PLACEHOLDER_DO_NOT_REMOVE\" as any)"
+            "{chain_indent}.{proc_type}(async () => \"PLACEHOLDER_DO_NOT_REMOVE\" as {output_cast})"
         ));
 
         chain_parts.join("\n")
+    }
+
+    fn output_cast(&self, procedure: &ProcedureMetadata) -> String {
+        if procedure.output_schema.is_some() {
+            return "any".to_string();
+        }
+
+        let Some(inference) = procedure.output_inference.as_ref() else {
+            return "any".to_string();
+        };
+
+        let quote = if self.static_generator.use_single_quotes {
+            '\''
+        } else {
+            '"'
+        };
+        let class_name = &inference.router_class_name;
+        let method_name = &procedure.name;
+
+        format!("unknown as Awaited<ReturnType<{class_name}[{quote}{method_name}{quote}]>>")
     }
 
     #[must_use]
@@ -245,6 +268,42 @@ impl ServerGenerator {
 
         if !schema_imports.is_empty() {
             output.push_str(&schema_imports);
+        }
+    }
+
+    fn append_output_inference_imports(
+        &self,
+        output: &mut String,
+        routers: &[RouterMetadata],
+        output_file_path: &Path,
+    ) {
+        let inferences: Vec<&OutputInference> = routers
+            .iter()
+            .flat_map(|router| &router.procedures)
+            .filter_map(|procedure| procedure.output_inference.as_ref())
+            .collect();
+
+        if inferences.is_empty() {
+            return;
+        }
+
+        let mut type_locations: HashMap<String, PathBuf> = HashMap::new();
+        for inference in &inferences {
+            type_locations
+                .entry(inference.router_class_name.clone())
+                .or_insert_with(|| inference.router_file_path.clone());
+        }
+
+        let type_imports = self.static_generator.generate_type_imports(
+            inferences
+                .iter()
+                .map(|inference| inference.router_class_name.as_str()),
+            &type_locations,
+            output_file_path,
+        );
+
+        if !type_imports.is_empty() {
+            output.push_str(&type_imports);
         }
     }
 }
@@ -303,6 +362,29 @@ mod tests {
             input_schema_ref: None,
             output_schema_ref: None,
             schema_identifiers: Vec::new(),
+            output_inference: None,
+        }
+    }
+
+    fn create_inferred_procedure(
+        name: &str,
+        proc_type: ProcedureType,
+        router_class_name: &str,
+        router_file_path: &str,
+    ) -> ProcedureMetadata {
+        use crate::OutputInference;
+        ProcedureMetadata {
+            name: name.to_string(),
+            procedure_type: proc_type,
+            input_schema: None,
+            output_schema: None,
+            input_schema_ref: None,
+            output_schema_ref: None,
+            schema_identifiers: Vec::new(),
+            output_inference: Some(OutputInference {
+                router_class_name: router_class_name.to_string(),
+                router_file_path: std::path::PathBuf::from(router_file_path),
+            }),
         }
     }
 
@@ -810,6 +892,7 @@ mod tests {
             input_schema_ref: None,
             output_schema_ref: None,
             schema_identifiers: Vec::new(),
+            output_inference: None,
         };
 
         let output = generator.generate_procedure_string(&procedure, 1);
@@ -844,6 +927,7 @@ mod tests {
                 input_schema_ref: Some("userInputSchema".to_string()),
                 output_schema_ref: None,
                 schema_identifiers: Vec::new(),
+                output_inference: None,
             }],
         )];
 
@@ -945,6 +1029,7 @@ mod tests {
             input_schema_ref: Some("InputRef".to_string()),
             output_schema_ref: Some("OutputRef".to_string()),
             schema_identifiers: Vec::new(),
+            output_inference: None,
         };
 
         let refs = ServerGenerator::extract_schema_refs(&procedure);
@@ -963,6 +1048,7 @@ mod tests {
             input_schema_ref: None,
             output_schema_ref: None,
             schema_identifiers: Vec::new(),
+            output_inference: None,
         };
 
         let refs = ServerGenerator::extract_schema_refs(&procedure);
@@ -1259,5 +1345,75 @@ mod tests {
         assert!(output.contains("const t = initTRPC.create();"));
         assert!(!output.contains("transformer"));
         assert!(!output.contains("superjson"));
+    }
+
+    #[test]
+    fn test_inferred_output_emits_return_type_cast() {
+        let generator = ServerGenerator::new();
+        let procedure = create_inferred_procedure(
+            "list",
+            ProcedureType::Query,
+            "FolderRouter",
+            "folder.router.ts",
+        );
+
+        let output = generator.generate_procedure_string(&procedure, 1);
+
+        assert!(output.contains(
+            ".query(async () => \"PLACEHOLDER_DO_NOT_REMOVE\" as unknown as Awaited<ReturnType<FolderRouter[\"list\"]>>)"
+        ));
+    }
+
+    #[test]
+    fn test_explicit_output_overrides_inference() {
+        let generator = ServerGenerator::new();
+        let mut procedure = create_inferred_procedure(
+            "list",
+            ProcedureType::Query,
+            "FolderRouter",
+            "folder.router.ts",
+        );
+        procedure.output_schema = Some("folderSchema".to_string());
+
+        let output = generator.generate_procedure_string(&procedure, 1);
+
+        assert!(output.contains(".output(folderSchema)"));
+        assert!(output.contains(".query(async () => \"PLACEHOLDER_DO_NOT_REMOVE\" as any)"));
+        assert!(!output.contains("ReturnType"));
+    }
+
+    #[test]
+    fn test_no_inference_falls_back_to_any() {
+        let generator = ServerGenerator::new();
+        let procedure = create_test_procedure("list", ProcedureType::Query, None, None);
+
+        let output = generator.generate_procedure_string(&procedure, 1);
+
+        assert!(output.contains(".query(async () => \"PLACEHOLDER_DO_NOT_REMOVE\" as any)"));
+        assert!(!output.contains("ReturnType"));
+    }
+
+    #[test]
+    fn test_inferred_output_emits_router_type_import() {
+        let generator = ServerGenerator::new();
+        let routers = vec![create_test_router(
+            "FolderRouter",
+            Some("folders"),
+            vec![create_inferred_procedure(
+                "list",
+                ProcedureType::Query,
+                "FolderRouter",
+                "folder.router.ts",
+            )],
+        )];
+
+        let output = generator.generate_with_schema_imports(
+            &routers,
+            &HashMap::new(),
+            Path::new("server.ts"),
+        );
+
+        assert!(output.contains("import type { FolderRouter } from \"./folder.router\";"));
+        assert!(output.contains("Awaited<ReturnType<FolderRouter[\"list\"]>>"));
     }
 }

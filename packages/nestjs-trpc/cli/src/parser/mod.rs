@@ -229,7 +229,7 @@ pub use module::{
     TransformerInfo, TrpcModuleOptions,
 };
 pub use procedure::extract_procedures_from_class;
-pub use router::{extract_routers, RouterInfo, RouterParser};
+pub use router::{extract_routers, RouterExportKind, RouterInfo, RouterParser};
 pub use schema::{flatten_zod_schema, ZodFlattener, ZodResult};
 
 #[cfg(test)]

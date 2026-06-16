@@ -138,7 +138,7 @@ jobs:
         working-directory: packages/nestjs-trpc
         run: |
           echo "DRY RUN: Would publish to npm"
-          bun pack
+          bun pm pack
 
       - name: Prepare release assets
         run: |

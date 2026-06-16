@@ -108,6 +108,7 @@ fn extract_procedures_from_class_body(
                 input_schema_ref: info.input_ref,
                 output_schema_ref: info.output_ref,
                 schema_identifiers: info.schema_identifiers,
+                output_inference: None,
             });
         }
     }

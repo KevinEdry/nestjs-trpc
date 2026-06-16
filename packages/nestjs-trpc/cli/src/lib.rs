@@ -33,8 +33,8 @@ pub use parser::{
     extract_trpc_options, flatten_zod_schema, is_procedure_decorator, parse_typescript_file,
     parse_typescript_source, resolve_context_file, resolve_transformer_import, ContextInfo,
     ContextParser, ContextProperty, DecoratorParser, MiddlewareInfo, MiddlewareParser,
-    ModuleParser, ParsedFile, ProcedureDecoratorInfo, RouterInfo, RouterParser, TransformerInfo,
-    TrpcModuleOptions, TsParser, ZodFlattener, ZodResult,
+    ModuleParser, ParsedFile, ProcedureDecoratorInfo, RouterExportKind, RouterInfo, RouterParser,
+    TransformerInfo, TrpcModuleOptions, TsParser, ZodFlattener, ZodResult,
 };
 pub use scanner::{scan_for_routers, FileScanner};
 pub use validation::{
@@ -59,6 +59,18 @@ pub struct ProcedureMetadata {
     pub input_schema_ref: Option<String>,
     pub output_schema_ref: Option<String>,
     pub schema_identifiers: Vec<String>,
+
+    /// When no explicit `output` schema is provided, the procedure output type is
+    /// inferred from the resolver method's return type via `ReturnType<>` in the
+    /// generated file. This is only populated for routers that can be imported by
+    /// name; it stays `None` for non-exported or default-exported routers.
+    pub output_inference: Option<OutputInference>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OutputInference {
+    pub router_class_name: String,
+    pub router_file_path: std::path::PathBuf,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

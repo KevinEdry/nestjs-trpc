@@ -6,6 +6,13 @@ use swc_ecma_ast::{
 };
 use tracing::{debug, trace};
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RouterExportKind {
+    Named,
+    Default,
+    None,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RouterInfo {
     pub class_name: String,
@@ -13,6 +20,8 @@ pub struct RouterInfo {
     pub alias: Option<String>,
 
     pub file_path: PathBuf,
+
+    pub export_kind: RouterExportKind,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -61,6 +70,7 @@ impl RouterParser {
                     &class_declaration.ident.sym,
                     &class_declaration.class,
                     file_path,
+                    RouterExportKind::None,
                 )
             }
             ModuleItem::ModuleDecl(ModuleDecl::ExportDefaultDecl(export_default)) => {
@@ -79,6 +89,7 @@ impl RouterParser {
             &class_declaration.ident.sym,
             &class_declaration.class,
             file_path,
+            RouterExportKind::Named,
         )
     }
 
@@ -95,13 +106,19 @@ impl RouterParser {
             |identifier| identifier.sym.to_string(),
         );
 
-        Self::extract_router_from_class(&class_name, &class_expression.class, file_path)
+        Self::extract_router_from_class(
+            &class_name,
+            &class_expression.class,
+            file_path,
+            RouterExportKind::Default,
+        )
     }
 
     fn extract_router_from_class(
         class_name: &str,
         class: &Class,
         file_path: &Path,
+        export_kind: RouterExportKind,
     ) -> Option<RouterInfo> {
         trace!(class = %class_name, "Checking class for @Router decorator");
 
@@ -113,6 +130,7 @@ impl RouterParser {
                 class_name: class_name.to_string(),
                 alias,
                 file_path: file_path.to_path_buf(),
+                export_kind,
             })
     }
 
@@ -304,6 +322,7 @@ mod tests {
         assert_eq!(routers.len(), 1);
         assert_eq!(routers[0].class_name, "UserRouter");
         assert_eq!(routers[0].alias, None);
+        assert_eq!(routers[0].export_kind, RouterExportKind::Named);
     }
 
     #[test]
@@ -344,6 +363,7 @@ mod tests {
         assert_eq!(routers.len(), 1);
         assert_eq!(routers[0].class_name, "InternalRouter");
         assert_eq!(routers[0].alias, Some("internal".to_string()));
+        assert_eq!(routers[0].export_kind, RouterExportKind::None);
     }
 
     #[test]
@@ -503,11 +523,13 @@ mod tests {
             class_name: "Test".to_string(),
             alias: Some("test".to_string()),
             file_path: PathBuf::from("test.ts"),
+            export_kind: RouterExportKind::Named,
         };
         let info2 = RouterInfo {
             class_name: "Test".to_string(),
             alias: Some("test".to_string()),
             file_path: PathBuf::from("test.ts"),
+            export_kind: RouterExportKind::Named,
         };
         assert_eq!(info1, info2);
     }
@@ -518,6 +540,7 @@ mod tests {
             class_name: "Test".to_string(),
             alias: Some("test".to_string()),
             file_path: PathBuf::from("test.ts"),
+            export_kind: RouterExportKind::Named,
         };
         let cloned = info.clone();
         assert_eq!(info, cloned);
@@ -529,6 +552,7 @@ mod tests {
             class_name: "Test".to_string(),
             alias: Some("test".to_string()),
             file_path: PathBuf::from("test.ts"),
+            export_kind: RouterExportKind::Named,
         };
         let debug_str = format!("{info:?}");
         assert!(debug_str.contains("Test"));
@@ -605,5 +629,6 @@ mod tests {
         assert_eq!(routers.len(), 1);
         assert_eq!(routers[0].class_name, "DefaultRouter");
         assert_eq!(routers[0].alias, Some("default".to_string()));
+        assert_eq!(routers[0].export_kind, RouterExportKind::Default);
     }
 }

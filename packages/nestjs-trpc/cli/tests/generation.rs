@@ -83,6 +83,30 @@ fn snapshot_subscription() {
 }
 
 #[test]
+fn snapshot_output_inference() {
+    let output = run_generation_on_fixture("output-inference");
+    assert_snapshot!("output_inference", output);
+}
+
+#[test]
+fn non_exported_router_falls_back_to_any() {
+    let output = run_generation_on_fixture("non-exported-router");
+
+    assert!(
+        output.contains(".query(async () => \"PLACEHOLDER_DO_NOT_REMOVE\" as any)"),
+        "Non-exported routers cannot be imported by name, so output inference must fall back to `any`:\n{output}"
+    );
+    assert!(
+        !output.contains("import type"),
+        "Non-exported routers must not produce a router type import:\n{output}"
+    );
+    assert!(
+        !output.contains("ReturnType"),
+        "Non-exported routers must not emit a ReturnType inference:\n{output}"
+    );
+}
+
+#[test]
 fn snapshot_path_aliases() {
     let output = run_generation_on_fixture("path-aliases");
     assert_snapshot!("path_aliases", output);

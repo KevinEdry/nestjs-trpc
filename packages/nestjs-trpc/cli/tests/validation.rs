@@ -62,7 +62,12 @@ fn build_tsconfig(nestjs_trpc_node_modules: &std::path::Path) -> String {
     )
 }
 
-fn create_stub_declarations(output_directory: &std::path::Path, generated_content: &str) {
+fn create_stub_declarations(
+    output_directory: &std::path::Path,
+    generated_content: &str,
+    fixture_path: &std::path::Path,
+) {
+    use std::collections::HashSet;
     use std::fmt::Write;
 
     let stub_names = extract_schema_references(generated_content);
@@ -73,6 +78,11 @@ fn create_stub_declarations(output_directory: &std::path::Path, generated_conten
     for name in stub_names {
         writeln!(declarations, "declare const {name}: any;").unwrap();
     }
+
+    let mut declared_modules: HashSet<String> = ["@trpc/server", "zod"]
+        .iter()
+        .map(|s| (*s).to_string())
+        .collect();
     for module_specifier in &external_modules {
         writeln!(declarations, "declare module \"{module_specifier}\" {{").unwrap();
         let names = extract_import_names_for_module(generated_content, module_specifier);
@@ -80,10 +90,62 @@ fn create_stub_declarations(output_directory: &std::path::Path, generated_conten
             writeln!(declarations, "  export const {name}: any;").unwrap();
         }
         writeln!(declarations, "}}").unwrap();
+        declared_modules.insert(module_specifier.clone());
+    }
+
+    // The generated file imports router classes for output-type inference, so tsc
+    // type-checks those router files transitively. Stub the bare-package modules they
+    // import (e.g. `nestjs-trpc`) that aren't already declared above.
+    for module_specifier in collect_router_file_modules(fixture_path) {
+        if declared_modules.contains(&module_specifier) {
+            continue;
+        }
+        writeln!(declarations, "declare module \"{module_specifier}\";").unwrap();
+        declared_modules.insert(module_specifier);
     }
 
     let stub_path = output_directory.join("stubs.d.ts");
     fs::write(&stub_path, declarations).expect("Failed to write stub declarations");
+}
+
+fn collect_router_file_modules(fixture_path: &std::path::Path) -> Vec<String> {
+    use std::collections::HashSet;
+
+    let mut modules: HashSet<String> = HashSet::new();
+    collect_router_file_modules_recursive(fixture_path, &mut modules);
+    modules.into_iter().collect()
+}
+
+fn collect_router_file_modules_recursive(
+    directory: &std::path::Path,
+    modules: &mut std::collections::HashSet<String>,
+) {
+    let Ok(entries) = fs::read_dir(directory) else {
+        return;
+    };
+
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            collect_router_file_modules_recursive(&path, modules);
+            continue;
+        }
+
+        let is_router_file = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .is_some_and(|name| name.ends_with(".router.ts"));
+        if !is_router_file {
+            continue;
+        }
+
+        let Ok(content) = fs::read_to_string(&path) else {
+            continue;
+        };
+        for module_specifier in extract_external_module_specifiers(&content) {
+            modules.insert(module_specifier);
+        }
+    }
 }
 
 fn extract_external_module_specifiers(content: &str) -> Vec<String> {
@@ -274,7 +336,7 @@ fn generate_and_validate_typescript(fixture_name: &str) {
     let server_file = output_path.join("server.ts");
     let generated_content = fs::read_to_string(&server_file).expect("Failed to read server.ts");
 
-    create_stub_declarations(output_path, &generated_content);
+    create_stub_declarations(output_path, &generated_content, &fixture_path);
 
     let nestjs_trpc_node_modules = nestjs_trpc_package();
     let tsconfig_content = build_tsconfig(&nestjs_trpc_node_modules);
@@ -340,6 +402,11 @@ fn validate_enum_literals_compile() {
 #[test]
 fn validate_external_imports_compile() {
     generate_and_validate_typescript("external-imports");
+}
+
+#[test]
+fn validate_output_inference_compiles() {
+    generate_and_validate_typescript("output-inference");
 }
 
 #[test]

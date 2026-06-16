@@ -1,6 +1,6 @@
 ---
 source: tests/generation.rs
-assertion_line: 197
+assertion_line: 88
 expression: output
 ---
 /**
@@ -15,21 +15,20 @@ expression: output
 
 import { initTRPC } from "@trpc/server";
 import { z } from "zod";
-import superjson from "superjson";
 
-const t = initTRPC.create({ transformer: superjson });
+const t = initTRPC.create();
 const publicProcedure = t.procedure;
-import type { ItemsRouter } from "<FIXTURES>/transformer-library/items.router";
+import type { FolderRouter } from "<FIXTURES>/output-inference/folder.router";
 
 const appRouter = t.router({
-  items: t.router({
-    getItem: publicProcedure
-      .input(z.object({ id: z.string() }))
-      .output(z.object({ id: z.string(), name: z.string() }))
+  folders: t.router({
+    list: publicProcedure
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<FolderRouter["list"]>>),
+    getById: publicProcedure
+      .output(z.object({ id: z.string() }))
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    createItem: publicProcedure
-      .input(z.object({ name: z.string() }))
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<ItemsRouter["createItem"]>>)
+    create: publicProcedure
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<FolderRouter["create"]>>)
     })
 });
 

@@ -150,6 +150,31 @@ impl StaticGenerator {
     where
         I: IntoIterator<Item = &'a str>,
     {
+        self.render_named_imports("import", schema_names, schema_locations, output_file_path)
+    }
+
+    pub fn generate_type_imports<'a, I>(
+        &self,
+        type_names: I,
+        type_locations: &std::collections::HashMap<String, std::path::PathBuf>,
+        output_file_path: &Path,
+    ) -> String
+    where
+        I: IntoIterator<Item = &'a str>,
+    {
+        self.render_named_imports("import type", type_names, type_locations, output_file_path)
+    }
+
+    fn render_named_imports<'a, I>(
+        &self,
+        keyword: &str,
+        names: I,
+        locations: &std::collections::HashMap<String, std::path::PathBuf>,
+        output_file_path: &Path,
+    ) -> String
+    where
+        I: IntoIterator<Item = &'a str>,
+    {
         let output_dir = output_file_path.parent().unwrap_or_else(|| Path::new("."));
 
         let mut seen_names: HashSet<&str> = HashSet::new();
@@ -158,8 +183,8 @@ impl StaticGenerator {
             std::collections::HashMap::new();
 
         group_schema_names_by_path(
-            schema_names,
-            schema_locations,
+            names,
+            locations,
             output_dir,
             &mut seen_names,
             &mut path_order,
@@ -175,7 +200,7 @@ impl StaticGenerator {
                 let names = names_by_path.get(path)?;
                 let names_joined = names.join(", ");
                 Some(format!(
-                    "import {{ {names_joined} }} from {q}{path}{q}{term}\n"
+                    "{keyword} {{ {names_joined} }} from {q}{path}{q}{term}\n"
                 ))
             })
             .collect()

@@ -1,5 +1,6 @@
 ---
 source: tests/generation.rs
+assertion_line: 203
 expression: output
 ---
 /**
@@ -18,12 +19,13 @@ import { customTransformer } from "./my-transformer";
 
 const t = initTRPC.create({ transformer: customTransformer });
 const publicProcedure = t.procedure;
+import type { ItemsRouter } from "<FIXTURES>/transformer-local/items.router";
 
 const appRouter = t.router({
   items: t.router({
     getItem: publicProcedure
       .input(z.object({ id: z.string() }))
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<ItemsRouter["getItem"]>>)
     })
 });
 

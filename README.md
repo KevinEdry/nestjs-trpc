@@ -125,7 +125,3 @@ class UserRouter {
     <img width="720" height="50" src="https://contrib.rocks/image?repo=kevinedry/nestjs-trpc" alt="A table of avatars from the project's contributors" />
   </p>
 </a>
-
-## Release Process
-
-For maintainers, see [Release Checklist](./docs/docs/RELEASE_CHECKLIST.md) for the v2.0.0 release process.

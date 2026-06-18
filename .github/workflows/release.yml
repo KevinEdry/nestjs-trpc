@@ -59,6 +59,7 @@ jobs:
     permissions:
       contents: write
       id-token: write
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -168,14 +169,20 @@ jobs:
             release-assets/nestjs-trpc-windows-x64.exe
             release-assets/checksums.txt
 
-      - name: Commit changelog to main
+      # main's branch ruleset (required status checks) declines a direct push, so the
+      # regenerated changelog is proposed as a PR instead of committed straight to main.
+      - name: Open changelog PR
         if: ${{ github.event_name == 'push' || !inputs.dry_run }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout main
-          git add CHANGELOG.md
-          git diff --cached --quiet && exit 0
-          git commit -m "chore(release): update changelog for v${{ steps.version.outputs.version }}"
-          git push origin main
+        uses: peter-evans/create-pull-request@v7
+        with:
+          base: main
+          branch: changelog/v${{ steps.version.outputs.version }}
+          add-paths: CHANGELOG.md
+          commit-message: "chore(release): update changelog for v${{ steps.version.outputs.version }}"
+          title: "chore(release): update changelog for v${{ steps.version.outputs.version }}"
+          body: |
+            Automated changelog update for the **v${{ steps.version.outputs.version }}** release.
+
+            Opened by the release workflow because `main`'s ruleset doesn't allow a direct push.
+          delete-branch: true
 

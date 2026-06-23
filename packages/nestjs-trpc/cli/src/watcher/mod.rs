@@ -34,6 +34,9 @@ pub struct WatchConfig {
 
     /// Transformer info extracted from `TRPCModule.forRoot()`
     pub transformer: Option<TransformerInfo>,
+
+    /// Add .js extension to local import paths for ESM compatibility
+    pub add_js_extension: bool,
 }
 
 impl WatchConfig {
@@ -51,6 +54,7 @@ impl WatchConfig {
             debounce_milliseconds: DEFAULT_DEBOUNCE_MILLISECONDS,
             verbose: false,
             transformer: None,
+            add_js_extension: false,
         }
     }
 
@@ -72,6 +76,13 @@ impl WatchConfig {
     #[must_use]
     pub const fn with_verbose(mut self, verbose: bool) -> Self {
         self.verbose = verbose;
+        self
+    }
+
+    /// Sets whether to add .js extension to local import paths.
+    #[must_use]
+    pub const fn with_add_js_extension(mut self, add_js_extension: bool) -> Self {
+        self.add_js_extension = add_js_extension;
         self
     }
 }
@@ -145,6 +156,7 @@ impl WatchSession {
             &self.config.output_directory,
             &self.config.router_pattern,
             self.config.transformer.as_ref(),
+            self.config.add_js_extension,
         )
     }
 
@@ -183,6 +195,7 @@ fn handle_file_change(config: &WatchConfig) -> Result<()> {
             &config.output_directory,
             &config.router_pattern,
             config.transformer.as_ref(),
+            config.add_js_extension,
         )
     });
 

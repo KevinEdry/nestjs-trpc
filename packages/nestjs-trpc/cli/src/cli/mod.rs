@@ -62,6 +62,10 @@ pub enum Commands {
         /// Validate and show what would be generated without writing files
         #[arg(long, help_heading = "Validation")]
         dry_run: bool,
+
+        /// Add .js extension to local import paths for ESM compatibility (NodeNext)
+        #[arg(long = "add-js-extension", help_heading = "Output")]
+        add_js_extension: bool,
     },
     /// Watch for file changes and regenerate router types automatically
     #[command(after_help = "EXAMPLES:
@@ -80,5 +84,9 @@ pub enum Commands {
         /// Output directory for generated files
         #[arg(short, long, value_name = "PATH", help_heading = "Output")]
         output: Option<String>,
+
+        /// Add .js extension to local import paths for ESM compatibility (NodeNext)
+        #[arg(long = "add-js-extension", help_heading = "Output")]
+        add_js_extension: bool,
     },
 }

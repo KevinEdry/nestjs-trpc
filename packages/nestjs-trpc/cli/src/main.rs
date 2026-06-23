@@ -109,6 +109,7 @@ fn run(cli: &Cli) -> Result<ExitCode> {
             router_pattern,
             json,
             dry_run,
+            add_js_extension,
         }) => {
             return cli::run_generate(
                 entrypoint.as_deref(),
@@ -116,18 +117,21 @@ fn run(cli: &Cli) -> Result<ExitCode> {
                 router_pattern.as_deref(),
                 *dry_run,
                 *json,
+                *add_js_extension,
             );
         }
         Some(Commands::Watch {
             entrypoint,
             output,
             router_pattern,
+            add_js_extension,
         }) => {
             cli::run_watch(
                 entrypoint.as_deref(),
                 output.as_deref(),
                 router_pattern.as_deref(),
                 cli.verbose > 0,
+                *add_js_extension,
             )?;
         }
         None => {

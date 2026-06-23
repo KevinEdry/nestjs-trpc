@@ -18,6 +18,8 @@ pub struct StaticGenerator {
 
     pub(crate) use_semicolons: bool,
 
+    pub(crate) add_js_extension: bool,
+
     pub(crate) transformer: Option<TransformerInfo>,
 }
 
@@ -33,6 +35,7 @@ impl StaticGenerator {
         Self {
             use_single_quotes: false,
             use_semicolons: true,
+            add_js_extension: false,
             transformer: None,
         }
     }
@@ -46,6 +49,12 @@ impl StaticGenerator {
     #[must_use]
     pub const fn with_semicolons(mut self, use_semicolons: bool) -> Self {
         self.use_semicolons = use_semicolons;
+        self
+    }
+
+    #[must_use]
+    pub const fn with_add_js_extension(mut self, add_js_extension: bool) -> Self {
+        self.add_js_extension = add_js_extension;
         self
     }
 
@@ -189,6 +198,7 @@ impl StaticGenerator {
             &mut seen_names,
             &mut path_order,
             &mut names_by_path,
+            self.add_js_extension,
         );
 
         let q = self.quote();
@@ -206,7 +216,7 @@ impl StaticGenerator {
             .collect()
     }
 
-    fn calculate_relative_path(from_dir: &Path, to_file: &Path) -> String {
+    fn calculate_relative_path(from_dir: &Path, to_file: &Path, add_js_extension: bool) -> String {
         let relative = pathdiff::diff_paths(to_file, from_dir).map_or_else(
             || to_file.to_string_lossy().to_string(),
             |p| p.to_string_lossy().to_string(),
@@ -220,10 +230,16 @@ impl StaticGenerator {
             .or_else(|| relative.strip_suffix(".tsx"))
             .unwrap_or(&relative);
 
-        if without_ext.starts_with('.') || without_ext.starts_with('/') {
-            without_ext.to_string()
+        let normalized_path = if add_js_extension {
+            format!("{without_ext}.js")
         } else {
-            format!("./{without_ext}")
+            without_ext.to_string()
+        };
+
+        if normalized_path.starts_with('.') || normalized_path.starts_with('/') {
+            normalized_path
+        } else {
+            format!("./{normalized_path}")
         }
     }
 }
@@ -235,6 +251,7 @@ fn group_schema_names_by_path<'a, I>(
     seen_names: &mut HashSet<&'a str>,
     path_order: &mut Vec<String>,
     names_by_path: &mut std::collections::HashMap<String, Vec<&'a str>>,
+    add_js_extension: bool,
 ) where
     I: IntoIterator<Item = &'a str>,
 {
@@ -245,7 +262,7 @@ fn group_schema_names_by_path<'a, I>(
         let Some(source_path) = schema_locations.get(name) else {
             continue;
         };
-        let import_path = resolve_import_path(output_dir, source_path);
+        let import_path = resolve_import_path(output_dir, source_path, add_js_extension);
         if !names_by_path.contains_key(&import_path) {
             path_order.push(import_path.clone());
         }
@@ -253,13 +270,13 @@ fn group_schema_names_by_path<'a, I>(
     }
 }
 
-fn resolve_import_path(output_dir: &Path, source_path: &Path) -> String {
+fn resolve_import_path(output_dir: &Path, source_path: &Path, add_js_extension: bool) -> String {
     let is_external_package = output_dir.is_absolute() && !source_path.is_absolute();
     if is_external_package {
         // Windows paths use backslashes which aren't valid in ES module import specifiers
         source_path.to_string_lossy().replace('\\', "/")
     } else {
-        StaticGenerator::calculate_relative_path(output_dir, source_path)
+        StaticGenerator::calculate_relative_path(output_dir, source_path, add_js_extension)
     }
 }
 
@@ -400,6 +417,7 @@ mod tests {
         let result = StaticGenerator::calculate_relative_path(
             Path::new("src/@generated"),
             Path::new("src/@generated/types.ts"),
+            false,
         );
         assert_eq!(result, "./types");
 
@@ -407,8 +425,26 @@ mod tests {
         let result = StaticGenerator::calculate_relative_path(
             Path::new("src/@generated"),
             Path::new("src/schemas/user.ts"),
+            false,
         );
         assert_eq!(result, "../schemas/user");
+    }
+
+    #[test]
+    fn test_calculate_relative_path_with_js_extension() {
+        let result = StaticGenerator::calculate_relative_path(
+            Path::new("src/@generated"),
+            Path::new("src/app.router.ts"),
+            true,
+        );
+        assert_eq!(result, "../app.router.js");
+
+        let result = StaticGenerator::calculate_relative_path(
+            Path::new("src/@generated"),
+            Path::new("src/folder.router.tsx"),
+            true,
+        );
+        assert_eq!(result, "../folder.router.js");
     }
 
     #[test]
@@ -419,7 +455,7 @@ mod tests {
         let output_directory = Path::new("/absolute/path");
         let source_path = Path::new("schemas\\user.schema");
 
-        let result = resolve_import_path(output_directory, source_path);
+        let result = resolve_import_path(output_directory, source_path, false);
 
         assert!(
             !result.contains('\\'),

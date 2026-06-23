@@ -1416,4 +1416,29 @@ mod tests {
         assert!(output.contains("import type { FolderRouter } from \"./folder.router\";"));
         assert!(output.contains("Awaited<ReturnType<FolderRouter[\"list\"]>>"));
     }
+
+    #[test]
+    fn test_inferred_output_emits_router_type_import_with_js_extension() {
+        let static_generator = StaticGenerator::new().with_add_js_extension(true);
+        let generator = ServerGenerator::new().with_static_generator(static_generator);
+        let routers = vec![create_test_router(
+            "FolderRouter",
+            Some("folders"),
+            vec![create_inferred_procedure(
+                "list",
+                ProcedureType::Query,
+                "FolderRouter",
+                "folder.router.ts",
+            )],
+        )];
+
+        let output = generator.generate_with_schema_imports(
+            &routers,
+            &HashMap::new(),
+            Path::new("server.ts"),
+        );
+
+        assert!(output.contains("import type { FolderRouter } from \"./folder.router.js\";"));
+        assert!(output.contains("Awaited<ReturnType<FolderRouter[\"list\"]>>"));
+    }
 }

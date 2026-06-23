@@ -32,6 +32,7 @@ pub fn run_generation(
     output_path: &Path,
     router_pattern: &str,
     transformer: Option<&TransformerInfo>,
+    add_js_extension: bool,
 ) -> Result<GenerationResult> {
     let start_time = Instant::now();
 
@@ -47,7 +48,7 @@ pub fn run_generation(
         &parsed_files,
         base_directory,
     );
-    write_server_file(output_path, &routers, &schema_locations, transformer)?;
+    write_server_file(output_path, &routers, &schema_locations, transformer, add_js_extension)?;
 
     let router_count = routers.len();
     let procedure_count = routers.iter().map(|r| r.procedures.len()).sum();
@@ -542,8 +543,11 @@ fn write_server_file(
     routers: &[RouterMetadata],
     schema_locations: &HashMap<String, PathBuf>,
     transformer: Option<&TransformerInfo>,
+    add_js_extension: bool,
 ) -> Result<PathBuf> {
-    let static_generator = StaticGenerator::new().with_transformer(transformer.cloned());
+    let static_generator = StaticGenerator::new()
+        .with_transformer(transformer.cloned())
+        .with_add_js_extension(add_js_extension);
     let server_generator = ServerGenerator::new().with_static_generator(static_generator);
 
     let server_file_path = if output_path

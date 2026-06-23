@@ -24,6 +24,7 @@ pub fn run_generate(
     router_pattern_override: Option<&str>,
     dry_run: bool,
     json_output: bool,
+    add_js_extension: bool,
 ) -> Result<ExitCode> {
     let current_directory = std::env::current_dir().context("Failed to get current directory")?;
 
@@ -59,6 +60,7 @@ pub fn run_generate(
             &router_pattern,
             json_output,
             transformer.as_ref(),
+            add_js_extension,
         )
     } else {
         run_normal_generation(
@@ -66,6 +68,7 @@ pub fn run_generate(
             &output_path,
             &router_pattern,
             transformer.as_ref(),
+            add_js_extension,
         )
     }
 }
@@ -83,9 +86,15 @@ fn run_normal_generation(
     output_path: &std::path::Path,
     router_pattern: &str,
     transformer: Option<&TransformerInfo>,
+    add_js_extension: bool,
 ) -> Result<ExitCode> {
-    let generation_result =
-        nestjs_trpc::run_generation(base_directory, output_path, router_pattern, transformer)?;
+    let generation_result = nestjs_trpc::run_generation(
+        base_directory,
+        output_path,
+        router_pattern,
+        transformer,
+        add_js_extension,
+    )?;
 
     print_summary(
         output_path,
@@ -101,6 +110,7 @@ fn run_dry_run_generation(
     router_pattern: &str,
     json_output: bool,
     transformer: Option<&TransformerInfo>,
+    add_js_extension: bool,
 ) -> Result<ExitCode> {
     let temp_directory = tempfile::tempdir().context("Failed to create temporary directory")?;
     let temp_output_path = temp_directory.path().join("@generated");
@@ -110,6 +120,7 @@ fn run_dry_run_generation(
         &temp_output_path,
         router_pattern,
         transformer,
+        add_js_extension,
     )?;
 
     let generated_server_path = temp_output_path.join("server.ts");

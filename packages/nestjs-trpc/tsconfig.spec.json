@@ -4,7 +4,7 @@
     "experimentalDecorators": true,
     "sourceMap": true,
     "outDir": "./dist/tests",
-    "types": ["jest", "node"],
+    "types": ["jest", "node", "reflect-metadata"],
     "emitDecoratorMetadata": true
   }
 }

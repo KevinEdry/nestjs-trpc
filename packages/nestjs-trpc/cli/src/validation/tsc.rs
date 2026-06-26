@@ -53,26 +53,30 @@ pub fn find_tsc(base_directory: &Path) -> Option<PathBuf> {
     find_tsc_in_path()
 }
 
-fn find_tsc_in_path() -> Option<PathBuf> {
-    let path_var = std::env::var("PATH").ok()?;
-    let separator = if cfg!(windows) { ';' } else { ':' };
+fn find_tsc_executable_in_directory(directory: &str) -> Option<PathBuf> {
+    let tsc_path = Path::new(directory).join("tsc");
+    if tsc_path.exists() {
+        return Some(tsc_path);
+    }
 
-    for directory in path_var.split(separator) {
-        let tsc_path = Path::new(directory).join("tsc");
-        if tsc_path.exists() {
-            return Some(tsc_path);
-        }
-
-        #[cfg(windows)]
-        {
-            let tsc_cmd = Path::new(directory).join("tsc.cmd");
-            if tsc_cmd.exists() {
-                return Some(tsc_cmd);
-            }
+    #[cfg(windows)]
+    {
+        let windows_tsc_path = Path::new(directory).join("tsc.cmd");
+        if windows_tsc_path.exists() {
+            return Some(windows_tsc_path);
         }
     }
 
     None
+}
+
+fn find_tsc_in_path() -> Option<PathBuf> {
+    let path_variable = std::env::var("PATH").ok()?;
+    let separator = if cfg!(windows) { ';' } else { ':' };
+
+    path_variable
+        .split(separator)
+        .find_map(find_tsc_executable_in_directory)
 }
 
 #[allow(clippy::expect_used)]

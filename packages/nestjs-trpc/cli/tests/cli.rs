@@ -107,6 +107,52 @@ fn generate_help_shows_subcommand_options() {
 }
 
 #[test]
+fn import_extension_flag_shows_in_help() {
+    cli_command()
+        .arg("generate")
+        .arg("--help")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("--import-extension"));
+}
+
+#[test]
+fn import_extension_js_is_accepted() {
+    let output_directory = TempDir::new().unwrap();
+    let fixture = fixtures_directory().join("valid/simple-router");
+
+    cli_command()
+        .arg("generate")
+        .arg("--entrypoint")
+        .arg(fixture.join("user.router.ts"))
+        .arg("--output")
+        .arg(output_directory.path())
+        .arg("--import-extension")
+        .arg("js")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Generated server.ts successfully"));
+}
+
+#[test]
+fn import_extension_none_is_accepted() {
+    let output_directory = TempDir::new().unwrap();
+    let fixture = fixtures_directory().join("valid/simple-router");
+
+    cli_command()
+        .arg("generate")
+        .arg("--entrypoint")
+        .arg(fixture.join("user.router.ts"))
+        .arg("--output")
+        .arg(output_directory.path())
+        .arg("--import-extension")
+        .arg("none")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Generated server.ts successfully"));
+}
+
+#[test]
 fn multiple_verbose_flags_accepted() {
     cli_command().arg("-vvv").arg("--help").assert().success();
 }

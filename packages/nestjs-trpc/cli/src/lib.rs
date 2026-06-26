@@ -10,6 +10,7 @@ pub mod generation;
 pub mod generator;
 pub mod parser;
 pub mod scanner;
+pub mod tsconfig;
 pub mod validation;
 pub mod watcher;
 

@@ -1,11 +1,12 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use serde_json::Value;
 use swc_ecma_ast::{
     ExportDefaultExpr, Expr, ExprOrSpread, Lit, ModuleDecl, ModuleItem, ObjectLit, Prop, PropName,
     PropOrSpread,
 };
-use tracing::trace;
+use tracing::{debug, trace};
 
 use crate::error::ConfigError;
 use crate::parser::TsParser;
@@ -337,9 +338,40 @@ impl Config {
     }
 }
 
+/// Detects whether `.js` extensions should be added to local import paths
+/// by resolving the full `extends` chain and inspecting the merged
+/// `compilerOptions.module` and `compilerOptions.moduleResolution`.
+///
+/// Returns `Some(true)` for `NodeNext`/`Node16` (which require `.js` extensions),
+/// `Some(false)` for other settings,
+/// `None` if no tsconfig exists.
+#[must_use]
+pub fn detect_import_extension(base_directory: &Path) -> Option<bool> {
+    let options = crate::tsconfig::resolve_compiler_options(base_directory)?;
+
+    let module_resolution = options.get("moduleResolution").and_then(Value::as_str);
+    let module = options.get("module").and_then(Value::as_str);
+
+    let requires_extension = module_resolution.is_some_and(|value| {
+        value.eq_ignore_ascii_case("NodeNext") || value.eq_ignore_ascii_case("Node16")
+    }) || module.is_some_and(|value| {
+        value.eq_ignore_ascii_case("NodeNext") || value.eq_ignore_ascii_case("Node16")
+    });
+
+    debug!(
+        module_resolution = module_resolution,
+        module = module,
+        requires_extension = requires_extension,
+        "Determined import extension requirement from resolved tsconfig"
+    );
+
+    Some(requires_extension)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use tempfile::TempDir;
 
     #[test]
     fn test_parse_full_config() {
@@ -469,6 +501,232 @@ export default {
             }
             _ => panic!("Expected InvalidSyntax error for unknown field"),
         }
+    }
+
+    #[test]
+    fn test_detect_import_extension_node_next() {
+        let temporary_directory = TempDir::new().unwrap();
+        let base = temporary_directory.path();
+
+        let tsconfig = serde_json::json!({
+            "compilerOptions": {
+                "module": "NodeNext",
+                "moduleResolution": "NodeNext"
+            }
+        });
+        fs::write(
+            base.join("tsconfig.json"),
+            serde_json::to_string_pretty(&tsconfig).unwrap(),
+        )
+        .unwrap();
+
+        let result = detect_import_extension(base);
+        assert_eq!(result, Some(true));
+    }
+
+    #[test]
+    fn test_detect_import_extension_node16() {
+        let temporary_directory = TempDir::new().unwrap();
+        let base = temporary_directory.path();
+
+        let tsconfig = serde_json::json!({
+            "compilerOptions": {
+                "module": "Node16",
+                "moduleResolution": "Node16"
+            }
+        });
+        fs::write(
+            base.join("tsconfig.json"),
+            serde_json::to_string_pretty(&tsconfig).unwrap(),
+        )
+        .unwrap();
+
+        let result = detect_import_extension(base);
+        assert_eq!(result, Some(true));
+    }
+
+    #[test]
+    fn test_js_node16_module_implies_resolution() {
+        let temporary_directory = TempDir::new().unwrap();
+        let base = temporary_directory.path();
+
+        let tsconfig = serde_json::json!({
+            "compilerOptions": {
+                "module": "Node16"
+            }
+        });
+        fs::write(
+            base.join("tsconfig.json"),
+            serde_json::to_string_pretty(&tsconfig).unwrap(),
+        )
+        .unwrap();
+
+        let result = detect_import_extension(base);
+        assert_eq!(result, Some(true));
+    }
+
+    #[test]
+    fn test_detect_import_extension_bundler() {
+        let temporary_directory = TempDir::new().unwrap();
+        let base = temporary_directory.path();
+
+        let tsconfig = serde_json::json!({
+            "compilerOptions": {
+                "moduleResolution": "bundler"
+            }
+        });
+        fs::write(
+            base.join("tsconfig.json"),
+            serde_json::to_string_pretty(&tsconfig).unwrap(),
+        )
+        .unwrap();
+
+        let result = detect_import_extension(base);
+        assert_eq!(result, Some(false));
+    }
+
+    #[test]
+    fn test_detect_import_extension_esnext() {
+        let temporary_directory = TempDir::new().unwrap();
+        let base = temporary_directory.path();
+
+        let tsconfig = serde_json::json!({
+            "compilerOptions": {
+                "module": "ESNext",
+                "moduleResolution": "bundler"
+            }
+        });
+        fs::write(
+            base.join("tsconfig.json"),
+            serde_json::to_string_pretty(&tsconfig).unwrap(),
+        )
+        .unwrap();
+
+        let result = detect_import_extension(base);
+        assert_eq!(result, Some(false));
+    }
+
+    #[test]
+    fn test_detect_import_extension_missing_field() {
+        let temporary_directory = TempDir::new().unwrap();
+        let base = temporary_directory.path();
+
+        let tsconfig = serde_json::json!({
+            "compilerOptions": {}
+        });
+        fs::write(
+            base.join("tsconfig.json"),
+            serde_json::to_string_pretty(&tsconfig).unwrap(),
+        )
+        .unwrap();
+
+        let result = detect_import_extension(base);
+        assert_eq!(result, Some(false));
+    }
+
+    #[test]
+    fn test_detect_import_extension_no_tsconfig() {
+        let temporary_directory = TempDir::new().unwrap();
+        let base = temporary_directory.path();
+
+        let result = detect_import_extension(base);
+        assert_eq!(result, None);
+    }
+
+    #[test]
+    fn test_jsonc_comments_and_trailing_commas() {
+        let temporary_directory = TempDir::new().unwrap();
+        let base = temporary_directory.path();
+
+        let tsconfig = r#"{
+            // comment
+            "compilerOptions": {
+                "module": "NodeNext",
+                "moduleResolution": "NodeNext", // trailing comma
+            },
+        }"#;
+        fs::write(base.join("tsconfig.json"), tsconfig).unwrap();
+
+        let result = detect_import_extension(base);
+        assert_eq!(result, Some(true));
+    }
+
+    #[test]
+    fn test_detect_import_extension_invalid_json() {
+        let temporary_directory = TempDir::new().unwrap();
+        let base = temporary_directory.path();
+
+        fs::write(base.join("tsconfig.json"), "not valid json").unwrap();
+
+        let result = detect_import_extension(base);
+        assert_eq!(result, None);
+    }
+
+    #[test]
+    fn test_extends_chain_inherits_module() {
+        let temporary_directory = TempDir::new().unwrap();
+        let base = temporary_directory.path();
+
+        let parent = serde_json::json!({
+            "compilerOptions": {
+                "module": "NodeNext",
+                "moduleResolution": "NodeNext"
+            }
+        });
+        fs::write(
+            base.join("tsconfig.base.json"),
+            serde_json::to_string_pretty(&parent).unwrap(),
+        )
+        .unwrap();
+
+        let child = serde_json::json!({
+            "extends": "./tsconfig.base.json",
+            "compilerOptions": {
+                "outDir": "./dist"
+            }
+        });
+        fs::write(
+            base.join("tsconfig.json"),
+            serde_json::to_string_pretty(&child).unwrap(),
+        )
+        .unwrap();
+
+        let result = detect_import_extension(base);
+        assert_eq!(result, Some(true));
+    }
+
+    #[test]
+    fn test_extends_chain_child_overrides_to_not_require() {
+        let temporary_directory = TempDir::new().unwrap();
+        let base = temporary_directory.path();
+
+        let parent = serde_json::json!({
+            "compilerOptions": {
+                "module": "NodeNext",
+                "moduleResolution": "NodeNext"
+            }
+        });
+        fs::write(
+            base.join("tsconfig.base.json"),
+            serde_json::to_string_pretty(&parent).unwrap(),
+        )
+        .unwrap();
+
+        let child = serde_json::json!({
+            "extends": "./tsconfig.base.json",
+            "compilerOptions": {
+                "module": "ESNext",
+                "moduleResolution": "bundler"
+            }
+        });
+        fs::write(
+            base.join("tsconfig.json"),
+            serde_json::to_string_pretty(&child).unwrap(),
+        )
+        .unwrap();
+
+        let result = detect_import_extension(base);
+        assert_eq!(result, Some(false));
     }
 
     #[test]

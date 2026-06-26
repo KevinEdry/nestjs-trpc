@@ -18,7 +18,7 @@ pub struct StaticGenerator {
 
     pub(crate) use_semicolons: bool,
 
-    pub(crate) add_js_extension: bool,
+    pub(crate) import_extension: bool,
 
     pub(crate) transformer: Option<TransformerInfo>,
 }
@@ -35,7 +35,7 @@ impl StaticGenerator {
         Self {
             use_single_quotes: false,
             use_semicolons: true,
-            add_js_extension: false,
+            import_extension: false,
             transformer: None,
         }
     }
@@ -53,8 +53,8 @@ impl StaticGenerator {
     }
 
     #[must_use]
-    pub const fn with_add_js_extension(mut self, add_js_extension: bool) -> Self {
-        self.add_js_extension = add_js_extension;
+    pub const fn with_import_extension(mut self, import_extension: bool) -> Self {
+        self.import_extension = import_extension;
         self
     }
 
@@ -198,7 +198,7 @@ impl StaticGenerator {
             &mut seen_names,
             &mut path_order,
             &mut names_by_path,
-            self.add_js_extension,
+            self.import_extension,
         );
 
         let q = self.quote();
@@ -216,7 +216,7 @@ impl StaticGenerator {
             .collect()
     }
 
-    fn calculate_relative_path(from_dir: &Path, to_file: &Path, add_js_extension: bool) -> String {
+    fn calculate_relative_path(from_dir: &Path, to_file: &Path, import_extension: bool) -> String {
         let relative = pathdiff::diff_paths(to_file, from_dir).map_or_else(
             || to_file.to_string_lossy().to_string(),
             |p| p.to_string_lossy().to_string(),
@@ -230,7 +230,7 @@ impl StaticGenerator {
             .or_else(|| relative.strip_suffix(".tsx"))
             .unwrap_or(&relative);
 
-        let normalized_path = if add_js_extension {
+        let normalized_path = if import_extension {
             format!("{without_ext}.js")
         } else {
             without_ext.to_string()
@@ -251,7 +251,7 @@ fn group_schema_names_by_path<'a, I>(
     seen_names: &mut HashSet<&'a str>,
     path_order: &mut Vec<String>,
     names_by_path: &mut std::collections::HashMap<String, Vec<&'a str>>,
-    add_js_extension: bool,
+    import_extension: bool,
 ) where
     I: IntoIterator<Item = &'a str>,
 {
@@ -262,7 +262,7 @@ fn group_schema_names_by_path<'a, I>(
         let Some(source_path) = schema_locations.get(name) else {
             continue;
         };
-        let import_path = resolve_import_path(output_dir, source_path, add_js_extension);
+        let import_path = resolve_import_path(output_dir, source_path, import_extension);
         if !names_by_path.contains_key(&import_path) {
             path_order.push(import_path.clone());
         }
@@ -270,13 +270,13 @@ fn group_schema_names_by_path<'a, I>(
     }
 }
 
-fn resolve_import_path(output_dir: &Path, source_path: &Path, add_js_extension: bool) -> String {
+fn resolve_import_path(output_dir: &Path, source_path: &Path, import_extension: bool) -> String {
     let is_external_package = output_dir.is_absolute() && !source_path.is_absolute();
     if is_external_package {
         // Windows paths use backslashes which aren't valid in ES module import specifiers
         source_path.to_string_lossy().replace('\\', "/")
     } else {
-        StaticGenerator::calculate_relative_path(output_dir, source_path, add_js_extension)
+        StaticGenerator::calculate_relative_path(output_dir, source_path, import_extension)
     }
 }
 
@@ -452,7 +452,12 @@ mod tests {
         // On Unix, backslash is a valid filename char so this creates a single component.
         // On Windows, it creates a two-component path. Either way, the output must use
         // forward slashes since backslashes aren't valid in ES module import specifiers.
+        // We need a platform-appropriate absolute path so is_external_package works correctly.
+        #[cfg(unix)]
         let output_directory = Path::new("/absolute/path");
+        #[cfg(windows)]
+        let output_directory = Path::new("C:\\absolute\\path");
+
         let source_path = Path::new("schemas\\user.schema");
 
         let result = resolve_import_path(output_directory, source_path, false);

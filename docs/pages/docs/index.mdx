@@ -107,6 +107,12 @@ By default, types are generated to `./src/@generated/server.ts`. You can customi
 npx nestjs-trpc generate --output ./src/trpc/types.ts
 ```
 
+For projects using `"moduleResolution": "NodeNext"` in tsconfig.json, import
+extensions are added automatically. Override with `--import-extension js|none|auto`:
+```bash copy
+npx nestjs-trpc generate --import-extension none
+```
+
 ### Start your NestJS server. You should be good to go! 🎉
 
 </Steps>

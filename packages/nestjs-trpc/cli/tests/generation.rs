@@ -18,7 +18,8 @@ fn run_generation_on_fixture(fixture_name: &str) -> String {
     let temporary_directory = TempDir::new().expect("Failed to create temp directory");
     let output_path = temporary_directory.path();
 
-    run_generation(&fixture_path, output_path, "**/*.router.ts", None).expect("Generation failed");
+    run_generation(&fixture_path, output_path, "**/*.router.ts", None, false)
+        .expect("Generation failed");
 
     let server_file = output_path.join("server.ts");
     let content = fs::read_to_string(&server_file).expect("Failed to read generated server.ts");
@@ -142,6 +143,7 @@ fn snapshot_with_default_transformer() {
         output_path,
         "**/*.router.ts",
         Some(&transformer),
+        false,
     )
     .expect("Generation failed");
 
@@ -170,6 +172,7 @@ fn snapshot_with_named_transformer() {
         output_path,
         "**/*.router.ts",
         Some(&transformer),
+        false,
     )
     .expect("Generation failed");
 
@@ -207,6 +210,7 @@ fn run_generation_with_module_transformer(fixture_name: &str) -> String {
         output_path,
         "**/*.router.ts",
         transformer.as_ref(),
+        false,
     )
     .expect("Generation failed");
 

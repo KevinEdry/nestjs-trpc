@@ -1419,7 +1419,7 @@ mod tests {
 
     #[test]
     fn test_inferred_output_emits_router_type_import_with_js_extension() {
-        let static_generator = StaticGenerator::new().with_add_js_extension(true);
+        let static_generator = StaticGenerator::new().with_import_extension(true);
         let generator = ServerGenerator::new().with_static_generator(static_generator);
         let routers = vec![create_test_router(
             "FolderRouter",

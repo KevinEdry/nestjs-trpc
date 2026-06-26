@@ -15,7 +15,7 @@ pub fn run_watch(
     output_override: Option<&str>,
     router_pattern_override: Option<&str>,
     verbose: bool,
-    add_js_extension: bool,
+    import_extension: bool,
 ) -> Result<()> {
     let current_directory = std::env::current_dir().context("Failed to get current directory")?;
 
@@ -57,7 +57,7 @@ pub fn run_watch(
         .with_debounce_milliseconds(300)
         .with_verbose(verbose)
         .with_transformer(transformer)
-        .with_add_js_extension(add_js_extension);
+        .with_import_extension(import_extension);
 
     let session = WatchSession::new(config)?;
     session.run()

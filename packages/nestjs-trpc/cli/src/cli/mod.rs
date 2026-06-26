@@ -5,10 +5,17 @@ mod watch;
 pub use generate::run_generate;
 pub use watch::run_watch;
 
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 
 pub const DEFAULT_ROUTER_PATTERN: &str = "**/*.router.ts";
 pub const DEFAULT_OUTPUT_PATH: &str = "./src/@generated";
+
+#[derive(ValueEnum, Clone, Debug)]
+pub enum ImportExtensionValue {
+    Js,
+    None,
+    Auto,
+}
 
 #[derive(Parser, Debug)]
 #[command(name = "nestjs-trpc")]
@@ -63,9 +70,9 @@ pub enum Commands {
         #[arg(long, help_heading = "Validation")]
         dry_run: bool,
 
-        /// Add .js extension to local import paths for ESM compatibility (NodeNext)
-        #[arg(long = "add-js-extension", help_heading = "Output")]
-        add_js_extension: bool,
+        /// Add .js extension to local import paths (js|none|auto) [default: auto]
+        #[arg(long = "import-extension", value_enum, help_heading = "Output")]
+        import_extension: Option<ImportExtensionValue>,
     },
     /// Watch for file changes and regenerate router types automatically
     #[command(after_help = "EXAMPLES:
@@ -85,8 +92,8 @@ pub enum Commands {
         #[arg(short, long, value_name = "PATH", help_heading = "Output")]
         output: Option<String>,
 
-        /// Add .js extension to local import paths for ESM compatibility (NodeNext)
-        #[arg(long = "add-js-extension", help_heading = "Output")]
-        add_js_extension: bool,
+        /// Add .js extension to local import paths (js|none|auto) [default: auto]
+        #[arg(long = "import-extension", value_enum, help_heading = "Output")]
+        import_extension: Option<ImportExtensionValue>,
     },
 }

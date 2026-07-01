@@ -9,10 +9,6 @@ node_modules
 /.awcache
 /.vscode
 
-/cli/benches/fixtures
-/cli/src/@generated
-/lib
-
 # misc
 npm-debug.log
 .DS_Store

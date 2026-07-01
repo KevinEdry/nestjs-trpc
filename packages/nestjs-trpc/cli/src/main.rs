@@ -9,8 +9,8 @@ use tracing::debug;
 use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::EnvFilter;
 
-use cli::{Cli, Commands, ImportExtensionValue};
-use nestjs_trpc::{config, ParserError, SyntaxDiagnostic};
+use cli::{Cli, Commands};
+use nestjs_trpc::{ParserError, SyntaxDiagnostic};
 
 const EXIT_SUCCESS: u8 = 0;
 const EXIT_RUNTIME_ERROR: u8 = 1;
@@ -101,22 +101,7 @@ fn setup_logging(cli: &Cli) {
     }
 }
 
-fn resolve_import_extension(
-    value: Option<&ImportExtensionValue>,
-    base_directory: &std::path::Path,
-) -> bool {
-    match value {
-        Some(ImportExtensionValue::Js) => true,
-        Some(ImportExtensionValue::None) => false,
-        Some(ImportExtensionValue::Auto) | None => {
-            config::detect_import_extension(base_directory).unwrap_or(false)
-        }
-    }
-}
-
 fn run(cli: &Cli) -> Result<ExitCode> {
-    let current_directory = std::env::current_dir()?;
-
     match &cli.command {
         Some(Commands::Generate {
             entrypoint,
@@ -126,15 +111,13 @@ fn run(cli: &Cli) -> Result<ExitCode> {
             dry_run,
             import_extension,
         }) => {
-            let should_add_js =
-                resolve_import_extension(import_extension.as_ref(), &current_directory);
             return cli::run_generate(
                 entrypoint.as_deref(),
                 output.as_deref(),
                 router_pattern.as_deref(),
                 *dry_run,
                 *json,
-                should_add_js,
+                import_extension.as_ref(),
             );
         }
         Some(Commands::Watch {
@@ -143,14 +126,12 @@ fn run(cli: &Cli) -> Result<ExitCode> {
             router_pattern,
             import_extension,
         }) => {
-            let should_add_js =
-                resolve_import_extension(import_extension.as_ref(), &current_directory);
             cli::run_watch(
                 entrypoint.as_deref(),
                 output.as_deref(),
                 router_pattern.as_deref(),
                 cli.verbose > 0,
-                should_add_js,
+                import_extension.as_ref(),
             )?;
         }
         None => {

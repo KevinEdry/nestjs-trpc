@@ -652,6 +652,36 @@ export default {
     }
 
     #[test]
+    fn test_detect_import_extension_from_subdirectory() {
+        // Mirrors the most common real-world layout: tsconfig.json at the
+        // project root, source files under src/.  The CLI derives
+        // base_directory from root_module_path.parent(), which is `src/` —
+        // detect_import_extension must still find the parent tsconfig.
+        let temporary_directory = TempDir::new().unwrap();
+        let root = temporary_directory.path();
+
+        let tsconfig = serde_json::json!({
+            "compilerOptions": {
+                "module": "NodeNext",
+                "moduleResolution": "NodeNext"
+            }
+        });
+        fs::write(
+            root.join("tsconfig.json"),
+            serde_json::to_string_pretty(&tsconfig).unwrap(),
+        )
+        .unwrap();
+
+        // Source lives one level deeper — no tsconfig here.
+        let src = root.join("src");
+        fs::create_dir_all(&src).unwrap();
+
+        // Called with `src/` as the base, not the root.
+        let result = detect_import_extension(&src);
+        assert_eq!(result, Some(true));
+    }
+
+    #[test]
     fn test_detect_import_extension_invalid_json() {
         let temporary_directory = TempDir::new().unwrap();
         let base = temporary_directory.path();

@@ -6,19 +6,26 @@ use jsonc_parser::{parse_to_serde_value, ParseOptions};
 use serde_json::{Map, Value};
 use tracing::debug;
 
-/// Resolves `compilerOptions` from a project's tsconfig.json, following
+/// Resolves `compilerOptions` from the nearest `tsconfig.json`, following
 /// the full `extends` chain exactly like TypeScript.
 ///
-/// Returns `None` if no tsconfig.json exists or it cannot be parsed.
+/// Walks upward from `start_directory` through ancestor directories until a
+/// `tsconfig.json` is found, mirroring the way `tsc` discovers its config.
+///
+/// Returns `None` if no `tsconfig.json` exists anywhere in the tree or it
+/// cannot be parsed.
 #[must_use]
-pub fn resolve_compiler_options(base_directory: &Path) -> Option<Map<String, Value>> {
-    let tsconfig_path = base_directory.join("tsconfig.json");
-    if !tsconfig_path.is_file() {
-        return None;
+pub fn resolve_compiler_options(start_directory: &Path) -> Option<Map<String, Value>> {
+    let mut current = Some(start_directory.to_path_buf());
+    while let Some(dir) = current.take() {
+        let tsconfig_path = dir.join("tsconfig.json");
+        if tsconfig_path.is_file() {
+            let mut seen = HashSet::new();
+            return resolve_tsconfig_internal(&tsconfig_path, &mut seen);
+        }
+        current = dir.parent().map(Path::to_path_buf);
     }
-
-    let mut seen = HashSet::new();
-    resolve_tsconfig_internal(&tsconfig_path, &mut seen)
+    None
 }
 
 fn resolve_tsconfig_internal(
@@ -223,6 +230,74 @@ mod tests {
     fn test_no_tsconfig() {
         let temporary_directory = TempDir::new().unwrap();
         let result = resolve_compiler_options(temporary_directory.path());
+        assert_eq!(result, None);
+    }
+
+    #[test]
+    fn test_tsconfig_in_parent_directory() {
+        let temporary_directory = TempDir::new().unwrap();
+        let root = temporary_directory.path();
+
+        // tsconfig lives at the root, not inside `src/`.
+        let tsconfig = serde_json::json!({
+            "compilerOptions": {
+                "module": "NodeNext"
+            }
+        });
+        fs::write(
+            root.join("tsconfig.json"),
+            serde_json::to_string_pretty(&tsconfig).unwrap(),
+        )
+        .unwrap();
+
+        // Start search from the child directory — should walk up and find it.
+        let src = root.join("src");
+        fs::create_dir_all(&src).unwrap();
+
+        let result = resolve_compiler_options(&src).unwrap();
+        assert_eq!(
+            result.get("module").and_then(|v| v.as_str()),
+            Some("NodeNext")
+        );
+    }
+
+    #[test]
+    fn test_tsconfig_found_in_grandparent() {
+        let temporary_directory = TempDir::new().unwrap();
+        let root = temporary_directory.path();
+
+        let tsconfig = serde_json::json!({
+            "compilerOptions": {
+                "module": "Node16"
+            }
+        });
+        fs::write(
+            root.join("tsconfig.json"),
+            serde_json::to_string_pretty(&tsconfig).unwrap(),
+        )
+        .unwrap();
+
+        // Two levels deep — no tsconfig at either intermediate level.
+        let nested = root.join("a").join("b");
+        fs::create_dir_all(&nested).unwrap();
+
+        let result = resolve_compiler_options(&nested).unwrap();
+        assert_eq!(
+            result.get("module").and_then(|v| v.as_str()),
+            Some("Node16")
+        );
+    }
+
+    #[test]
+    fn test_no_tsconfig_anywhere_returns_none() {
+        let temporary_directory = TempDir::new().unwrap();
+        let root = temporary_directory.path();
+
+        // No tsconfig anywhere in the tree.
+        let nested = root.join("deep").join("nesting");
+        fs::create_dir_all(&nested).unwrap();
+
+        let result = resolve_compiler_options(&nested);
         assert_eq!(result, None);
     }
 

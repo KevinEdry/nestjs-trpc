@@ -4,18 +4,31 @@ use anyhow::{Context, Result};
 use tracing::{debug, info};
 
 use nestjs_trpc::{
-    discover_root_module, extract_trpc_options, resolve_transformer_import, TsParser, WatchConfig,
-    WatchSession,
+    config, discover_root_module, extract_trpc_options, resolve_transformer_import, TsParser,
+    WatchConfig, WatchSession,
 };
 
-use super::{DEFAULT_OUTPUT_PATH, DEFAULT_ROUTER_PATTERN};
+use super::{ImportExtensionValue, DEFAULT_OUTPUT_PATH, DEFAULT_ROUTER_PATTERN};
+
+fn resolve_import_extension(
+    value: Option<&ImportExtensionValue>,
+    base_directory: &std::path::Path,
+) -> bool {
+    match value {
+        Some(ImportExtensionValue::Js) => true,
+        Some(ImportExtensionValue::None) => false,
+        Some(ImportExtensionValue::Auto) | None => {
+            config::detect_import_extension(base_directory).unwrap_or(false)
+        }
+    }
+}
 
 pub fn run_watch(
     entrypoint_override: Option<&str>,
     output_override: Option<&str>,
     router_pattern_override: Option<&str>,
     verbose: bool,
-    import_extension: bool,
+    import_extension: Option<&ImportExtensionValue>,
 ) -> Result<()> {
     let current_directory = std::env::current_dir().context("Failed to get current directory")?;
 
@@ -44,6 +57,8 @@ pub fn run_watch(
 
     let base_directory = root_module_path.parent().unwrap_or(&current_directory);
 
+    let should_add_js = resolve_import_extension(import_extension, base_directory);
+
     debug!(
         output_path = %output_path.display(),
         router_pattern = %router_pattern,
@@ -57,7 +72,7 @@ pub fn run_watch(
         .with_debounce_milliseconds(300)
         .with_verbose(verbose)
         .with_transformer(transformer)
-        .with_import_extension(import_extension);
+        .with_import_extension(should_add_js);
 
     let session = WatchSession::new(config)?;
     session.run()

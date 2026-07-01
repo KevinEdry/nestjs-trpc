@@ -70,7 +70,16 @@ pub enum Commands {
         #[arg(long, help_heading = "Validation")]
         dry_run: bool,
 
-        /// Add .js extension to local import paths (js|none|auto) [default: auto]
+        /// Add .js extension to local import paths
+        ///
+        /// `auto` (default) reads the nearest tsconfig.json and enables .js
+        /// when `module` or `moduleResolution` is NodeNext/Node16.
+        ///
+        /// **Note:** projects using `moduleResolution: bundler` (e.g.
+        /// `module: ESNext + moduleResolution: bundler`) but running on plain
+        /// Node ESM still need .js extensions at runtime. `auto` will report
+        /// `false` in that case because bundler mode does not require explicit
+        /// extensions at compile time — use `--import-extension=js` explicitly.
         #[arg(long = "import-extension", value_enum, help_heading = "Output")]
         import_extension: Option<ImportExtensionValue>,
     },
@@ -92,7 +101,14 @@ pub enum Commands {
         #[arg(short, long, value_name = "PATH", help_heading = "Output")]
         output: Option<String>,
 
-        /// Add .js extension to local import paths (js|none|auto) [default: auto]
+        /// Add .js extension to local import paths
+        ///
+        /// `auto` (default) reads the nearest tsconfig.json and enables .js
+        /// when `module` or `moduleResolution` is NodeNext/Node16.
+        ///
+        /// **Note:** projects using `moduleResolution: bundler` but running on
+        /// plain Node ESM still need .js extensions at runtime — use
+        /// `--import-extension=js` explicitly in that case.
         #[arg(long = "import-extension", value_enum, help_heading = "Output")]
         import_extension: Option<ImportExtensionValue>,
     },

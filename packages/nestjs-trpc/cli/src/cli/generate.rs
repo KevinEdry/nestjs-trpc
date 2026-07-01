@@ -7,16 +7,29 @@ use console::style;
 use tracing::info;
 
 use nestjs_trpc::{
-    compute_diff, discover_root_module, extract_trpc_options, find_tsc, resolve_transformer_import,
-    run_tsc_validation, DiffResult, TransformerInfo, TsParser,
+    compute_diff, config, discover_root_module, extract_trpc_options, find_tsc,
+    resolve_transformer_import, run_tsc_validation, DiffResult, TransformerInfo, TsParser,
 };
 
 use super::output::{DiffSummary, DryRunOutput, ValidationError};
-use super::{DEFAULT_OUTPUT_PATH, DEFAULT_ROUTER_PATTERN};
+use super::{ImportExtensionValue, DEFAULT_OUTPUT_PATH, DEFAULT_ROUTER_PATTERN};
 
 const MAX_ERRORS_DISPLAYED: usize = 10;
 const EXIT_SUCCESS: u8 = 0;
 const EXIT_VALIDATION_ERROR: u8 = 1;
+
+fn resolve_import_extension(
+    value: Option<&ImportExtensionValue>,
+    base_directory: &std::path::Path,
+) -> bool {
+    match value {
+        Some(ImportExtensionValue::Js) => true,
+        Some(ImportExtensionValue::None) => false,
+        Some(ImportExtensionValue::Auto) | None => {
+            config::detect_import_extension(base_directory).unwrap_or(false)
+        }
+    }
+}
 
 pub fn run_generate(
     entrypoint_override: Option<&str>,
@@ -24,7 +37,7 @@ pub fn run_generate(
     router_pattern_override: Option<&str>,
     dry_run: bool,
     json_output: bool,
-    import_extension: bool,
+    import_extension: Option<&ImportExtensionValue>,
 ) -> Result<ExitCode> {
     let current_directory = std::env::current_dir().context("Failed to get current directory")?;
 
@@ -51,6 +64,7 @@ pub fn run_generate(
 
     let base_directory = root_module_path.parent().unwrap_or(&current_directory);
 
+    let should_add_js = resolve_import_extension(import_extension, base_directory);
     let transformer = extract_transformer_from_module(&root_module_path);
 
     if dry_run {
@@ -60,7 +74,7 @@ pub fn run_generate(
             &router_pattern,
             json_output,
             transformer.as_ref(),
-            import_extension,
+            should_add_js,
         )
     } else {
         run_normal_generation(
@@ -68,7 +82,7 @@ pub fn run_generate(
             &output_path,
             &router_pattern,
             transformer.as_ref(),
-            import_extension,
+            should_add_js,
         )
     }
 }

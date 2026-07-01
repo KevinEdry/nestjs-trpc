@@ -1,144 +1,247 @@
 # Changelog
 
-## [2.0.0] - UNRELEASED
+All notable changes to this project will be documented in this file.
 
-### BREAKING CHANGES
+## [2.12.0] - 2026-07-01
 
-#### tRPC v11 Required
-- **Minimum tRPC version**: `@trpc/server@^11.0.0` is now required
-- If using data transformers, move them to link configuration (see [migration guide](/docs/migration/v10-to-v11))
+### Bug Fixes
 
-#### TypeScript Generator Removed
-- **Code generation**: Now handled exclusively by Rust CLI
-- **Removed**: `TRPCGenerator` class and `autoSchemaFile` option
-- **Removed**: `ts-morph` dependency
-- **Migration**: Use `npx nestjs-trpc generate` instead (see [migration guide](/docs/migration/typescript-to-rust-cli))
+- Add reflect-metadata types to tsconfig.spec.json for ESM compatibility
+- Tsc discover fixed
+- TSC discover improvements
+- Rollback .gitignore
 
-#### ImportsScanner Removed
-- **Internal change**: `ImportsScanner` class removed (was internal, should not affect users)
+### Features
 
-### Added
+- Add ESM import extension auto-detection from tsconfig
 
-- **Watch mode**: `npx nestjs-trpc watch` for automatic regeneration on file changes
-- **Better error messages**: Rich diagnostics with file paths and line numbers
-- **Faster generation**: Rust-based CLI is 10-50x faster than TypeScript generator
+## [2.11.0] - 2026-06-18
 
-### Changed
+### Bug Fixes
 
-- **Internal**: Router construction uses plain objects instead of explicit `router()` calls (tRPC v11 shorthand)
+- **cli:** Properly handle null exit status from child process
 
-### Fixed
+### Features
 
-- Various parser edge cases for complex Zod schemas
+- **cli:** Infer procedure output type from resolver return type
 
-## <small>1.6.1 (2024-10-30)</small>
+### Miscellaneous Tasks
 
-## 1.6.0 (2024-10-30)
+- **nestjs-trpc:** Bump nestjs depens to v11
 
-* chore(nestjs-trpc): remove pnp from source control ([1d92ef9](https://github.com/KevinEdry/nestjs-trpc/commit/1d92ef9))
-* chore(nestjs-trpc): updated gitignore ([e2ee7c6](https://github.com/KevinEdry/nestjs-trpc/commit/e2ee7c6))
-* Change interface to also say `errorFormatter` ([eef64f3](https://github.com/KevinEdry/nestjs-trpc/commit/eef64f3))
-* Use `errorFormatter` instead of `errorShape` ([673a651](https://github.com/KevinEdry/nestjs-trpc/commit/673a651))
-* refactor(decorators/middlewares): rename to `UseMiddlewares` and mark old one as deprecated ([5073129](https://github.com/KevinEdry/nestjs-trpc/commit/5073129))
-* refactor(decorators/middlewares): rename to `UseMiddlewares` and mark old one as deprecated ([6930001](https://github.com/KevinEdry/nestjs-trpc/commit/6930001))
+## [2.9.0] - 2026-02-21
 
-## <small>1.5.2 (2024-10-20)</small>
+### Bug Fixes
 
-* chore(packages/nestjs-trpc): removed prefixed slash for windows ([d0a73a4](https://github.com/KevinEdry/nestjs-trpc/commit/d0a73a4))
+- **nestjs-trpc:** Normalize backslashes in generated import paths on windows
 
-## <small>1.5.1 (2024-10-16)</small>
+### Features
 
-* chore(packages/nestjs-trpc): updated nestjs to not require generation dependencies in prod ([2546753](https://github.com/KevinEdry/nestjs-trpc/commit/2546753))
-* chore(packages/nestjs-trpc): updated tsconfig and build step ([6102784](https://github.com/KevinEdry/nestjs-trpc/commit/6102784))
-* docs(README): change demo gif ([921b512](https://github.com/KevinEdry/nestjs-trpc/commit/921b512))
+- Add TRetContext generic to MiddlewareOptions for typed next ctx
+- **nestjs-trpc:** Support zod 4 schemas in decorator input/output
 
-## 1.5.0 (2024-10-06)
+### Refactor
 
-* chore(nestjs-trpc): refactored util files and functions ([fbf794a](https://github.com/KevinEdry/nestjs-trpc/commit/fbf794a))
-* chore(nestjs-trpc): removed unused test file ([40265bf](https://github.com/KevinEdry/nestjs-trpc/commit/40265bf))
-* chore(packages/nestjs-trpc): copied readme to package folder ([417d2a5](https://github.com/KevinEdry/nestjs-trpc/commit/417d2a5))
-* fix(docs): fixed uncategorized rel keys ([f671e18](https://github.com/KevinEdry/nestjs-trpc/commit/f671e18))
-* fix(docs): refined documentation text ([b834b61](https://github.com/KevinEdry/nestjs-trpc/commit/b834b61))
-* fix(examples): updated fastify example to show multi middleware example ([69aed1d](https://github.com/KevinEdry/nestjs-trpc/commit/69aed1d))
-* fix(nestjs-trpc): filtered out non unique middlewares ([1452111](https://github.com/KevinEdry/nestjs-trpc/commit/1452111))
-* fix(nestjs-trpc): updated generator log to include relative path ([485057b](https://github.com/KevinEdry/nestjs-trpc/commit/485057b))
-* feat: prettier and lint fixes ([0762c9b](https://github.com/KevinEdry/nestjs-trpc/commit/0762c9b))
-* feat(docs): updated docs ([7f1b861](https://github.com/KevinEdry/nestjs-trpc/commit/7f1b861))
-* feat(examples): updated fastify example to show auto imports functionality ([dab8997](https://github.com/KevinEdry/nestjs-trpc/commit/dab8997))
-* feat(fastify): added schema imports example ([167d962](https://github.com/KevinEdry/nestjs-trpc/commit/167d962))
-* feat(nestjs-trpc): auto import call expressions ([fddd23f](https://github.com/KevinEdry/nestjs-trpc/commit/fddd23f))
-* feat(nestjs-trpc): removed unused packages ([2d21409](https://github.com/KevinEdry/nestjs-trpc/commit/2d21409))
-* feat(nestjs-trpc): update file resolution scanning functionality ([aa9612b](https://github.com/KevinEdry/nestjs-trpc/commit/aa9612b))
-* Update README.md ([d8a08b6](https://github.com/KevinEdry/nestjs-trpc/commit/d8a08b6))
+- Rename TRetContext to TReturnContext and reorder generics
 
-## 1.4.0 (2024-10-01)
+## [2.8.0] - 2026-02-13
 
-* docs: updated readme and docs to include fastify ([7eb1428](https://github.com/KevinEdry/nestjs-trpc/commit/7eb1428))
-* docs(README): add missing peer dependency and fix error handling ([c2601ee](https://github.com/KevinEdry/nestjs-trpc/commit/c2601ee))
-* docs(README): fix typos ([7e35bcf](https://github.com/KevinEdry/nestjs-trpc/commit/7e35bcf))
-* docs(README): format code and add missing import ([d36d8d3](https://github.com/KevinEdry/nestjs-trpc/commit/d36d8d3))
-* feat: added fastify example ([e55899b](https://github.com/KevinEdry/nestjs-trpc/commit/e55899b))
-* feat: added fastify support ([e554ff1](https://github.com/KevinEdry/nestjs-trpc/commit/e554ff1))
-* chore(husky/commit-msg): remove deprecated code ([d769ec9](https://github.com/KevinEdry/nestjs-trpc/commit/d769ec9))
-* style(examples/nextjs-trpc): fix code formatting ([a40e4aa](https://github.com/KevinEdry/nestjs-trpc/commit/a40e4aa))
-* fix: documentations typos ([2ab18c2](https://github.com/KevinEdry/nestjs-trpc/commit/2ab18c2))
+### Features
 
-## <small>1.3.5 (2024-09-29)</small>
+- **nestjs-trpc:** Add global middlewares support
+- **nestjs-trpc:** Add subscription decorator support
+- **nestjs-trpc:** Add error handler with dependency injection
 
-* docs: added integrations documentation ([9393962](https://github.com/KevinEdry/nestjs-trpc/commit/9393962))
-* fix: added ignore pattern for eslint ([6a985fc](https://github.com/KevinEdry/nestjs-trpc/commit/6a985fc))
-* feat: added trpc panel integration example ([20c28ef](https://github.com/KevinEdry/nestjs-trpc/commit/20c28ef))
-* feat: exposed the runtime trpc app-router ([a405eee](https://github.com/KevinEdry/nestjs-trpc/commit/a405eee))
+### Refactor
 
-## <small>1.3.4 (2024-09-28)</small>
+- **nestjs-trpc:** Remove dead file scanner and path metadata
 
-* fix: eslint and prettier fixes ([b7a0550](https://github.com/KevinEdry/nestjs-trpc/commit/b7a0550))
-* fix: fixed mutation mapping issue ([dd10672](https://github.com/KevinEdry/nestjs-trpc/commit/dd10672))
-* docs: edited banner link ([7f75467](https://github.com/KevinEdry/nestjs-trpc/commit/7f75467))
-* docs: update documentation to include discord server link ([4965bf4](https://github.com/KevinEdry/nestjs-trpc/commit/4965bf4))
-* docs: updated context docs ([e0ddf4c](https://github.com/KevinEdry/nestjs-trpc/commit/e0ddf4c))
+## [2.5.0] - 2026-02-10
 
-## <small>1.3.3 (2024-09-28)</small>
+### Features
 
-* fix: updated import map to handle barrel files ([bc974ca](https://github.com/KevinEdry/nestjs-trpc/commit/bc974ca))
-* fix: updated peer dependencies version ([5be3ac9](https://github.com/KevinEdry/nestjs-trpc/commit/5be3ac9))
+- **nestjs-trpc:** Add transformer auto-detection for generated schema
 
-## <small>1.3.2 (2024-09-28)</small>
+## [2.4.0] - 2026-02-10
 
-* fix: fixed zod schema functionality to respect local import maps ([981046f](https://github.com/KevinEdry/nestjs-trpc/commit/981046f))
+### Features
 
-## <small>1.3.1 (2024-09-28)</small>
+- **nestjs-trpc:** Merge routers with same alias
 
-* fix: updated release it config file ([0fe1fb6](https://github.com/KevinEdry/nestjs-trpc/commit/0fe1fb6))
-* fix: zod now currently flattens composite types ([029bf3a](https://github.com/KevinEdry/nestjs-trpc/commit/029bf3a))
+## [2.3.0] - 2026-02-10
 
-## 1.3.0 (2024-08-26)
+### Features
 
-## 1.2.0 (2024-08-26)
+- **nestjs-trpc:** Add importability-aware schema flattening
 
-* fix: added correct registry version ([ce6c13e](https://github.com/KevinEdry/nestjs-trpc/commit/ce6c13e))
-* fix: added ignoreversion to package ([2864cdc](https://github.com/KevinEdry/nestjs-trpc/commit/2864cdc))
-* fix: removed version ignore ([9929282](https://github.com/KevinEdry/nestjs-trpc/commit/9929282))
-* fix: updated package json version ([4666f2c](https://github.com/KevinEdry/nestjs-trpc/commit/4666f2c))
-* fix: updated yarn install ([bc3f391](https://github.com/KevinEdry/nestjs-trpc/commit/bc3f391))
-* fix(router factory): fixed non nullable router ([78a9c9b](https://github.com/KevinEdry/nestjs-trpc/commit/78a9c9b))
-* feat: added changelog md file ([2915746](https://github.com/KevinEdry/nestjs-trpc/commit/2915746))
-* feat: added conventionalcommits ([87aa951](https://github.com/KevinEdry/nestjs-trpc/commit/87aa951))
-* feat: added header for release-it config ([d1445dc](https://github.com/KevinEdry/nestjs-trpc/commit/d1445dc))
-* feat: added lint-staged hook ([b2d0188](https://github.com/KevinEdry/nestjs-trpc/commit/b2d0188))
-* feat: added pre-commit hooks ([536faf7](https://github.com/KevinEdry/nestjs-trpc/commit/536faf7))
-* feat: bumped release version ([b6c4f01](https://github.com/KevinEdry/nestjs-trpc/commit/b6c4f01))
-* feat: implemented workspace release-it ([96db02c](https://github.com/KevinEdry/nestjs-trpc/commit/96db02c))
-* added husky commitlint ([c9af3ec](https://github.com/KevinEdry/nestjs-trpc/commit/c9af3ec))
-* better tests mocks ([625bce3](https://github.com/KevinEdry/nestjs-trpc/commit/625bce3))
-* changed main lib to packages folder ([23b2d34](https://github.com/KevinEdry/nestjs-trpc/commit/23b2d34))
-* changed to yarn from pnpm ([1988fa6](https://github.com/KevinEdry/nestjs-trpc/commit/1988fa6))
-* fix file struct in progress ([ea45242](https://github.com/KevinEdry/nestjs-trpc/commit/ea45242))
-* fixed eslint issues ([871f2a3](https://github.com/KevinEdry/nestjs-trpc/commit/871f2a3))
-* fixed jest tests ([a5eef9a](https://github.com/KevinEdry/nestjs-trpc/commit/a5eef9a))
-* fixed monorepo connectivity and structure ([2242e3e](https://github.com/KevinEdry/nestjs-trpc/commit/2242e3e))
-* frontend example ([3d85672](https://github.com/KevinEdry/nestjs-trpc/commit/3d85672))
-* moving to packages folder ([05a59ce](https://github.com/KevinEdry/nestjs-trpc/commit/05a59ce))
-* removed unnecessary log ([9e186da](https://github.com/KevinEdry/nestjs-trpc/commit/9e186da))
-* updated docs to include rimraf package ([3b14447](https://github.com/KevinEdry/nestjs-trpc/commit/3b14447))
-* chore: release v1.1.2 ([c34788b](https://github.com/KevinEdry/nestjs-trpc/commit/c34788b))
+### Testing
+
+- **nestjs-trpc:** Add e2e tests for enum, alias, and external imports
+
+## [2.2.0] - 2026-02-09
+
+### Features
+
+- **nestjs-trpc:** Add custom logger support
+
+## [2.1.0] - 2026-02-09
+
+### Features
+
+- **nestjs-trpc:** Add procedure meta support
+
+## [2.0.1] - 2026-02-09
+
+### Bug Fixes
+
+- Improve FileScanner to handle source maps more resiliently
+- **nestjs-trpc:** Resolve wildcard route conflict
+
+### Features
+
+- **cli:** Add Rust CLI for schema generation with watch mode
+
+### Miscellaneous Tasks
+
+- **nestjs-trpc:** Fix tests + lint errors
+- **nestjs-trpc:** Add build script and simplify release workflow
+
+## [1.6.1] - 2024-10-30
+
+### Miscellaneous Tasks
+
+- Release v1.6.1
+
+## [1.6.0] - 2024-10-30
+
+### Miscellaneous Tasks
+
+- Release v1.6.0
+
+### Refactor
+
+- **decorators/middlewares:** Rename to `UseMiddlewares` and mark old one as deprecated
+- **decorators/middlewares:** Rename to `UseMiddlewares` and mark old one as deprecated
+
+## [1.5.2] - 2024-10-20
+
+### Miscellaneous Tasks
+
+- **packages/nestjs-trpc:** Removed prefixed slash for windows
+- Release v1.5.2
+
+## [1.5.1] - 2024-10-16
+
+### Miscellaneous Tasks
+
+- **packages/nestjs-trpc:** Updated tsconfig and build step
+- **packages/nestjs-trpc:** Updated nestjs to not require generation dependencies in prod
+- Release v1.5.1
+
+## [1.5.0] - 2024-10-06
+
+### Bug Fixes
+
+- **nestjs-trpc:** Filtered out non unique middlewares
+- **nestjs-trpc:** Updated generator log to include relative path
+
+### Features
+
+- Prettier and lint fixes
+- **nestjs-trpc:** Removed unused packages
+- **nestjs-trpc:** Auto import call expressions
+
+### Miscellaneous Tasks
+
+- **nestjs-trpc:** Refactored util files and functions
+- **nestjs-trpc:** Removed unused test file
+- **packages/nestjs-trpc:** Copied readme to package folder
+- Release v1.5.0
+
+## [1.4.0] - 2024-10-01
+
+### Features
+
+- Added fastify support
+
+### Miscellaneous Tasks
+
+- Release v1.4.0
+
+## [1.3.5] - 2024-09-29
+
+### Features
+
+- Exposed the runtime trpc app-router
+- Added trpc panel integration example
+
+### Miscellaneous Tasks
+
+- Release v1.3.5
+
+## [1.3.4] - 2024-09-28
+
+### Bug Fixes
+
+- Eslint and prettier fixes
+- Fixed mutation mapping issue
+
+### Miscellaneous Tasks
+
+- Release v1.3.4
+
+## [1.3.3] - 2024-09-28
+
+### Bug Fixes
+
+- Updated import map to handle barrel files
+- Updated peer dependencies version
+
+### Miscellaneous Tasks
+
+- Release v1.3.3
+
+## [1.3.2] - 2024-09-28
+
+### Bug Fixes
+
+- Fixed zod schema functionality to respect local import maps
+
+### Miscellaneous Tasks
+
+- Release v1.3.2
+
+## [1.3.1] - 2024-09-28
+
+### Bug Fixes
+
+- Zod now currently flattens composite types
+
+### Miscellaneous Tasks
+
+- Release v1.3.1
+
+## [1.3.0] - 2024-08-26
+
+### Miscellaneous Tasks
+
+- Release v1.3.0
+
+## [1.2.0] - 2024-08-26
+
+### Bug Fixes
+
+- Added correct registry version
+- Updated package json version
+- Added ignoreversion to package
+- Removed version ignore
+
+### Features
+
+- Bumped release version
+
+### Miscellaneous Tasks
+
+- Release v1.2.0
+
+<!-- generated by git-cliff -->

@@ -9,6 +9,10 @@ import { TRPCContext } from './context.interface';
 import type { TRPCErrorHandler } from './error-handler.interface';
 import type { TRPCMiddleware } from './middleware.interface';
 import type { Class, Constructor } from 'type-fest';
+import type {
+  TRPCSSEOptions,
+  TRPCJSONLOptions,
+} from './streaming-options.interface';
 
 export interface TRPCModuleOptions {
   basePath?: string;
@@ -49,4 +53,18 @@ export interface TRPCModuleOptions {
   globalMiddlewares?: Array<
     Class<TRPCMiddleware> | Constructor<TRPCMiddleware>
   >;
+
+  /**
+   * Options for server-sent events (SSE) subscriptions, e.g. keep-alive
+   * pings that prevent proxies from closing idle subscription streams.
+   * @link https://trpc.io/docs/server/subscriptions
+   */
+  sse?: TRPCSSEOptions;
+
+  /**
+   * Options for streamed batch responses (`httpBatchStreamLink`), e.g.
+   * keep-alive pings that prevent proxies from closing idle streams.
+   * @link https://trpc.io/docs/client/links/httpBatchStreamLink
+   */
+  jsonl?: TRPCJSONLOptions;
 }

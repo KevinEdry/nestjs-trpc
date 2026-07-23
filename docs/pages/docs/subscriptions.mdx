@@ -118,6 +118,39 @@ async *onMessage(
 }
 ```
 
+#### Keep-Alive Pings
+
+Proxies and load balancers (nginx, AWS ALB, Cloudflare) often close idle HTTP connections after a short timeout.
+Since a subscription stream can stay silent between events, this surfaces as subscriptions that connect successfully but drop after a while and reconnect in a loop.
+
+tRPC can send keep-alive ping comments over the stream to prevent this. Configure it with the `sse` option in `TRPCModule.forRoot(){:tsx}`:
+
+```typescript filename="app.module.ts" copy
+import { Module } from '@nestjs/common';
+import { TRPCModule } from 'nestjs-trpc';
+
+@Module({
+  imports: [
+    TRPCModule.forRoot({
+      sse: {
+        ping: { enabled: true, intervalMs: 30000 },
+        client: { reconnectAfterInactivityMs: 60000 },
+      },
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+Pings are handled at the protocol level — they never reach your subscription's `onData` handler.
+The `client.reconnectAfterInactivityMs` option is sent to the client on connect, so it proactively reconnects whenever the server has been silent for that long.
+
+Streamed batch responses have the same idle-connection failure mode — use the `jsonl.pingMs` option in `TRPCModule.forRoot(){:tsx}` to send keep-alive pings on `httpBatchStreamLink` streams.
+
+<Callout emoji={<TrpcIcon width={25} height={50} className="m-1"/>}>
+  You can read more about server pings and the SSE options in the official <Link href={"https://trpc.io/docs/client/links/httpSubscriptionLink#server-ping"} target="blank" className="underline">httpSubscriptionLink documentation</Link>.
+</Callout>
+
 #### Input Validation
 
 Subscription input is validated the same way as queries and mutations — pass a Zod schema to the `input` option:

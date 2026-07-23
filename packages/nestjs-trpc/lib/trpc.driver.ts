@@ -60,6 +60,8 @@ export class TRPCDriver<
       ...(options.errorFormatter != null
         ? { errorFormatter: options.errorFormatter }
         : {}),
+      ...(options.sse != null ? { sse: options.sse } : {}),
+      ...(options.jsonl != null ? { jsonl: options.jsonl } : {}),
     });
 
     const procedure = this.applyGlobalMiddlewares(

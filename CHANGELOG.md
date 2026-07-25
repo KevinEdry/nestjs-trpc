@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.13.0] - 2026-07-25
+
+### Bug Fixes
+
+- **cli:** Use assert_eq! to satisfy clippy manual_assert_eq
+
+### Features
+
+- Add sse and jsonl options to TRPCModule.forRoot
+
 ## [2.12.0] - 2026-07-01
 
 ### Bug Fixes

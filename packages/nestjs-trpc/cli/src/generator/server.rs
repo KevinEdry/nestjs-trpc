@@ -727,8 +727,8 @@ mod tests {
         assert!(output.contains("createUser: publicProcedure"));
         assert!(output.contains("updateUser: publicProcedure"));
         // Check procedures are separated by commas
-        assert!(output.matches(".query(async () =>").count() == 1);
-        assert!(output.matches(".mutation(async () =>").count() == 2);
+        assert_eq!(output.matches(".query(async () =>").count(), 1);
+        assert_eq!(output.matches(".mutation(async () =>").count(), 2);
     }
 
     #[test]

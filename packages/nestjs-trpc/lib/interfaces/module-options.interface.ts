@@ -1,9 +1,12 @@
 import type {
+  AnyRouter,
   TRPCErrorFormatter,
   TRPCDefaultErrorShape,
   DataTransformer,
   CombinedDataTransformer,
 } from '@trpc/server';
+import type { createExpressMiddleware } from '@trpc/server/adapters/express';
+import type { FastifyTRPCPluginOptions } from '@trpc/server/adapters/fastify';
 import type { LoggerService } from '@nestjs/common';
 import { TRPCContext } from './context.interface';
 import type { TRPCErrorHandler } from './error-handler.interface';
@@ -14,8 +17,26 @@ import type {
   TRPCJSONLOptions,
 } from './streaming-options.interface';
 
+type ModuleOwnedAdapterOption = 'router' | 'createContext' | 'onError';
+
+export type TRPCAdapterOptions =
+  | Omit<
+      Parameters<typeof createExpressMiddleware>[0],
+      ModuleOwnedAdapterOption
+    >
+  | Omit<
+      FastifyTRPCPluginOptions<AnyRouter>['trpcOptions'],
+      ModuleOwnedAdapterOption
+    >;
+
 export interface TRPCModuleOptions {
   basePath?: string;
+
+  /**
+   * Options passed through to the underlying tRPC HTTP adapter.
+   * Module-owned options (`router`, `createContext`, and `onError`) cannot be overridden.
+   */
+  adapterOptions?: TRPCAdapterOptions;
 
   /**
    * The exposed trpc options when creating a route with either `createExpressMiddleware` or `createFastifyMiddleware`.

@@ -23,6 +23,7 @@ export class FastifyDriver<
     app.register(trpcFastify.fastifyTRPCPlugin, {
       prefix: options.basePath ?? '/trpc',
       trpcOptions: {
+        ...options.adapterOptions,
         router: appRouter,
         ...(options.context != null && contextInstance != null
           ? {

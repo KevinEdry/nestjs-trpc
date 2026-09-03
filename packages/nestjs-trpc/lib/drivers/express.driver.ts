@@ -22,6 +22,7 @@ export class ExpressDriver<
     app.use(
       options.basePath ?? '/trpc',
       trpcExpress.createExpressMiddleware({
+        ...options.adapterOptions,
         router: appRouter,
         ...(options.context != null && contextInstance != null
           ? {

@@ -1,11 +1,11 @@
 import { ConsoleLogger, Inject, Module } from '@nestjs/common';
-import type { LoggerService } from '@nestjs/common';
 import type {
   DynamicModule,
+  LoggerService,
   MiddlewareConsumer,
   NestModule,
   OnModuleInit,
-} from '@nestjs/common/interfaces';
+} from '@nestjs/common';
 import { HttpAdapterHost, MetadataScanner } from '@nestjs/core';
 
 import {

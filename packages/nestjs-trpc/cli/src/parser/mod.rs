@@ -1,6 +1,7 @@
 pub mod context;
 pub mod decorator;
 pub mod imports;
+pub mod local_function;
 pub mod middleware;
 pub mod module;
 pub mod procedure;

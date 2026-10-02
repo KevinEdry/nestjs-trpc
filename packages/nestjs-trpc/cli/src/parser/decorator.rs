@@ -280,7 +280,10 @@ impl DecoratorParser {
 pub(crate) fn collect_schema_identifiers(expression: &Expr) -> Vec<String> {
     let mut found = HashSet::new();
     walk_expression_for_identifiers(expression, &mut found);
-    found.into_iter().collect()
+    // Sorted so the generated imports are stable from one run to the next
+    let mut identifiers: Vec<String> = found.into_iter().collect();
+    identifiers.sort();
+    identifiers
 }
 
 fn walk_expression_for_identifiers(expression: &Expr, found: &mut HashSet<String>) {
@@ -444,6 +447,25 @@ mod tests {
     fn test_decorator_parser_default() {
         let parser = DecoratorParser;
         assert_eq!(std::mem::size_of_val(&parser), 0);
+    }
+
+    #[test]
+    fn test_schema_identifiers_are_sorted() {
+        let source = r"
+            export class UserRouter {
+                @Query({ input: combine(zetaSchema, alphaSchema, middleSchema) })
+                async getUser() {}
+            }
+        ";
+
+        let (_temp, parsed) = parse_file(source);
+        let decorators = get_method_decorators(&parsed, "getUser").expect("Method not found");
+        let results = DecoratorParser::new().extract_procedure_decorators(decorators, &parsed);
+
+        assert_eq!(
+            results[0].schema_identifiers,
+            vec!["alphaSchema", "combine", "middleSchema", "zetaSchema"]
+        );
     }
 
     #[test]

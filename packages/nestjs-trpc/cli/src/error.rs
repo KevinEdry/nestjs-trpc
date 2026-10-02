@@ -188,6 +188,9 @@ pub enum GeneratorError {
     #[error("Unresolved schema reference '{name}' in '{path}'. The variable was not found.")]
     #[diagnostic(help("Ensure the schema variable is defined and exported"))]
     UnresolvedSchema { path: PathBuf, name: String },
+
+    #[error("Parser function '{name}' in '{path}' is not exported, so the generated router cannot import it. Export it under the same name with `export function`, `export const` or `export {{ name }}`.")]
+    UnexportedParserFunction { path: PathBuf, name: String },
 }
 
 pub type Result<T> = std::result::Result<T, CliError>;

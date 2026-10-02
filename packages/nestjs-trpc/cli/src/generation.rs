@@ -7,12 +7,13 @@ use anyhow::{Context, Result};
 use tracing::{debug, info, warn};
 
 use crate::parser::decorator::collect_schema_identifiers;
+use crate::parser::local_function::{declares_unexported_function, specifier_exported_names};
 use crate::parser::module::TransformerInfo;
 use crate::{
     build_imports_map, extract_procedures_from_class, flatten_zod_schema, DecoratorParser,
-    FileScanner, OutputInference, ParsedFile, ParserError, ProcedureMetadata, RouterExportKind,
-    RouterInfo, RouterMetadata, RouterParser, ServerGenerator, StaticGenerator, SyntaxDiagnostic,
-    TsParser,
+    FileScanner, GeneratorError, OutputInference, ParsedFile, ParserError, ProcedureMetadata,
+    RouterExportKind, RouterInfo, RouterMetadata, RouterParser, ServerGenerator, StaticGenerator,
+    SyntaxDiagnostic, TsParser,
 };
 use std::collections::HashSet;
 use swc_ecma_ast::{Decl, ModuleDecl, ModuleItem, Stmt};
@@ -41,6 +42,7 @@ pub fn run_generation(
     let mut routers = extract_routers(&parsed_files)?;
     let schema_locations =
         build_schema_locations(&typescript_parser, &parsed_files, base_directory);
+    ensure_parser_functions_are_importable(&routers, &parsed_files)?;
     flatten_unimportable_schemas(
         &mut routers,
         &schema_locations,
@@ -301,19 +303,30 @@ fn add_exported_declarations_from_file(
     schema_locations: &mut HashMap<String, PathBuf>,
     parsed_file: &ParsedFile,
 ) {
+    for name in specifier_exported_names(parsed_file) {
+        schema_locations
+            .entry(name.to_string())
+            .or_insert_with(|| parsed_file.file_path.clone());
+    }
+
     for item in &parsed_file.module.body {
         let ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(export)) = item else {
             continue;
         };
-        let Decl::Var(variable_declaration) = &export.decl else {
-            continue;
-        };
 
-        add_variable_declarator_names(
-            schema_locations,
-            variable_declaration,
-            &parsed_file.file_path,
-        );
+        match &export.decl {
+            Decl::Var(variable_declaration) => add_variable_declarator_names(
+                schema_locations,
+                variable_declaration,
+                &parsed_file.file_path,
+            ),
+            Decl::Fn(function_declaration) => {
+                schema_locations
+                    .entry(function_declaration.ident.sym.to_string())
+                    .or_insert_with(|| parsed_file.file_path.clone());
+            }
+            _ => {}
+        }
     }
 }
 
@@ -331,6 +344,32 @@ fn add_variable_declarator_names(
             .entry(name)
             .or_insert_with(|| file_path.to_path_buf());
     }
+}
+
+fn ensure_parser_functions_are_importable(
+    routers: &[RouterMetadata],
+    parsed_files: &[ParsedFile],
+) -> Result<()> {
+    for router in routers {
+        let Some(source_file) = find_parsed_file(parsed_files, &router.file_path) else {
+            continue;
+        };
+
+        let unexported_function = router
+            .procedures
+            .iter()
+            .flat_map(|procedure| &procedure.schema_identifiers)
+            .find(|identifier| declares_unexported_function(source_file, identifier));
+
+        if let Some(name) = unexported_function {
+            return Err(GeneratorError::UnexportedParserFunction {
+                path: router.file_path.clone(),
+                name: name.clone(),
+            }
+            .into());
+        }
+    }
+    Ok(())
 }
 
 fn flatten_unimportable_schemas(

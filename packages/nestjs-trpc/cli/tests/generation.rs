@@ -311,3 +311,77 @@ fn generation_without_transformer_has_plain_create() {
         "Without transformer, output should not mention 'transformer'"
     );
 }
+
+fn generation_error_for_fixture(fixture_name: &str) -> (String, bool) {
+    let fixture_path = fixtures_directory().join(fixture_name);
+    let temporary_directory = TempDir::new().expect("Failed to create temp directory");
+    let output_path = temporary_directory.path();
+
+    let error = run_generation(&fixture_path, output_path, "**/*.router.ts", None, false)
+        .expect_err("Generation should fail");
+
+    let server_file_written = output_path.join("server.ts").exists();
+    (format!("{error:#}"), server_file_written)
+}
+
+fn is_imported(output: &str, name: &str) -> bool {
+    let imported_name =
+        regex::Regex::new(&format!(r"^import \{{[^}}]*\b{name}\b")).expect("Invalid regex pattern");
+    output.lines().any(|line| imported_name.is_match(line))
+}
+
+#[test]
+fn snapshot_function_parsers() {
+    let output = run_generation_on_fixture("function-parsers");
+    assert_snapshot!("function_parsers", output);
+}
+
+#[test]
+fn function_parsers_are_copied_and_imported() {
+    let output = run_generation_on_fixture("function-parsers");
+
+    assert!(output.contains(".input(syncParse(itemInputSchema))"));
+    assert!(output.contains(".input(parseId)"));
+    assert!(output.contains(".input(looseParse)"));
+    assert!(output.contains(".output(syncParseArrow(itemSchema))"));
+    assert!(output.contains(".input(strictParse(z.object({ name: z.string() })))"));
+    for name in [
+        "syncParse",
+        "syncParseArrow",
+        "strictParse",
+        "looseParse",
+        "itemInputSchema",
+    ] {
+        assert!(
+            is_imported(&output, name),
+            "'{name}' should be imported:\n{output}"
+        );
+    }
+}
+
+#[test]
+fn local_arrow_function_parser_fails_generation() {
+    let (message, server_file_written) = generation_error_for_fixture("invalid/local-arrow-parser");
+
+    assert!(message.contains("'localParser'"), "{message}");
+    assert!(message.contains("export"), "{message}");
+    assert!(!server_file_written, "No server.ts should be written");
+}
+
+#[test]
+fn local_function_declaration_parser_fails_generation() {
+    let (message, server_file_written) =
+        generation_error_for_fixture("invalid/local-function-parser");
+
+    assert!(message.contains("'localParser'"), "{message}");
+    assert!(message.contains("export"), "{message}");
+    assert!(!server_file_written, "No server.ts should be written");
+}
+
+#[test]
+fn local_function_parser_shadowing_another_files_export_fails_generation() {
+    let (message, server_file_written) = generation_error_for_fixture("invalid/shadowed-parser");
+
+    assert!(message.contains("'localParser'"), "{message}");
+    assert!(!server_file_written, "No server.ts should be written");
+}

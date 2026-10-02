@@ -151,6 +151,35 @@ We can pass those schemas directly to the decorator as shown above.<br/>For more
   - It applies only to routers exported by name (`export class FooRouter`); non-exported and default-exported routers keep the previous behavior.
 </Callout>
 
+`input` and `output` also accept a function parser, as in native tRPC: a function that takes the raw value, returns the validated one and throws when validation fails. The generator copies the expression into the generated router and imports every identifier it uses, so the function has to be exported from its module with `export function`, `export const` or `export { name }`. Generation fails with an error naming the function when it is not. The generator does not look inside an inline function such as `input: (value) => parseId(value)`, so `parseId` would not be imported there: declare the parser in a module and pass it by name.
+
+```typescript
+// id.parser.ts
+export function parseId(value: unknown) {
+  if (typeof value !== 'string' || value.length === 0) {
+    throw new Error('Expected a non-empty id');
+  }
+  return value;
+}
+
+// dogs.router.ts
+@Query({ input: parseId, output: dogSchema })
+findById(@Input() id: string) {
+  return this.databaseService.dogs.findUnique({ where: { id } });
+}
+```
+
+<Callout type="warning">
+  tRPC takes a function parser's input type from its return type, so the client sees the parsed shape: a field with `.default()` becomes required, and a `.transform()` changes what the client has to send. When the function wraps a Zod schema, typing it with the schema's `_input` and `_output` keeps both types:
+
+  ```typescript
+  export function wrap<TSchema extends z.ZodType>(schema: TSchema) {
+    const parse = (value: unknown) => schema.parse(value);
+    return parse as typeof parse & { _input: z.input<TSchema>; _output: z.output<TSchema> };
+  }
+  ```
+</Callout>
+
 Procedures can also define a `meta` object that can be read by middlewares. This is the tRPC-idiomatic way to implement authorization and other cross-cutting concerns, similar to how NestJS guards use decorator metadata. See the <Link href={"/docs/middlewares#procedure-metadata"} className="underline">Procedure Metadata</Link> section in the Middlewares guide for details.
 
 ##### Middlewares

@@ -91,9 +91,9 @@ jobs:
         run: |
           for target in x86_64-apple-darwin aarch64-apple-darwin x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu; do
             test -f "packages/nestjs-trpc/native/$target/nestjs-trpc" || { echo "Missing: $target"; exit 1; }
+            chmod +x "packages/nestjs-trpc/native/$target/nestjs-trpc"
           done
           test -f "packages/nestjs-trpc/native/x86_64-pc-windows-msvc/nestjs-trpc.exe" || { echo "Missing: windows"; exit 1; }
-          chmod +x packages/nestjs-trpc/native/x86_64-unknown-linux-gnu/nestjs-trpc
           packages/nestjs-trpc/native/x86_64-unknown-linux-gnu/nestjs-trpc --help
 
       - name: Extract version from tag

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { FastifyInstance as FastifyApplication } from 'fastify';
 import {
   ContextOptions,
+  TRPCAdapterOptions,
   TRPCContext,
   TRPCErrorHandler,
   TRPCModuleOptions,
@@ -19,10 +20,12 @@ export class FastifyDriver<
     appRouter: AnyRouter,
     contextInstance: TRPCContext | null,
     onErrorInstance: TRPCErrorHandler | null,
+    adapterOptions: TRPCAdapterOptions = {},
   ) {
     app.register(trpcFastify.fastifyTRPCPlugin, {
       prefix: options.basePath ?? '/trpc',
       trpcOptions: {
+        ...adapterOptions,
         router: appRouter,
         ...(options.context != null && contextInstance != null
           ? {

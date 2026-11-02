@@ -56,7 +56,7 @@ describe('TRPCDriver', () => {
         },
         {
           provide: TRPC_LOGGER,
-          useValue: { log: jest.fn() },
+          useValue: { log: jest.fn(), warn: jest.fn() },
         },
         {
           provide: AppRouterHost,
@@ -179,6 +179,7 @@ describe('TRPCDriver', () => {
         expect.anything(),
         null,
         errorHandlerInstance,
+        {},
       );
     });
 
@@ -193,6 +194,73 @@ describe('TRPCDriver', () => {
         expect.anything(),
         null,
         null,
+        {},
+      );
+    });
+  });
+
+  describe('trpc options', () => {
+    it('passes adapter options to the http driver with reserved keys stripped', async () => {
+      const options: TRPCModuleOptions = {
+        trpc: {
+          allowMethodOverride: true,
+          router: 'user-router',
+          createContext: 'user-create-context',
+          onError: 'user-on-error',
+        } as never,
+      };
+
+      await trpcDriver.start(options);
+
+      expect(mockExpressDriver.start).toHaveBeenCalledWith(
+        options,
+        mockExpressApp,
+        expect.anything(),
+        null,
+        null,
+        { allowMethodOverride: true },
+      );
+    });
+
+    it('keeps root config keys away from the http driver', async () => {
+      const options: TRPCModuleOptions = {
+        trpc: {
+          transformer: { serialize: jest.fn(), deserialize: jest.fn() },
+          allowMethodOverride: true,
+        },
+      };
+
+      await trpcDriver.start(options);
+
+      expect(mockExpressDriver.start).toHaveBeenCalledWith(
+        options,
+        mockExpressApp,
+        expect.anything(),
+        null,
+        null,
+        { allowMethodOverride: true },
+      );
+    });
+
+    it('warns on deprecated top-level keys and still applies them', async () => {
+      const logger = (trpcDriver as any).logger;
+      const options: TRPCModuleOptions = {
+        transformer: { serialize: jest.fn(), deserialize: jest.fn() },
+      };
+
+      await trpcDriver.start(options);
+
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('"transformer" option is deprecated'),
+        'TRPCModule',
+      );
+      expect(mockExpressDriver.start).toHaveBeenCalledWith(
+        options,
+        mockExpressApp,
+        expect.anything(),
+        null,
+        null,
+        {},
       );
     });
   });

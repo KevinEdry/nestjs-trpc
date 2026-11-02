@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { Application as ExpressApplication } from 'express';
 import {
+  TRPCAdapterOptions,
   TRPCContext,
   TRPCErrorHandler,
   TRPCModuleOptions,
@@ -18,10 +19,12 @@ export class ExpressDriver<
     appRouter: AnyRouter,
     contextInstance: TRPCContext | null,
     onErrorInstance: TRPCErrorHandler | null,
+    adapterOptions: TRPCAdapterOptions = {},
   ) {
     app.use(
       options.basePath ?? '/trpc',
       trpcExpress.createExpressMiddleware({
+        ...adapterOptions,
         router: appRouter,
         ...(options.context != null && contextInstance != null
           ? {

@@ -71,7 +71,7 @@ mod tests {
         assert!(!result.has_changes);
         assert_eq!(result.lines_added, 0);
         assert_eq!(result.lines_removed, 0);
-        assert!(result.unified_diff.is_empty());
+        assert_eq!(result.unified_diff, "");
     }
 
     #[test]

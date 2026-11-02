@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.13.1] - 2026-11-02
+
+### Bug Fixes
+
+- Resolve new clippy assert lints and run docs builds on Bun
+
 ## [2.13.0] - 2026-07-25
 
 ### Bug Fixes

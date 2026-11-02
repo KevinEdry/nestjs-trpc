@@ -14,9 +14,9 @@ const faqs = [
       'NestJS tRPC wraps tRPC with NestJS-native decorators (@Router, @Query, @Mutation) and integrates with NestJS dependency injection. You get the same end-to-end typesafety as vanilla tRPC, but with the conventions and DI system you already use in NestJS.',
   },
   {
-    question: 'What versions of tRPC and Zod are supported?',
+    question: 'What versions of NestJS, tRPC, and Zod are supported?',
     answer:
-      'NestJS tRPC v2.0.0 supports tRPC v11 and both Zod 3 and Zod 4 schemas for input/output validation. The library tracks tRPC releases closely and supports the latest stable versions.',
+      'NestJS tRPC v2.0.0 supports NestJS 9 through 12, tRPC v11, and both Zod 3 and Zod 4 schemas for input/output validation. The library tracks NestJS and tRPC releases closely and supports the latest stable versions.',
   },
   {
     question: 'How fast is the type generation CLI?',

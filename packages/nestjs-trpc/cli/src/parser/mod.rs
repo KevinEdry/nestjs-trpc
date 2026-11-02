@@ -279,7 +279,7 @@ mod tests {
         assert!(result.is_ok());
         let parsed = result.unwrap();
         assert_eq!(parsed.file_path, path);
-        assert!(!parsed.module.body.is_empty());
+        assert_ne!(parsed.module.body.len(), 0);
     }
 
     #[test]
@@ -417,7 +417,7 @@ mod tests {
         let parser = TsParser::new();
         let parsed = parser.parse_source("test.ts", source).unwrap();
 
-        assert!(!parsed.module.body.is_empty());
+        assert_ne!(parsed.module.body.len(), 0);
     }
 
     #[test]
@@ -558,7 +558,7 @@ mod tests {
             result.is_ok(),
             "Comments-only file should parse successfully"
         );
-        assert!(result.unwrap().module.body.is_empty());
+        assert_eq!(result.unwrap().module.body.len(), 0);
     }
 
     #[test]
@@ -678,7 +678,7 @@ mod tests {
         let parser = TsParser::new();
         let parsed = parser.parse_source("test.ts", source).unwrap();
 
-        assert!(!parsed.module.body.is_empty());
+        assert_ne!(parsed.module.body.len(), 0);
         if let Some(item) = parsed.module.body.first() {
             let (line, col) = parsed.get_line_col(item.span());
             assert!(line >= 1, "Line should be at least 1");

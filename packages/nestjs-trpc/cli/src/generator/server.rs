@@ -1052,7 +1052,7 @@ mod tests {
         };
 
         let refs = ServerGenerator::extract_schema_refs(&procedure);
-        assert!(refs.is_empty());
+        assert_eq!(refs.len(), 0);
     }
 
     #[test]

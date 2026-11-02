@@ -136,7 +136,7 @@ mod tests {
 
         let changed_paths = extract_changed_paths(&events, &output_directory);
 
-        assert!(changed_paths.is_empty());
+        assert_eq!(changed_paths.len(), 0);
     }
 
     #[test]

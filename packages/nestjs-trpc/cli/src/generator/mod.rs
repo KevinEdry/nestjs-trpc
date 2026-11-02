@@ -408,7 +408,7 @@ mod tests {
             output_path,
         );
 
-        assert!(output.is_empty());
+        assert_eq!(output, "");
     }
 
     #[test]
@@ -483,7 +483,7 @@ mod tests {
         assert!(lines[1].starts_with("import"));
 
         // Third line is blank
-        assert!(lines[2].is_empty());
+        assert_eq!(lines[2], "");
 
         // Last two lines are declarations
         assert!(lines[3].starts_with("const t"));

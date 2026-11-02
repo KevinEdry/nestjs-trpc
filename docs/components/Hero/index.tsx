@@ -83,7 +83,7 @@ export default function Hero() {
           transition={{ duration: 0.4 }}
         >
           <AnnouncementPill
-            text="v2.0.0 — Rust CLI, tRPC v11 & Zod 4 support"
+            text="v2.14.0 — NestJS 12 support & unified tRPC options"
             href="https://github.com/KevinEdry/nestjs-trpc/releases"
           />
         </m.div>

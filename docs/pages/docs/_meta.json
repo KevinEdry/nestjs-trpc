@@ -35,6 +35,7 @@
     "title": "Appendix"
   },
 
+  "changelog": "Changelog",
   "trpc-docs": {
     "title": "⇲ tRPC Documentation",
     "href": "https://trpc.io/docs",

@@ -57,3 +57,5 @@ examples/**/test/**/*.js
 examples/**/test/**/*.js.map
 examples/**/test/**/*.d.ts
 examples/**/test/**/*.d.ts.map
+# Generated docs changelog page (synced from CHANGELOG.md at build time)
+docs/pages/docs/changelog.md

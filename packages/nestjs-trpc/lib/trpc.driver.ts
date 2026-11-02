@@ -15,6 +15,10 @@ import { TRPCFactory } from './factories/trpc.factory';
 import { AppRouterHost } from './app-router.host';
 import { ExpressDriver, FastifyDriver } from './drivers';
 import { TRPC_LOGGER } from './trpc.constants';
+import {
+  resolveTRPCOptions,
+  splitTRPCOptions,
+} from './utils/trpc-options.util';
 
 function isExpressApplication(app: any): app is ExpressApplication {
   return (
@@ -53,16 +57,13 @@ export class TRPCDriver<
   ) {}
 
   public async start(options: TRPCModuleOptions) {
-    const { procedure: baseProcedure, router } = initTRPC.context().create({
-      ...(options.transformer != null
-        ? { transformer: options.transformer }
-        : {}),
-      ...(options.errorFormatter != null
-        ? { errorFormatter: options.errorFormatter }
-        : {}),
-      ...(options.sse != null ? { sse: options.sse } : {}),
-      ...(options.jsonl != null ? { jsonl: options.jsonl } : {}),
-    });
+    const { rootConfig, adapterOptions } = splitTRPCOptions(
+      resolveTRPCOptions(options, this.logger),
+    );
+
+    const { procedure: baseProcedure, router } = initTRPC
+      .context()
+      .create(rootConfig);
 
     const procedure = this.applyGlobalMiddlewares(
       baseProcedure,
@@ -107,6 +108,7 @@ export class TRPCDriver<
         appRouter,
         contextInstance,
         onErrorInstance,
+        adapterOptions,
       );
     } else if (platformName === 'fastify' && isFastifyApplication(app)) {
       await this.fastifyDriver.start(
@@ -115,6 +117,7 @@ export class TRPCDriver<
         appRouter,
         contextInstance,
         onErrorInstance,
+        adapterOptions,
       );
     } else {
       throw new Error(`Unsupported http adapter: ${platformName}`);

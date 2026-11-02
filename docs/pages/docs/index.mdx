@@ -150,13 +150,8 @@ const trpcOptions: TRPCModuleOptions = {
     <Table.Cell>-</Table.Cell>
   </Table.Row>
   <Table.Row>
-    <Table.Cell icon>`transformer`</Table.Cell>
-    <Table.Cell>`unknown`</Table.Cell>
-    <Table.Cell>-</Table.Cell>
-  </Table.Row>
-  <Table.Row>
-    <Table.Cell icon>`errorFormatter`</Table.Cell>
-    <Table.Cell>`(opts: { shape, error }) => {}`</Table.Cell>
+    <Table.Cell icon>`trpc`</Table.Cell>
+    <Table.Cell>`TRPCOptions`</Table.Cell>
     <Table.Cell>-</Table.Cell>
   </Table.Row>
   <Table.Row>
@@ -175,6 +170,35 @@ const trpcOptions: TRPCModuleOptions = {
     <Table.Cell>`[]`</Table.Cell>
   </Table.Row>
 </Table>
+
+#### Native tRPC Options
+
+NestJS-shaped options (DI classes, `autoSchemaFile`, `basePath`) sit at the top level of `forRoot()`. Anything you would pass to tRPC itself goes in the `trpc` key, spelled exactly as tRPC spells it:
+
+```typescript filename="app.module.ts"
+import { Module } from '@nestjs/common';
+import { TRPCModule } from 'nestjs-trpc';
+import superjson from 'superjson';
+
+@Module({
+  imports: [
+    TRPCModule.forRoot({
+      basePath: '/trpc',
+      context: AppContext,
+      trpc: {
+        transformer: superjson,
+        allowMethodOverride: true,
+        responseMeta: (opts) => ({ headers: { 'cache-control': 'no-store' } }),
+      },
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+The module routes root config options (`transformer`, `errorFormatter`, `sse`, `jsonl`, ...) to `initTRPC.create()` and everything else to the active Express or Fastify adapter. The module-owned `router`, `createContext`, and `onError` options cannot be set through `trpc` — use the `context` and `onError` DI classes instead.
+
+The top-level `transformer`, `errorFormatter`, `sse`, and `jsonl` options are deprecated in favor of the `trpc` key and will be removed in the next major version.
 
 #### Custom Logger
 

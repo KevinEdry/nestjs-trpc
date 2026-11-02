@@ -1,9 +1,13 @@
 import type {
+  AnyRouter,
   TRPCErrorFormatter,
   TRPCDefaultErrorShape,
   DataTransformer,
   CombinedDataTransformer,
+  TRPCRuntimeConfigOptions,
 } from '@trpc/server';
+import type { createExpressMiddleware } from '@trpc/server/adapters/express';
+import type { FastifyTRPCPluginOptions } from '@trpc/server/adapters/fastify';
 import type { LoggerService } from '@nestjs/common';
 import { TRPCContext } from './context.interface';
 import type { TRPCErrorHandler } from './error-handler.interface';
@@ -13,6 +17,23 @@ import type {
   TRPCSSEOptions,
   TRPCJSONLOptions,
 } from './streaming-options.interface';
+
+/**
+ * Options the module owns through dependency injection (`context`, `onError`)
+ * or router construction (`router`). They cannot be supplied through `trpc`.
+ */
+type ModuleOwnedTRPCOption = 'router' | 'createContext' | 'onError';
+
+export type TRPCAdapterOptions =
+  | Omit<Parameters<typeof createExpressMiddleware>[0], ModuleOwnedTRPCOption>
+  | Omit<
+      FastifyTRPCPluginOptions<AnyRouter>['trpcOptions'],
+      ModuleOwnedTRPCOption
+    >;
+
+export type TRPCOptions = TRPCRuntimeConfigOptions<object, object> &
+  TRPCAdapterOptions &
+  Partial<Record<ModuleOwnedTRPCOption, never>>;
 
 export interface TRPCModuleOptions {
   basePath?: string;
@@ -25,13 +46,25 @@ export interface TRPCModuleOptions {
   context?: Class<TRPCContext>;
 
   /**
+   * Native tRPC options, spelled exactly as tRPC spells them. Root config
+   * options (`transformer`, `errorFormatter`, `sse`, `jsonl`, ...) are passed
+   * to `initTRPC.create()`, everything else to the active HTTP adapter.
+   * The module-owned `router`, `createContext`, and `onError` options are
+   * excluded - use the `context` and `onError` DI classes instead.
+   * @link https://trpc.io/docs/server/adapters
+   */
+  trpc?: TRPCOptions;
+
+  /**
    * Use custom error formatting
+   * @deprecated Use `trpc.errorFormatter` instead. Will be removed in the next major version.
    * @link https://trpc.io/docs/error-formatting
    */
   errorFormatter?: TRPCErrorFormatter<any, TRPCDefaultErrorShape>;
 
   /**
    * Use a data transformer
+   * @deprecated Use `trpc.transformer` instead. Will be removed in the next major version.
    * @link https://trpc.io/docs/data-transformers
    */
   transformer?: DataTransformer | CombinedDataTransformer;
@@ -57,6 +90,7 @@ export interface TRPCModuleOptions {
   /**
    * Options for server-sent events (SSE) subscriptions, e.g. keep-alive
    * pings that prevent proxies from closing idle subscription streams.
+   * @deprecated Use `trpc.sse` instead. Will be removed in the next major version.
    * @link https://trpc.io/docs/server/subscriptions
    */
   sse?: TRPCSSEOptions;
@@ -64,6 +98,7 @@ export interface TRPCModuleOptions {
   /**
    * Options for streamed batch responses (`httpBatchStreamLink`), e.g.
    * keep-alive pings that prevent proxies from closing idle streams.
+   * @deprecated Use `trpc.jsonl` instead. Will be removed in the next major version.
    * @link https://trpc.io/docs/client/links/httpBatchStreamLink
    */
   jsonl?: TRPCJSONLOptions;

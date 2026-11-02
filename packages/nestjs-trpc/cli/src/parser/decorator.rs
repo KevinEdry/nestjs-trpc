@@ -702,7 +702,7 @@ mod tests {
         let (_temp, parsed) = parse_file(source);
         let decorators = get_method_decorators(&parsed, "getUser").expect("Method not found");
 
-        assert!(!decorators.is_empty());
+        assert_ne!(decorators.len(), 0);
         assert!(is_procedure_decorator(&decorators[0]));
     }
 
@@ -811,7 +811,7 @@ mod tests {
         let (_temp, parsed) = parse_file(source);
         let decorators = get_method_decorators(&parsed, "onMessage").expect("Method not found");
 
-        assert!(!decorators.is_empty());
+        assert_ne!(decorators.len(), 0);
         assert!(is_procedure_decorator(&decorators[0]));
     }
 

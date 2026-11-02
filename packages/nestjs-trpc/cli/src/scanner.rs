@@ -244,7 +244,7 @@ mod tests {
         let scanner = FileScanner::new(temp_dir.path()).unwrap();
         let files = scanner.scan("**/*.nonexistent").unwrap();
 
-        assert!(files.is_empty());
+        assert_eq!(files.len(), 0);
     }
 
     #[test]

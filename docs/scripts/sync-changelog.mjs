@@ -28,6 +28,17 @@ function toMdxSafeMarkdown(markdown) {
     .trimEnd();
 }
 
+function linkVersionHeadingsToReleases(markdown) {
+  return markdown.replace(
+    /^## \[(\d+\.\d+\.\d+)\]/gm,
+    (heading, version) =>
+      `## [${version}](https://github.com/KevinEdry/nestjs-trpc/releases/tag/v${version})`,
+  );
+}
+
 const changelog = readFileSync(source, 'utf8');
-writeFileSync(target, `${toMdxSafeMarkdown(changelog)}\n`);
+writeFileSync(
+  target,
+  `${linkVersionHeadingsToReleases(toMdxSafeMarkdown(changelog))}\n`,
+);
 console.log(`Synced ${source} -> ${target}`);

@@ -16,6 +16,11 @@
     "title": "Docs",
     "type": "page"
   },
+  "changelog": {
+    "title": "Changelog",
+    "type": "page",
+    "href": "/docs/changelog"
+  },
   "contact": {
     "title": "Contact ↗",
     "type": "page",

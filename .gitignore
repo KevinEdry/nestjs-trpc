@@ -59,3 +59,7 @@ examples/**/test/**/*.d.ts
 examples/**/test/**/*.d.ts.map
 # Generated docs changelog page (synced from CHANGELOG.md at build time)
 docs/pages/docs/changelog.md
+# Generated AI-agent docs surface (built from docs pages at build time)
+docs/public/llms.txt
+docs/public/llms-full.txt
+docs/public/docs/

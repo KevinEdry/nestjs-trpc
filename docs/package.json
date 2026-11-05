@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "main": ".next/index.js",
   "scripts": {
-    "build": "node scripts/sync-changelog.mjs && rimraf .next && rimraf .out && next build && next-sitemap",
+    "build": "node scripts/sync-changelog.mjs && node scripts/generate-llms-txt.mjs && rimraf .next && rimraf .out && next build && next-sitemap",
     "start": "next start",
-    "dev": "node scripts/sync-changelog.mjs && next dev",
+    "dev": "node scripts/sync-changelog.mjs && node scripts/generate-llms-txt.mjs && next dev",
     "lint": "next lint"
   },
   "keywords": [],

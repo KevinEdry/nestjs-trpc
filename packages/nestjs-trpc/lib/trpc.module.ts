@@ -14,7 +14,7 @@ import {
   TRPC_MODULE_OPTIONS,
 } from './trpc.constants';
 
-import { TRPCModuleOptions } from './interfaces';
+import type { TRPCModuleOptions } from './interfaces';
 import { TRPCDriver } from './trpc.driver';
 import { AppRouterHost } from './app-router.host';
 import { ExpressDriver, FastifyDriver } from './drivers';

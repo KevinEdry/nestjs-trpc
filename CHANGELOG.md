@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.14.1] - 2026-11-12
+
+### Bug Fixes
+
+- **nestjs-trpc:** Import TRPCModuleOptions as type-only
+- **nestjs-trpc:** Support the NodeAdapter from @nestjs/platform-node
+
+### Miscellaneous Tasks
+
+- **nestjs-trpc:** Drop build step for the deleted config tsconfig
+
 ## [2.14.0] - 2026-11-02
 
 ### Bug Fixes

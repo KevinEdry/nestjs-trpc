@@ -8,6 +8,11 @@ import type {
 } from '@trpc/server';
 import type { createExpressMiddleware } from '@trpc/server/adapters/express';
 import type { FastifyTRPCPluginOptions } from '@trpc/server/adapters/fastify';
+import type {
+  NodeHTTPHandlerOptions,
+  NodeHTTPRequest,
+  NodeHTTPResponse,
+} from '@trpc/server/adapters/node-http';
 import type { LoggerService } from '@nestjs/common';
 import { TRPCContext } from './context.interface';
 import type { TRPCErrorHandler } from './error-handler.interface';
@@ -24,12 +29,25 @@ import type {
  */
 type ModuleOwnedTRPCOption = 'router' | 'createContext' | 'onError';
 
-export type TRPCAdapterOptions =
-  | Omit<Parameters<typeof createExpressMiddleware>[0], ModuleOwnedTRPCOption>
+type NodeAdapterHandlerOptions = NodeHTTPHandlerOptions<
+  AnyRouter,
+  NodeHTTPRequest,
+  NodeHTTPResponse
+>;
+
+export type TRPCAdapterOptions = (
+  | Omit<
+      Parameters<typeof createExpressMiddleware>[0],
+      ModuleOwnedTRPCOption | 'middleware'
+    >
   | Omit<
       FastifyTRPCPluginOptions<AnyRouter>['trpcOptions'],
       ModuleOwnedTRPCOption
-    >;
+    >
+  | Omit<NodeAdapterHandlerOptions, ModuleOwnedTRPCOption | 'middleware'>
+) & {
+  middleware?: NodeAdapterHandlerOptions['middleware'];
+};
 
 export type TRPCOptions = TRPCRuntimeConfigOptions<object, object> &
   TRPCAdapterOptions &

@@ -3,7 +3,7 @@ import { HttpAdapterHost, ModuleRef } from '@nestjs/core';
 import { TRPCDriver } from '../trpc.driver';
 import { TRPCFactory } from '../factories/trpc.factory';
 import { AppRouterHost } from '../app-router.host';
-import { ExpressDriver, FastifyDriver } from '../drivers';
+import { ExpressDriver, FastifyDriver, NodeDriver } from '../drivers';
 import { TRPC_LOGGER } from '../trpc.constants';
 import { TRPCModuleOptions } from '../interfaces';
 
@@ -14,6 +14,15 @@ function createMockExpressApp() {
   app.post = jest.fn();
   app.use = jest.fn();
   app.listen = jest.fn();
+  return app;
+}
+
+function createMockNodeApp() {
+  const app: any = function () {};
+  app.get = jest.fn();
+  app.post = jest.fn();
+  app.use = jest.fn();
+  app.handle = jest.fn();
   return app;
 }
 
@@ -39,6 +48,10 @@ describe('TRPCDriver', () => {
   };
 
   const mockFastifyDriver = {
+    start: jest.fn().mockResolvedValue(undefined),
+  };
+
+  const mockNodeDriver = {
     start: jest.fn().mockResolvedValue(undefined),
   };
 
@@ -69,6 +82,10 @@ describe('TRPCDriver', () => {
         {
           provide: FastifyDriver,
           useValue: mockFastifyDriver,
+        },
+        {
+          provide: NodeDriver,
+          useValue: mockNodeDriver,
         },
       ],
     }).compile();
@@ -196,6 +213,58 @@ describe('TRPCDriver', () => {
         null,
         {},
       );
+    });
+  });
+
+  describe('http adapter platforms', () => {
+    afterEach(() => {
+      mockHttpAdapterHost.httpAdapter.getType.mockReturnValue('express');
+      mockHttpAdapterHost.httpAdapter.getInstance.mockReturnValue(
+        mockExpressApp,
+      );
+    });
+
+    it('starts the node driver for the node platform', async () => {
+      const mockNodeApp = createMockNodeApp();
+      mockHttpAdapterHost.httpAdapter.getType.mockReturnValue('node');
+      mockHttpAdapterHost.httpAdapter.getInstance.mockReturnValue(mockNodeApp);
+
+      const options: TRPCModuleOptions = { basePath: '/api/trpc' };
+
+      await trpcDriver.start(options);
+
+      expect(mockNodeDriver.start).toHaveBeenCalledWith(
+        options,
+        mockNodeApp,
+        expect.anything(),
+        null,
+        null,
+        {},
+      );
+      expect(mockExpressDriver.start).not.toHaveBeenCalled();
+      expect(mockFastifyDriver.start).not.toHaveBeenCalled();
+    });
+
+    it('throws for an unknown platform', async () => {
+      mockHttpAdapterHost.httpAdapter.getType.mockReturnValue('koa');
+      mockHttpAdapterHost.httpAdapter.getInstance.mockReturnValue({});
+
+      await expect(trpcDriver.start({})).rejects.toThrow(
+        'Unsupported http adapter: koa',
+      );
+    });
+
+    it('throws when the node platform instance does not look like a node router', async () => {
+      mockHttpAdapterHost.httpAdapter.getType.mockReturnValue('node');
+      mockHttpAdapterHost.httpAdapter.getInstance.mockReturnValue({
+        use: jest.fn(),
+      });
+
+      await expect(trpcDriver.start({})).rejects.toThrow(
+        'Unsupported http adapter: node',
+      );
+      expect(mockNodeDriver.start).not.toHaveBeenCalled();
+      expect(mockExpressDriver.start).not.toHaveBeenCalled();
     });
   });
 

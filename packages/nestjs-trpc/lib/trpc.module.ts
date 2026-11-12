@@ -17,7 +17,7 @@ import {
 import type { TRPCModuleOptions } from './interfaces';
 import { TRPCDriver } from './trpc.driver';
 import { AppRouterHost } from './app-router.host';
-import { ExpressDriver, FastifyDriver } from './drivers';
+import { ExpressDriver, FastifyDriver, NodeDriver } from './drivers';
 import { TRPCFactory } from './factories/trpc.factory';
 import { RouterFactory } from './factories/router.factory';
 import { ProcedureFactory } from './factories/procedure.factory';
@@ -71,6 +71,7 @@ export class TRPCModule implements NestModule, OnModuleInit {
         TRPCDriver,
         FastifyDriver,
         ExpressDriver,
+        NodeDriver,
 
         // Exports
         AppRouterHost,

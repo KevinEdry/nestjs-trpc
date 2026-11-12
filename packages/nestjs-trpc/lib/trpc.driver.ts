@@ -13,7 +13,8 @@ import type { TRPCPublicProcedure } from './interfaces';
 import { AnyRouter, initTRPC } from '@trpc/server';
 import { TRPCFactory } from './factories/trpc.factory';
 import { AppRouterHost } from './app-router.host';
-import { ExpressDriver, FastifyDriver } from './drivers';
+import { ExpressDriver, FastifyDriver, NodeDriver } from './drivers';
+import type { NodeApplication } from './drivers';
 import { TRPC_LOGGER } from './trpc.constants';
 import {
   resolveTRPCOptions,
@@ -27,6 +28,16 @@ function isExpressApplication(app: any): app is ExpressApplication {
     typeof app.post === 'function' &&
     typeof app.use === 'function' &&
     typeof app.listen === 'function'
+  );
+}
+
+function isNodeApplication(app: any): app is NodeApplication {
+  return (
+    typeof app === 'function' &&
+    typeof app.get === 'function' &&
+    typeof app.post === 'function' &&
+    typeof app.use === 'function' &&
+    typeof app.handle === 'function'
   );
 }
 
@@ -53,6 +64,7 @@ export class TRPCDriver<
     protected readonly appRouterHost: AppRouterHost,
     protected readonly expressDriver: ExpressDriver,
     protected readonly fastifyDriver: FastifyDriver,
+    protected readonly nodeDriver: NodeDriver,
     @Inject(ModuleRef) protected readonly moduleRef: ModuleRef,
   ) {}
 
@@ -98,11 +110,20 @@ export class TRPCDriver<
     const platformName = httpAdapter.getType();
 
     const app = httpAdapter.getInstance<
-      ExpressApplication | FastifyApplication
+      ExpressApplication | FastifyApplication | NodeApplication
     >();
 
     if (platformName === 'express' && isExpressApplication(app)) {
       await this.expressDriver.start(
+        options,
+        app,
+        appRouter,
+        contextInstance,
+        onErrorInstance,
+        adapterOptions,
+      );
+    } else if (platformName === 'node' && isNodeApplication(app)) {
+      await this.nodeDriver.start(
         options,
         app,
         appRouter,
